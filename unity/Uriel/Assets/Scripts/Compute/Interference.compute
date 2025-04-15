@@ -1,0 +1,74 @@
+#pragma kernel Init
+#pragma kernel Tick
+
+struct Source
+{
+    float2 position;
+    int frequency;
+    float amplitude;
+};
+
+
+RWTexture2D<float4> Result;
+int ShellCount;
+int SourcesCount;
+int Width;
+int Height;
+float Frequency;
+float Amplitude;
+float Threshold;
+float2 Offset;
+float Angle;
+float ColorScale;
+float ColorOffset;
+float4 ColorSteps;
+
+
+float3 hsv2rgb(float h, float s, float v) {
+    h = frac(h);
+    float i = floor(h * ColorScale);
+    float f = h * ColorScale - i;
+    float p = v * (ColorSteps[0] - s);
+    float q = v * (ColorSteps[1] - f * s);
+    float t = v * (ColorSteps[2] - (ColorSteps[3] - f) * s);
+    if(i == 0.0) return float3(v, t, p);
+    if(i == 1.0) return float3(q, v, p);
+    if(i == 2.0) return float3(p, v, t);
+    if(i == 3.0) return float3(p, q, v);
+    if(i == 4.0) return float3(t, p, v);
+    return float3(v, p, q);
+}
+
+[numthreads(8,8,1)]
+void Init (uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+}
+
+[numthreads(8,8,1)]
+void Tick (uint3 id : SV_DispatchThreadID)
+{
+    float sum = 0.0;
+    const float2 uv = float2((float)id.x / Width, (float)id.y / Width);
+    for (int i = 0; i < ShellCount; i++) {
+        float a = float(i) / float(ShellCount) * 6.28318530718 * Angle;
+        const float2 source = Offset.x + float2(cos(a), sin(a));
+        const float d = distance(uv, source);
+        for (int k = 0; k < SourcesCount; k++)
+        {
+            sum += cos(d * Frequency * k) * Amplitude;
+        }
+    }
+    float3 col = hsv2rgb(sum + ColorOffset, 1, 1);
+    if(sum < Threshold)
+    {
+        Result[id.xy] = float4(0, 0, 0, 0.0);
+        return;
+    }
+    else
+    {
+        Result[id.xy] = float4(1, 1, 1, 1.0);
+        return;
+    }
+    Result[id.xy] = float4(col.x, col.y, col.z, 1.0);
+}
