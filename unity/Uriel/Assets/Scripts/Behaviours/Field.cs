@@ -52,8 +52,8 @@ namespace Uriel.Behaviours
         private static readonly int ShellCountKeyword = Shader.PropertyToID("ShellCount");
         private void Start()
         {
-            threadGroupsX = Mathf.FloorToInt(width / 8f);
-            threadGroupsY = Mathf.FloorToInt(height / 8f);
+            threadGroupsX = Mathf.FloorToInt(width);
+            threadGroupsY = Mathf.FloorToInt(height);
             tickKernel = compute.FindKernel("Tick");
             initKernel = compute.FindKernel("Init");
             quad.localScale = new Vector3(width, height, 1) * 0.1f;
