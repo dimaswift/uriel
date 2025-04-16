@@ -22,7 +22,7 @@ float Angle;
 float ColorScale;
 float ColorOffset;
 float4 ColorSteps;
-
+float Time;
 
 float3 hsv2rgb(float h, float s, float v) {
     h = frac(h);
@@ -56,19 +56,13 @@ void Tick (uint3 id : SV_DispatchThreadID)
         const float d = distance(uv, source);
         for (int k = 0; k < SourcesCount; k++)
         {
-            sum += cos(d * Frequency * k) * Amplitude;
+            sum += sin(d *(Frequency + sin(Time * 2))) * Amplitude;
+          //  sum += cos(d * (Frequency + sin(Time * 3)) * k * ColorSteps[1]) * Amplitude * Amplitude;
+         //   sum += sin(d * (Frequency + sin(Time * 4)) * k * ColorSteps[2]) * Amplitude * Amplitude * Amplitude;
         }
     }
-    float3 col = hsv2rgb(sum + ColorOffset, 1, 1);
-    if(sum < Threshold)
-    {
-        Result[id.xy] = float4(0, 0, 0, 0.0);
-        return;
-    }
-    else
-    {
-        Result[id.xy] = float4(1, 1, 1, 1.0);
-        return;
-    }
-    Result[id.xy] = float4(col.x, col.y, col.z, 1.0);
+    float v = smoothstep(sum, Threshold, ColorOffset);
+    float3 col = hsv2rgb(sum / Threshold + ColorOffset, 1, 1);
+  
+    Result[id.xy] = float4(v,v,v, 1.0);
 }

@@ -559,22 +559,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f511711603507294fbaf16a4d562adf1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shellCount: 9
   quad: {fileID: 478638708}
-  textureMode: 2
-  width: 2000
-  height: 3200
+  textureMode: 0
+  width: 1650
+  height: 2610
   compute: {fileID: 7200000, guid: c51c1c06827536b4091a0d949fef47ef, type: 3}
   targetMat: {fileID: 2100000, guid: 9eca1b6d77d0307469a9dbcafc6a8d1c, type: 2}
-  frequency: 18.23
-  amplitude: 0.34
-  colorScale: 1.67
-  colorOffset: -3.58
-  colorSteps: {x: 1, y: 1, z: 1, w: 1}
-  sourceCount: 5
-  threshold: -5.1
-  time: 411.4957
-  speed: 1
-  offset: {x: 0.5, y: 0.47}
+  frequency: 107.7
+  amplitude: -0.1
+  colorScale: -1.14
+  colorOffset: 196.9
+  colorSteps: {x: 7.05, y: -0.25, z: 0.05, w: 1}
+  sourceCount: 3776
+  threshold: 2.4
+  time: 75.2
+  speed: 0
+  offset: {x: 0.5, y: 5.55}
   angle: 1
   frequencyFine: 0
   amplitudeFine: 0
