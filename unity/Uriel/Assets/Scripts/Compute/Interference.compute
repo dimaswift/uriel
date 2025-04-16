@@ -1,6 +1,8 @@
 #pragma kernel Init
 #pragma kernel Tick
 
+#define PI 3.14159265359
+
 struct Source
 {
     float2 position;
@@ -48,21 +50,24 @@ void Init (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,1)]
 void Tick (uint3 id : SV_DispatchThreadID)
 {
-    float sum = 0.0;
+    float v = 0.0;
+    float h = 0.0;
+    float s = 0.0;
     const float2 uv = float2((float)id.x / Width, (float)id.y / Width);
+    float2 mirrored_uv = uv;
+    mirrored_uv.x = abs(uv.x - 0.5) + 0.5;
     for (int i = 0; i < ShellCount; i++) {
         float a = float(i) / float(ShellCount) * 6.28318530718 * Angle;
-        const float2 source = Offset.x + float2(cos(a), sin(a));
+        float deformation = sin(a * SourcesCount) * ColorSteps[2];
+        const float2 source = Offset.x + float2(cos(a), sin(a) * (1.0 + deformation));
         const float d = distance(uv, source);
-        for (int k = 0; k < SourcesCount; k++)
-        {
-            sum += sin(d *(Frequency + sin(Time * 2))) * Amplitude;
-          //  sum += cos(d * (Frequency + sin(Time * 3)) * k * ColorSteps[1]) * Amplitude * Amplitude;
-         //   sum += sin(d * (Frequency + sin(Time * 4)) * k * ColorSteps[2]) * Amplitude * Amplitude * Amplitude;
-        }
+        const float d_mirror = distance(mirrored_uv, source);
+        v += sin(sqrt(d_mirror) * (Frequency)) * Amplitude;
+        h += sin(d_mirror * (Frequency + ColorSteps[0])) * Amplitude;
+        s += sin(d_mirror * d_mirror * (Frequency + ColorSteps[1])) * Amplitude;
+        
+        
     }
-    float v = smoothstep(sum, Threshold, ColorOffset);
-    float3 col = hsv2rgb(sum / Threshold + ColorOffset, 1, 1);
-  
-    Result[id.xy] = float4(v,v,v, 1.0);
+    const float3 color = hsv2rgb(h, s, v);
+    Result[id.xy] = float4(color, 1.0);
 }
