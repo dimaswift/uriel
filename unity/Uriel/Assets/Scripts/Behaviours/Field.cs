@@ -12,7 +12,7 @@ namespace Uriel.Behaviours
         [SerializeField] private int depth = 64;
         [SerializeField] private float minColor;
         [SerializeField] private float maxColor;
-        [SerializeField] private Vector2 center;
+        [SerializeField] private Vector3 center;
         [SerializeField] private Wave[] waves;
         [SerializeField] private int shellCount = 5;
         [SerializeField] private Transform quad;
@@ -30,7 +30,7 @@ namespace Uriel.Behaviours
         [SerializeField] private float threshold = 1;
         [SerializeField] private float time = 1;
         [Range(0f, 1f)] [SerializeField] private float speed = 1;
-        [SerializeField] private Vector2 offset;
+        [SerializeField] private Vector3 offset;
 
         [Range(0f, 1f)] [SerializeField] private float angle = 1;
         [Range(0f, 1f)] [SerializeField] private float frequencyFine;

@@ -26,8 +26,8 @@ float Amplitude_0;
 float Amplitude_1;
 float Amplitude_2;
 float Threshold;
-float2 Center;
-float2 Offset;
+float3 Center;
+float3 Offset;
 float Angle;
 float ColorScale;
 float ColorOffset;
@@ -63,18 +63,15 @@ void Init (uint3 id : SV_DispatchThreadID)
 void Tick (uint3 id : SV_DispatchThreadID)
 {
     float v = 0.0;
-    const float2 uv = float2((float)id.x / Width, (float)id.y / Width);
-    float2 mirrored_uv = uv;
-    mirrored_uv.x = abs(uv.x - Center.x) + Offset.x;
-    mirrored_uv.y = abs(uv.y - Center.y) + Offset.y;
+    const float3 uv = float3((float)id.x / Width, (float)id.y / Width, (float(ZIndex) / Width)) + Center;
     for (int i = 0; i < Shell_0; i++) {
         
         const float a = float(i) / float(Shell_0) * PI * 2;
-        const float2 source = float2(cos(a), sin(a));
-        const float d_mirror = distance(mirrored_uv, source)  * ColorScale;
-        v += cos(sqrt(d_mirror) * (Frequency_0  + ((float)ZIndex / Width) * Amplitude_1)) * Amplitude_0;
+        const float3 source = float3(sin(a),cos(a),-sin(a));
+        const float d_mirror = distance(uv, source)  * ColorScale;
+        v += sin(sqrt(d_mirror) * (Frequency_0 )) * Amplitude_0;
     }
+   
     float grayscale = smoothstep(v, MinColor, MaxColor);
-    
     Result[uint3(id.xy, ZIndex)] = float4(grayscale, grayscale, grayscale, grayscale);
 }

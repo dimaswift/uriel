@@ -205,8 +205,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -80}
+  m_LocalRotation: {x: 0.031521853, y: 0.3764108, z: -0.012815738, w: 0.9258278}
+  m_LocalPosition: {x: -46.152424, y: 0.21404158, z: -45.201866}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -600,7 +600,7 @@ MonoBehaviour:
   depth: 64
   minColor: 0
   maxColor: 0
-  center: {x: 0, y: 0}
+  center: {x: 0, y: 0, z: 0}
   waves: []
   shellCount: 1791
   quad: {fileID: 1325254260}
@@ -618,7 +618,7 @@ MonoBehaviour:
   threshold: 2.75
   time: 92.27702
   speed: 0.003
-  offset: {x: -3.76, y: -0.01}
+  offset: {x: -3.76, y: -0.01, z: 0}
   angle: 1
   frequencyFine: 1
   amplitudeFine: 0.384
@@ -719,19 +719,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   effect: {fileID: 1817375771}
   depth: 512
-  minColor: -76
-  maxColor: -11.26
-  center: {x: 0.5, y: 0.5}
+  minColor: 1010.3
+  maxColor: 17.5
+  center: {x: -0.5, y: 0.5, z: -0.5}
   waves:
-  - frequency: 5.89
-    amplitude: 2.29
-    shells: 9
-  - frequency: 3.64
-    amplitude: 1.51
-    shells: 19
-  - frequency: 0.09
-    amplitude: 4.37
-    shells: 9
+  - frequency: 15.6
+    amplitude: 30
+    shells: 16
+  - frequency: 5
+    amplitude: 5
+    shells: 0
+  - frequency: 5
+    amplitude: 5
+    shells: 3
   shellCount: 12
   quad: {fileID: 2052073904}
   textureMode: 0
@@ -741,14 +741,14 @@ MonoBehaviour:
   targetMat: {fileID: 2100000, guid: 9eca1b6d77d0307469a9dbcafc6a8d1c, type: 2}
   frequency: 104.3
   amplitude: 0.2
-  colorScale: 54.9
-  colorOffset: 3
-  colorSteps: {x: 0.5, y: -0.73, z: 0.62, w: 0.12}
+  colorScale: 6.12
+  colorOffset: 12.37
+  colorSteps: {x: 0.86, y: 1, z: 5.81, w: 0.12}
   sourceCount: -27
   threshold: -20.76
   time: 3.8
   speed: 0
-  offset: {x: 0.81, y: 0}
+  offset: {x: 0, y: 0, z: 0}
   angle: 1
   frequencyFine: 0
   amplitudeFine: 0.325
@@ -888,7 +888,7 @@ MonoBehaviour:
   depth: 64
   minColor: 0
   maxColor: 0
-  center: {x: 0, y: 0}
+  center: {x: 0, y: 0, z: 0}
   waves:
   - frequency: -53.7
     amplitude: -0.64
@@ -915,7 +915,7 @@ MonoBehaviour:
   threshold: 0.5
   time: 50.9
   speed: 0
-  offset: {x: -0.24, y: 0.35}
+  offset: {x: -0.24, y: 0.35, z: 0}
   angle: 1
   frequencyFine: 0
   amplitudeFine: 0.325
@@ -969,7 +969,7 @@ MonoBehaviour:
   depth: 64
   minColor: 0
   maxColor: 0
-  center: {x: 0, y: 0}
+  center: {x: 0, y: 0, z: 0}
   waves:
   - frequency: 67.3
     amplitude: 0.59
@@ -996,7 +996,7 @@ MonoBehaviour:
   threshold: 1.36
   time: 53.3
   speed: 0
-  offset: {x: 0.51, y: 0.47}
+  offset: {x: 0.51, y: 0.47, z: 0}
   angle: 1
   frequencyFine: 0
   amplitudeFine: 0.325
@@ -1050,7 +1050,7 @@ MonoBehaviour:
   depth: 64
   minColor: 0
   maxColor: 0
-  center: {x: 0, y: 0}
+  center: {x: 0, y: 0, z: 0}
   waves: []
   shellCount: 12
   quad: {fileID: 1984001820}
@@ -1068,7 +1068,7 @@ MonoBehaviour:
   threshold: 9.06
   time: 4068.6719
   speed: 0.107
-  offset: {x: 0.5, y: -7.08}
+  offset: {x: 0.5, y: -7.08, z: 0}
   angle: 0.013
   frequencyFine: 0
   amplitudeFine: 0
