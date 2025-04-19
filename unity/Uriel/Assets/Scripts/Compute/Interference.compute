@@ -12,19 +12,29 @@ struct Source
 
 
 RWTexture2D<float4> Result;
-int ShellCount;
+int Shell_0;
+int Shell_1;
+int Shell_2;
 int SourcesCount;
 int Width;
 int Height;
-float Frequency;
-float Amplitude;
+float Frequency_0;
+float Frequency_1;
+float Frequency_2;
+
+float Amplitude_0;
+float Amplitude_1;
+float Amplitude_2;
 float Threshold;
+float2 Center;
 float2 Offset;
 float Angle;
 float ColorScale;
 float ColorOffset;
 float4 ColorSteps;
 float Time;
+float MaxColor;
+float MinColor;
 
 float3 hsv2rgb(float h, float s, float v) {
     h = frac(h);
@@ -47,26 +57,28 @@ void Init (uint3 id : SV_DispatchThreadID)
     Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
 }
 
-[numthreads(1,1,1)]
+[numthreads(64, 1, 1)]  
 void Tick (uint3 id : SV_DispatchThreadID)
 {
     float v = 0.0;
-    float h = 0.0;
-    float s = 0.0;
     const float2 uv = float2((float)id.x / Width, (float)id.y / Width);
     float2 mirrored_uv = uv;
-    mirrored_uv.x = abs(uv.x - Threshold) + Offset.y;
-    for (int i = 0; i < ShellCount; i++) {
+    mirrored_uv.x = abs(uv.x - Center.x) + Offset.x;
+    mirrored_uv.y = abs(uv.y - Center.y) + Offset.y;
+    for (int i = 0; i < Shell_0; i++) {
         
-        const float a = float(i) / float(ShellCount) * 6.28318530718 * Angle;
-        const float t_offset = Time + i * ColorSteps[0];
-        const float deformation = sin(a * SourcesCount + t_offset) * ColorSteps[2];
-        const float2 source = Offset.x + float2(cos(a), sin(a) * (1.0 + deformation));
-        const float d_mirror = distance(mirrored_uv, source);
-        v += sin(sqrt(d_mirror) * Frequency) * Amplitude;
-        h += sin(d_mirror * Frequency) * Amplitude;
-        s += sin(d_mirror * d_mirror * Frequency) * Amplitude;
+        const float a = float(i) / float(Shell_0) * PI * 2;
+        const float2 source = float2(cos(a), sin(a));
+        const float d_mirror = distance(mirrored_uv, source)  * ColorScale;
+        v += cos(sqrt(d_mirror) * Frequency_0 * Time) * Amplitude_0;
     }
-    const float3 color = hsv2rgb(h, s, v);
-    Result[id.xy] = float4(color.x, color.y, color.z, 1.0);
+    for (int i = 0; i < Shell_1; i++) {
+        
+        const float a = float(i) / float(Shell_1) * PI * 2;
+        const float2 source = float2(cos(a), sin(a));
+        const float d_mirror = distance(mirrored_uv, source) * ColorScale;
+        v += sin(d_mirror * Frequency_1 * Time) * Amplitude_1;
+    }
+    float grayscale = smoothstep(v, MinColor, MaxColor);
+    Result[id.xy] = float4(grayscale, grayscale, grayscale, 1.0);
 }

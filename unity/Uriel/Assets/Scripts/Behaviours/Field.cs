@@ -7,6 +7,10 @@ namespace Uriel.Behaviours
 {
     public class Field : MonoBehaviour
     {
+        [SerializeField] private float minColor;
+        [SerializeField] private float maxColor;
+        [SerializeField] private Vector2 center;
+        [SerializeField] private Wave[] waves;
         [SerializeField] private int shellCount = 5;
         [SerializeField] private Transform quad;
         [SerializeField] private FilterMode textureMode;
@@ -50,6 +54,15 @@ namespace Uriel.Behaviours
         private static readonly int ColorOffsetKeyword = Shader.PropertyToID("ColorOffset");
         private static readonly int ColorStepsKeyword = Shader.PropertyToID("ColorSteps");
         private static readonly int ShellCountKeyword = Shader.PropertyToID("ShellCount");
+
+        [System.Serializable]
+        public struct Wave
+        {
+            public float frequency;
+            public float amplitude;
+            public int shells;
+        }
+        
         private void Start()
         {
             threadGroupsX = Mathf.FloorToInt(width);
@@ -101,8 +114,16 @@ namespace Uriel.Behaviours
         private void Update()
         {
             time += Time.deltaTime * speed;
-            compute.SetFloat(FrequencyKeyword, frequency + frequencyFine);
-            compute.SetFloat(AmplitudeKeyword, amplitude + amplitudeFine);
+            for (int i = 0; i < waves.Length; i++)
+            {
+                compute.SetFloat($"Frequency_{i}", waves[i].frequency);
+                compute.SetFloat($"Amplitude_{i}", waves[i].amplitude);
+                compute.SetInt($"Shell_{i}", waves[i].shells);
+            }
+
+            compute.SetFloat("MinColor", minColor);
+            compute.SetFloat("MaxColor", maxColor);
+            compute.SetVector("Center", center);
             compute.SetFloat(ThresholdKeyword, threshold);
             compute.SetVector(OffsetKeyword, offset);
             compute.SetFloat(AngleKeyword, angle);
@@ -110,7 +131,7 @@ namespace Uriel.Behaviours
             compute.SetFloat(ColorScaleKeyword, colorScale);
             compute.SetFloat(ColorOffsetKeyword, colorOffset);
             compute.SetVector(ColorStepsKeyword, colorSteps);
-            compute.SetInt(ShellCountKeyword, shellCount);
+          
             UpdateSources();
             compute.Dispatch(tickKernel, threadGroupsX, threadGroupsY, 1);
 
