@@ -1,0 +1,82 @@
+#pragma kernel March
+
+RWStructuredBuffer<float3> VertexBuffer;
+RWStructuredBuffer<int> IndexBuffer;
+Texture3D<float> DensityTex;
+
+int Width;
+int Height;
+int Depth;
+float IsoLevel;
+
+static const int edgeTable[256] = { /* Insert the 256-value edge lookup table */ };
+static const int triTable[256][16] = { /* Insert the triangle lookup table */ };
+
+[numthreads(4, 4, 4)]
+void March(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= Width - 1 || id.y >= Height - 1 || id.z >= Depth - 1)
+        return;
+
+    float3 cubeCorners[8];
+    float cubeValues[8];
+
+    // Sample 8 corners of this voxel cube
+    [unroll] for (int i = 0; i < 8; i++)
+    {
+        int3 offset = int3(
+            i & 1,
+            (i >> 1) & 1,
+            (i >> 2) & 1
+        );
+
+        int3 samplePos = int3(id.x, id.y, id.z) + offset;
+        float3 worldPos = samplePos; // or scale if needed
+
+        cubeCorners[i] = worldPos;
+        cubeValues[i] = DensityTex.Load(int4(samplePos, 0));
+    }
+
+    // Create index using cube configuration
+    int cubeIndex = 0;
+    [unroll] for (int i = 0; i < 8; i++)
+    {
+        if (cubeValues[i] < IsoLevel)
+            cubeIndex |= (1 << i);
+    }
+
+    int edgeFlags = edgeTable[cubeIndex];
+    if (edgeFlags == 0)
+        return;
+
+    float3 edgeVerts[12];
+
+    // Interpolate vertices along edges
+    [unroll] for (int e = 0; e < 12; e++)
+    {
+        if ((edgeFlags & (1 << e)) == 0) continue;
+
+        int a0 = cornerIndexAFromEdge[e];
+        int b0 = cornerIndexBFromEdge[e];
+
+        float3 p1 = cubeCorners[a0];
+        float3 p2 = cubeCorners[b0];
+
+        float val1 = cubeValues[a0];
+        float val2 = cubeValues[b0];
+
+        float t = (IsoLevel - val1) / (val2 - val1 + 0.0001); // Avoid div by zero
+        edgeVerts[e] = lerp(p1, p2, t);
+    }
+
+    // Output triangles
+    [unroll] for (int i = 0; i < 16; i += 3)
+    {
+        int idx = triTable[cubeIndex][i];
+        if (idx == -1) break;
+
+        VertexBuffer.Append(edgeVerts[idx]);
+        VertexBuffer.Append(edgeVerts[triTable[cubeIndex][i + 1]]);
+        VertexBuffer.Append(edgeVerts[triTable[cubeIndex][i + 2]]);
+    }
+}

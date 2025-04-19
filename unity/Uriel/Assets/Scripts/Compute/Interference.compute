@@ -11,7 +11,7 @@ struct Source
 };
 
 
-RWTexture2D<float4> Result;
+RWTexture3D<float4> Result;
 int Shell_0;
 int Shell_1;
 int Shell_2;
@@ -36,6 +36,8 @@ float Time;
 float MaxColor;
 float MinColor;
 
+int ZIndex;
+
 float3 hsv2rgb(float h, float s, float v) {
     h = frac(h);
     float i = floor(h * ColorScale);
@@ -54,7 +56,7 @@ float3 hsv2rgb(float h, float s, float v) {
 [numthreads(8,8,1)]
 void Init (uint3 id : SV_DispatchThreadID)
 {
-    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+    Result[uint3(id.xy, ZIndex)] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
 }
 
 [numthreads(64, 1, 1)]  
@@ -70,15 +72,9 @@ void Tick (uint3 id : SV_DispatchThreadID)
         const float a = float(i) / float(Shell_0) * PI * 2;
         const float2 source = float2(cos(a), sin(a));
         const float d_mirror = distance(mirrored_uv, source)  * ColorScale;
-        v += cos(sqrt(d_mirror) * Frequency_0 * Time) * Amplitude_0;
-    }
-    for (int i = 0; i < Shell_1; i++) {
-        
-        const float a = float(i) / float(Shell_1) * PI * 2;
-        const float2 source = float2(cos(a), sin(a));
-        const float d_mirror = distance(mirrored_uv, source) * ColorScale;
-        v += sin(d_mirror * Frequency_1 * Time) * Amplitude_1;
+        v += cos(sqrt(d_mirror) * (Frequency_0  + ((float)ZIndex / Width) * Amplitude_1)) * Amplitude_0;
     }
     float grayscale = smoothstep(v, MinColor, MaxColor);
-    Result[id.xy] = float4(grayscale, grayscale, grayscale, 1.0);
+    
+    Result[uint3(id.xy, ZIndex)] = float4(grayscale, grayscale, grayscale, grayscale);
 }

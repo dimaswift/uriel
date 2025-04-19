@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 using Uriel.Domain;
 
 namespace Uriel.Behaviours
 {
     public class Field : MonoBehaviour
     {
+        [SerializeField] private VisualEffect effect;
+        [SerializeField] private int depth = 64;
         [SerializeField] private float minColor;
         [SerializeField] private float maxColor;
         [SerializeField] private Vector2 center;
@@ -33,11 +36,12 @@ namespace Uriel.Behaviours
         [Range(0f, 1f)] [SerializeField] private float frequencyFine;
         [Range(0f, 1f)] [SerializeField] private float amplitudeFine;
         
-        private RenderTexture result;
+        public RenderTexture result;
         private int initKernel;
         private int tickKernel;
         private int threadGroupsX;
         private int threadGroupsY;
+        private int zIndex;
 
         private static readonly int SourcesKeyword = Shader.PropertyToID("Sources");
         private static readonly int ResultKeyword = Shader.PropertyToID("Result");
@@ -71,17 +75,20 @@ namespace Uriel.Behaviours
             initKernel = compute.FindKernel("Init");
             quad.localScale = new Vector3(width, height, 1) * 0.1f;
             FindFirstObjectByType<CameraController>()?.SetSize(height * 0.5f * 0.1f);
-            result = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB64);
-            result.enableRandomWrite = true;
-            result.wrapMode = TextureWrapMode.Repeat;
-            result.filterMode = textureMode;
-            result.Create();
 
+            // result = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBFloat);
+            // result.dimension = UnityEngine.Rendering.TextureDimension.Tex3D;
+            // result.volumeDepth = depth;
+            // result.enableRandomWrite = true;
+            // result.wrapMode = TextureWrapMode.Repeat;
+            // result.filterMode = textureMode;
+            // result.Create();
+        
             compute.SetTexture(tickKernel, ResultKeyword, result);
             compute.SetTexture(initKernel, ResultKeyword, result);
             compute.SetInt(WidthKeyword, width);
             compute.SetInt(HeightKeyword, height);
-            targetMat.SetTexture("_BaseMap", result);
+           // targetMat.SetTexture("_BaseMap", result);
             
             UpdateSources();
    
@@ -113,6 +120,9 @@ namespace Uriel.Behaviours
         
         private void Update()
         {
+            zIndex = (zIndex + 1) % depth;
+            compute.SetInt("ZIndex", zIndex);
+            
             time += Time.deltaTime * speed;
             for (int i = 0; i < waves.Length; i++)
             {
@@ -120,7 +130,7 @@ namespace Uriel.Behaviours
                 compute.SetFloat($"Amplitude_{i}", waves[i].amplitude);
                 compute.SetInt($"Shell_{i}", waves[i].shells);
             }
-
+            
             compute.SetFloat("MinColor", minColor);
             compute.SetFloat("MaxColor", maxColor);
             compute.SetVector("Center", center);
