@@ -45,22 +45,22 @@ namespace Uriel.Behaviours
             speed /= damping;
             var delta = speed * Time.deltaTime;
         
-            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+            if (Input.GetKey(KeyCode.A))
             {
                 camTransform.position = transform.position + (-camTransform.right * delta);
             }
 
-            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+            if (Input.GetKey(KeyCode.D))
             {
                 camTransform.position = transform.position + (camTransform.right * delta);
             }
 
-            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+            if (Input.GetKey(KeyCode.W))
             {
                 camTransform.position = transform.position + (camTransform.forward * delta);
             }
 
-            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+            if (Input.GetKey(KeyCode.S))
             {
                 camTransform.position = transform.position + (-camTransform.forward * delta);
             }

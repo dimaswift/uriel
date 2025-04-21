@@ -6,6 +6,7 @@ Shader "Uriel/Ray"
         _VolumeTexture ("Volume Texture", 3D) = "white" {}  
         _Alpha ("Alpha", Range(0.001, 1.0)) = 0.137  
         _Threshold ("Density Threshold", Range(0.0, 1.0)) = 0.1
+         _RampThreshold ("Ramp Threshold", Range(0.0, 1.0)) = 0.5
         _ThresholdThin ("Density Threshold Thin", Range(0.0, 0.01)) = 0.0   
         _Quality ("Quality", Range(1, 20)) = 8  
         _StepSize ("Step Size", Range(0.001, 0.1)) = 0.01  
@@ -53,7 +54,7 @@ Shader "Uriel/Ray"
             float _SliceThickness;  
             float _SliceEnabled;  
             float _ThresholdThin;
-            
+            float _RampThreshold;
             v2f vert (appdata v)  
             {  
                 v2f o;  
@@ -79,7 +80,7 @@ Shader "Uriel/Ray"
                 density = max(0, density - threshold) / (1.0 - threshold);  
                 
                 // Apply color ramp  
-                float4 color = tex2D(_RampTex, float2(density, 0.5));  
+                float4 color = tex2D(_RampTex, float2(density, _RampThreshold));  
                 
                 // Apply slice plane if enabled  
                 if (_SliceEnabled > 0.5) {  

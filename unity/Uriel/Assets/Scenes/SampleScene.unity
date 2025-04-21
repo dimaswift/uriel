@@ -415,8 +415,8 @@ Camera:
   near clip plane: 0.01
   far clip plane: 1000
   field of view: 115
-  orthographic: 0
-  orthographic size: 10
+  orthographic: 1
+  orthographic size: 0.6000082
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -440,13 +440,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.57}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.000000059604645, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -507,7 +507,7 @@ MonoBehaviour:
   movementSpeed: 1
   fastMovementSpeed: 10
   freeLookSensitivity: 1
-  zoomSensitivity: 0
+  zoomSensitivity: 2
   fastZoomSensitivity: 50
 --- !u!1 &410087039
 GameObject:
@@ -1821,14 +1821,14 @@ MonoBehaviour:
   shellsInput: {fileID: 1556114586}
   amplitudeInput: {fileID: 1702822506}
   frequencyInput: {fileID: 848098505}
-  depth: 256
-  minColor: 5002
-  maxColor: 0
+  depth: 128
+  minColor: -1.22
+  maxColor: 65.77
   center: {x: -0.5, y: 0.5, z: -0.5}
   waves:
-  - frequency: 30
-    amplitude: 30000
-    shells: 100
+  - frequency: 28.7
+    amplitude: 1.33
+    shells: 40
   - frequency: 5
     amplitude: 5
     shells: 0
@@ -1837,8 +1837,8 @@ MonoBehaviour:
     shells: 3
   quad: {fileID: 2052073904}
   textureMode: 0
-  width: 256
-  height: 256
+  width: 128
+  height: 128
   compute: {fileID: 7200000, guid: c51c1c06827536b4091a0d949fef47ef, type: 3}
   colorScale: 6.12
   colorOffset: 12.37
@@ -2764,6 +2764,7 @@ GameObject:
   - component: {fileID: 1546348952}
   - component: {fileID: 1546348951}
   - component: {fileID: 1546348950}
+  - component: {fileID: 1546348953}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -2839,6 +2840,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1546348953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1546348949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ea750c62467d064ea8c6aff101cb161, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1556114584
 GameObject:
   m_ObjectHideFlags: 0
