@@ -56,7 +56,7 @@ float3 hsv2rgb(float h, float s, float v) {
 [numthreads(8,8,1)]
 void Init (uint3 id : SV_DispatchThreadID)
 {
-    Result[uint3(id.xy, ZIndex)] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+    Result[uint3(id.xy, ZIndex)] = float4(0,0,0, 0.0);
 }
 
 [numthreads(64, 1, 1)]  
@@ -67,7 +67,7 @@ void Tick (uint3 id : SV_DispatchThreadID)
     for (int i = 0; i < Shell_0; i++) {
         
         const float a = float(i) / float(Shell_0) * PI * 2;
-        const float3 source = float3(sin(a),cos(a),-sin(a));
+        const float3 source = float3(sin(a), cos(a), -sin(float(i) / float(Shell_0) * PI * SourcesCount));
         const float d_mirror = distance(uv, source)  * ColorScale;
         v += sin(sqrt(d_mirror) * (Frequency_0 )) * Amplitude_0;
     }

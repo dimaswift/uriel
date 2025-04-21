@@ -3,26 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 using Uriel.Domain;
+using Uriel.UI;
 
 namespace Uriel.Behaviours
 {
     public class Field : MonoBehaviour
     {
-        [SerializeField] private VisualEffect effect;
+        [SerializeField] private NumberInput shellsInput, amplitudeInput, frequencyInput;
+        
         [SerializeField] private int depth = 64;
         [SerializeField] private float minColor;
         [SerializeField] private float maxColor;
         [SerializeField] private Vector3 center;
         [SerializeField] private Wave[] waves;
-        [SerializeField] private int shellCount = 5;
         [SerializeField] private Transform quad;
         [SerializeField] private FilterMode textureMode;
         [SerializeField] private int width = 64;
         [SerializeField] private int height = 64;
         [SerializeField] private ComputeShader compute;
-        [SerializeField] private Material targetMat;
-        [SerializeField] private float frequency = 1;
-        [SerializeField] private float amplitude = 1;
         [SerializeField] private float colorScale = 1;
         [SerializeField] private float colorOffset = 1;
         [SerializeField] private Vector4 colorSteps;
@@ -33,8 +31,11 @@ namespace Uriel.Behaviours
         [SerializeField] private Vector3 offset;
 
         [Range(0f, 1f)] [SerializeField] private float angle = 1;
-        [Range(0f, 1f)] [SerializeField] private float frequencyFine;
-        [Range(0f, 1f)] [SerializeField] private float amplitudeFine;
+
+        [Header("Ray Marching")] [SerializeField]
+        public float density;
+        public float rayThreshold;
+        public int maxSteps;
         
         public RenderTexture result;
         private int initKernel;
@@ -89,10 +90,26 @@ namespace Uriel.Behaviours
             compute.SetInt(WidthKeyword, width);
             compute.SetInt(HeightKeyword, height);
            // targetMat.SetTexture("_BaseMap", result);
-            
+          
             UpdateSources();
    
             compute.Dispatch(initKernel, threadGroupsX, threadGroupsY, 1);
+            
+            frequencyInput.SetUp("Frequency", waves[0].frequency, f=>
+            {
+                zIndex = 0;
+                waves[0].frequency = f;
+            });
+            amplitudeInput.SetUp("Amplitude", waves[0].amplitude, f =>
+            {
+                zIndex = 0;
+                waves[0].amplitude = f;
+            });
+            shellsInput.SetUp("Shells", waves[0].shells, f =>
+            {
+                zIndex = 0;
+                waves[0].shells = (int)f;
+            });
         }
 
 
@@ -142,10 +159,11 @@ namespace Uriel.Behaviours
             compute.SetFloat(ColorOffsetKeyword, colorOffset);
             compute.SetVector(ColorStepsKeyword, colorSteps);
           
+
             UpdateSources();
             compute.Dispatch(tickKernel, threadGroupsX, threadGroupsY, 1);
 
-            if (Input.GetKeyDown(KeyCode.S))
+            if (Input.GetKeyDown(KeyCode.R))
             {
                 SaveTexture();
             }
