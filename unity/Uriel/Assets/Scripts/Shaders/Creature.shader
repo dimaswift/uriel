@@ -1,21 +1,9 @@
-Shader "Uriel/Voxel"  
+Shader "Uriel/Creature"  
 {  
     Properties  
     {  
-        _Shell ("Shell", Range(1, 128)) = 12  
-        _Period ("Period", Range(0, 128)) = 1  
-        _ColorScale ("Color scale", Range(0.0, 10.00)) = 6.12  
-        _Frequency ("Frequency", float) = 10.0 
-        _FrequencySquared ("Frequency Squared", float) = 10.0
-        _FrequencyInversed ("Frequency Inversed", float) = 10.0    
-        _Amplitude ("Amplitude", float) = 1.0 
-        _AmplitudeSquared ("Amplitude Squared", float) = 1.0  
-        _AmplitudeInversed ("Amplitude Inversed", float) = 1.0    
+        _Scale ("Color scale", Range(0.0, 10.00)) = 6.12  
         _Offset ("Offset", Vector) = (0,0,0) 
-        _MinColor ("Min Color", Range(0.0, 1.0)) = 0.0  
-        _MaxColor ("Max Color", Range(0.0, 1.0)) = 1.0  
-        _Depth ("Depth", Range(-5.0, 5.0)) = 1.0  
-        
     }  
     SubShader  
     {  
@@ -39,21 +27,23 @@ Shader "Uriel/Voxel"
                 float4 vertex : SV_POSITION;  
                 float3 volumePos : TEXCOORD0;
             };  
-
-            int _Shell;
-            float _ColorScale;
-            float _Frequency;
-            float _Amplitude;
+            
+            float _Scale;
             float3 _Offset;
-            float _MinColor;
-            float _MaxColor;
-            float _Depth;
-            int _Period;
-            float _Frequency2;
-            float _AmplitudeSquared;
-            float _FrequencySquared;
-            float _AmplitudeInversed;
-            float _FrequencyInversed;
+            int _GeneCount;
+            
+            struct Gene
+            {
+                int iterations;
+                int shift;
+                float frequency;
+                float amplitude;
+                int operation;
+                float3 offset;
+                float scale;
+            };
+
+            StructuredBuffer<Gene> _GeneBuffer;
             
             float3 hsv2rgb(float h, float s, float v) {  
                 h = frac(h);  
@@ -89,23 +79,33 @@ Shader "Uriel/Voxel"
             fixed4 frag(v2f id) : SV_Target  
             {
                 float h = 0.0;
-                for (int i = 0; i < _Shell; i++) {
-                    
-                    const float a = float(i) / float(_Shell) * UNITY_PI * 2;
-                    const float3 source = float3(sin(a), cos(sin(a)), -sin(a * 2));
-                    const float d_mirror = distance(id.volumePos, source)  * _ColorScale;
-                    h += sin(d_mirror * (_Frequency + _Time)) * _Amplitude;
-                }
-                for (int i = 0; i < _Period; i++) {
-                    
-                    const float a = float(i) / float(_Period) * UNITY_PI * 2;
-                    const float3 source = float3(sin(a), cos(sin(a)), -sin(a * 2));
-                    const float d_mirror = distance(id.volumePos, source)  * _ColorScale;
-                    h += cos(sqrt(d_mirror) * (_FrequencySquared)) * _AmplitudeSquared;
-                    h += sin((_Depth / d_mirror) * _FrequencyInversed) * _AmplitudeInversed;
+                [loop]
+                for (int i = 0; i < _GeneCount; i++)
+                {
+                    const Gene gene = _GeneBuffer[i];
+                    for (int k = 0; k < gene.iterations; k++) {
+                        
+                        const float a = float(k) / float(gene.iterations) * UNITY_PI * 2;
+                        const float3 source = float3(sin(a), cos(sin(a)), -sin(a * 2));
+                        const float dist = distance(id.volumePos + gene.offset, source) * gene.scale;
+                        switch (gene.operation)
+                        {
+                            case 0:
+                                h += sin(dist + _Time * gene.frequency) * gene.amplitude;
+                            break;
+                            case 1:
+                                h += cos(sqrt(dist) * gene.frequency) * gene.amplitude;
+                            break;
+                            case 2:
+                                h += sin((1.0 / dist) * gene.frequency) * gene.amplitude;
+                            break;
+                            default:
+                                break;
+                        }
+                    }
                 }
                 float3 col = hsv2rgb(h, 1, 1);
-                return float4(col.x, col.x, col.x, 1.0);  
+                return float4(col.x, col.y, col.z, 1.0);  
             }  
             
             ENDCG  
