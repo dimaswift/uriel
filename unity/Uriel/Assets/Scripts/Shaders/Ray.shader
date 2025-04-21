@@ -20,9 +20,8 @@ Shader "Uriel/Ray"
     {  
         Tags { "Queue" = "Transparent" "RenderType" = "Transparent" }  
         Blend SrcAlpha OneMinusSrcAlpha  
-        ZWrite Off  
+        ZWrite On  
         Cull Front  
-
         Pass  
         {  
             CGPROGRAM  
@@ -55,6 +54,7 @@ Shader "Uriel/Ray"
             float _SliceEnabled;  
             float _ThresholdThin;
             float _RampThreshold;
+            
             v2f vert (appdata v)  
             {  
                 v2f o;  

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-2508902746877836162
+--- !u!114 &-857505226386079043
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Ray
-  m_Shader: {fileID: 4800000, guid: ed29d6885f584c78b5e472b095ca621e, type: 3}
+  m_Name: Voxel
+  m_Shader: {fileID: 4800000, guid: d560e6a3d70e4aa8b7aa8db233a2df71, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -78,15 +78,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RampTex:
-        m_Texture: {fileID: 2800000, guid: bcfed355a39005143943dca17bee7c8b, type: 3}
-        m_Scale: {x: 5, y: 1}
-        m_Offset: {x: -44, y: 0}
-    - _SpecGlossMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: c367ffdc606d88642ac71bddf37d45ca, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _VolumeTex:
-        m_Texture: {fileID: 8400000, guid: 9e40128b5b9d7864da01697c92235e46, type: 2}
+    - _SpecGlossMap:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _VolumeTexture:
@@ -111,56 +107,52 @@ Material:
     - _Alpha: 1
     - _AlphaClip: 0
     - _AlphaToMask: 0
+    - _Amplitude: 0.25
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
-    - _Brightness: 5
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
+    - _ColorScale: 0.39
     - _Cull: 2
     - _Cutoff: 0.5
-    - _Density: 2.1
-    - _DensityScale: 2
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
+    - _Frequency: 100
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _MaxOpacity: 1
-    - _MaxSteps: 67
+    - _MaxColor: 0
     - _Metallic: 0
+    - _MinColor: 0.049
     - _OcclusionStrength: 1
     - _Parallax: 0.005
-    - _Quality: 1
+    - _Quality: 4.04
     - _QueueOffset: 0
-    - _RampThreshold: 0.523
+    - _RampThreshold: 0.266
     - _ReceiveShadows: 1
-    - _SliceEnabled: 0
-    - _SlicePosition: 0.402
-    - _SliceThickness: 0.077
+    - _Res: 64
+    - _Resolution: 8
+    - _Shell: 11.7
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
-    - _StepSize: 0.001
+    - _StepSize: 0.0435
     - _Surface: 0
-    - _Threshold: 0.475
-    - _ThresholdThin: 0.00124
-    - _TimeScale: 0
+    - _Threshold: 0.519
+    - _ThresholdThin: 0.01
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.0483042, g: 1, b: 0, a: 1}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _FogColor: {r: 0.8, g: 0.9, b: 1, a: 1}
-    - _LightColor: {r: 1, g: 1, b: 1, a: 1}
-    - _LightDir: {r: -10.21, g: 9.47, b: -9.02, a: 0}
-    - _ScrollDirection: {r: 6.97, g: 0.05, b: -3.66, a: 0}
+    - _Offset: {r: 0.5, g: 0.5, b: -0.5, a: -12.98}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
