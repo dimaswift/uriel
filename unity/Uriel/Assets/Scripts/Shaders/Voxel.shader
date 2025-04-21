@@ -13,6 +13,7 @@ Shader "Uriel/Voxel"
         _MinColor ("Min Color", Range(0.0, 1.0)) = 0.0  
         _MaxColor ("Max Color", Range(0.0, 1.0)) = 1.0  
         _Depth ("Depth", Range(-1.0, 1.0)) = 0.0  
+        
     }  
     SubShader  
     {  
@@ -91,6 +92,7 @@ Shader "Uriel/Voxel"
                     const float d_mirror = distance(id.volumePos, source)  * _ColorScale;
                     h += sin(d_mirror * d_mirror * (_Frequency)) * _Amplitude;
                     h += cos(sqrt(d_mirror) * (_FrequencySquared)) * _AmplitudeSquared;
+                    h += sin(1.0 / d_mirror) * (_Depth) * _AmplitudeSquared;
                 }
                 float3 col = hsv2rgb(h, 1, 1);
                 return float4(col.x, col.x, col.x, 1.0);  

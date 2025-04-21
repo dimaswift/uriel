@@ -107,41 +107,41 @@ Material:
     - _Alpha: 1
     - _AlphaClip: 0
     - _AlphaToMask: 0
-    - _Amplitude: -0.31
-    - _AmplitudeSquared: 0.14
+    - _Amplitude: -0.17
+    - _AmplitudeSquared: -0.33
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _ColorScale: 1.21
+    - _ColorScale: 1.4
     - _Cull: 2
     - _Cutoff: 0.5
-    - _Depth: -0.571
+    - _Depth: 1
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
-    - _Frequency: 2.1
+    - _Frequency: 9.61
     - _Frequency2: 348.78
-    - _FrequencySquared: 55.3
+    - _FrequencySquared: -7.2
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _MaxColor: 0.086
     - _Metallic: 0
-    - _MinColor: 0.231
+    - _MinColor: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
-    - _Period: 5.1
+    - _Period: 2.4
     - _Quality: 4.04
     - _QueueOffset: 0
     - _RampThreshold: 0.266
     - _ReceiveShadows: 1
     - _Res: 64
     - _Resolution: 8
-    - _Shell: 8.8
+    - _Shell: 24.3
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -157,7 +157,7 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Offset: {r: 0, g: 0, b: 0, a: -12.98}
+    - _Offset: {r: 0, g: 0.79, b: -0.04, a: -12.98}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
