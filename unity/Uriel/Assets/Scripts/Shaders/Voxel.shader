@@ -3,27 +3,28 @@ Shader "Uriel/Voxel"
     Properties  
     {  
         _Shell ("Shell", Range(1, 128)) = 12  
+        _Period ("Period", Range(1, 128)) = 1  
         _ColorScale ("Color scale", Range(0.0, 10.00)) = 6.12  
-        _Frequency ("Frequency", Range(0.0, 100.0)) = 10.0  
-        _Amplitude ("Amplitude", Range(0.0, 10.00)) = 1.0  
+        _Frequency ("Frequency", float) = 10.0 
+        _FrequencySquared ("Frequency Squared", float) = 10.0   
+        _Amplitude ("Amplitude", float) = 1.0 
+        _AmplitudeSquared ("Amplitude Squared", float) = 1.0   
         _Offset ("Offset", Vector) = (0,0,0) 
         _MinColor ("Min Color", Range(0.0, 1.0)) = 0.0  
         _MaxColor ("Max Color", Range(0.0, 1.0)) = 1.0  
+        _Depth ("Depth", Range(-1.0, 1.0)) = 0.0  
     }  
     SubShader  
     {  
         Tags { "Queue" = "Transparent" "RenderType" = "Transparent" }  
-       // Blend SrcAlpha OneMinusSrcAlpha  
-        ZWrite On
-        Cull Off
-        
+        Cull Off 
         Pass  
         {  
             CGPROGRAM  
             #pragma vertex vert  
             #pragma fragment frag  
             #include "UnityCG.cginc"  
-           
+            
             struct appdata_t  
             {  
                 float4 vertex : POSITION;  
@@ -33,7 +34,7 @@ Shader "Uriel/Voxel"
             struct v2f  
             {  
                 float4 vertex : SV_POSITION;  
-                float3 volumePos : TEXCOORD0; // Position for volume texture sampling  
+                float3 volumePos : TEXCOORD0;
             };  
 
             int _Shell;
@@ -43,6 +44,11 @@ Shader "Uriel/Voxel"
             float3 _Offset;
             float _MinColor;
             float _MaxColor;
+            float _Depth;
+            int _Period;
+            float _Frequency2;
+            float _AmplitudeSquared;
+            float _FrequencySquared;
             
             float3 hsv2rgb(float h, float s, float v) {  
                 h = frac(h);  
@@ -78,19 +84,15 @@ Shader "Uriel/Voxel"
             fixed4 frag(v2f id) : SV_Target  
             {
                 float h = 0.0;
-                float s = 0.0;
-                float v = 0.0;
                 for (int i = 0; i < _Shell; i++) {
                     
-                    const float a = float(i) / float(_Shell) * UNITY_PI;
-                    const float3 source = float3(sin(a), cos(a), -sin(a));
+                    const float a = float(i) / float(_Shell) * UNITY_PI * 2;
+                    const float3 source = float3(sin(a), cos(sin(a)), -sin(a * _Period));
                     const float d_mirror = distance(id.volumePos, source)  * _ColorScale;
-                    h += sin(d_mirror * (_Frequency + _SinTime)) * _Amplitude;
-                    s += cos(sqrt(d_mirror) * (_Frequency )) * _Amplitude;
-                    v += cos(d_mirror * d_mirror * (_Frequency )) * _Amplitude;
+                    h += sin(d_mirror * d_mirror * (_Frequency)) * _Amplitude;
+                    h += cos(sqrt(d_mirror) * (_FrequencySquared)) * _AmplitudeSquared;
                 }
-                
-                float3 col = hsv2rgb(h,1,1);
+                float3 col = hsv2rgb(h, 1, 1);
                 return float4(col.x, col.x, col.x, 1.0);  
             }  
             
