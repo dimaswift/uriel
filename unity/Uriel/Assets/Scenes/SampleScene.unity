@@ -1779,15 +1779,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   step: 1
   worldSpace: 0
-  height: 40
-  sides: 36
-  fieldType: 5
-  radius: 80
+  height: 1
+  sides: 3
+  fieldType: 2
+  radius: 1
   skew: {fileID: 962120928}
-  amplitude: 1.85
-  frequency: 21
-  scale: 0.91
-  scaleFine: 0.01
+  amplitude: 0.15
+  frequency: 9
+  scale: 8.44
+  scaleFine: 0.00124
   operation: 0
   creature: {fileID: 11400000, guid: 201d3a365f993d24489c926ea77e606b, type: 2}
 --- !u!1 &727806959

@@ -26,15 +26,15 @@ namespace Uriel.Behaviours
         private Material mat;
 
         private ComputeBuffer geneBuffer;
-        private int geneCount;
+     
         private int geneStride;
-
-        private int lastGeneCount;
+        
         
         private void Awake()
         {
             mat = new Material(Shader.Find("Uriel/Creature"));
             GetComponent<Renderer>().material = mat;
+            InitializeGeneBuffer();
         }
 
         private void InitializeGeneBuffer()
@@ -44,9 +44,8 @@ namespace Uriel.Behaviours
          
             var vertices = new List<Vector3>();
             PolyhedronGenerator.GenerateVertices(vertices, fieldType, sides, radius, height);
-            creature.genes = new Gene[vertices.Count];
-            geneCount = creature.genes.Length;
-            transform.DetachChildren();
+           
+            
             for (int i = 0; i < vertices.Count; i++)
             {
                 var t = new GameObject(i.ToString());
@@ -54,44 +53,41 @@ namespace Uriel.Behaviours
                 t.transform.localPosition = vertices[i];
             }
 
-            geneBuffer = new ComputeBuffer(geneCount, geneStride);
+            geneBuffer = new ComputeBuffer(vertices.Count, geneStride);
             mat.SetBuffer("_GeneBuffer", geneBuffer);
-            mat.SetInt("_GeneCount", geneCount);
+            mat.SetInt("_GeneCount", vertices.Count);
         }
 
         private void UpdateGeneBuffer()
         {
-            if (creature == null || creature.genes == null || creature.genes.Length == 0)
+            if (creature == null)
             {
                 return;
             }
-            if (lastGeneCount != creature.genes.Length)
-            {
-             //   InitializeGeneBuffer();
-            }
 
             var skewScale = skew.localScale;
+            
             if (creature.genes.Length != transform.childCount)
             {
                 creature.genes = new Gene[transform.childCount];
             }
-            // for (int i = 0; i < transform.childCount; i++)
-            // {
-            //     var t = transform.GetChild(i);
-            //     var pos = worldSpace ? -t.position : -t.localPosition;
-            //     var skewed = new Vector3(pos.x * skewScale.x, pos.y * skewScale.y, pos.z * skewScale.z);
-            //
-            //     creature.genes[i].offset = skewed;
-            //     creature.genes[i].scale = scale + scaleFine;
-            //     creature.genes[i].amplitude = amplitude;
-            //     creature.genes[i].frequency = frequency;
-            //     creature.genes[i].operation = operation;
-            //     creature.genes[i].iterations = 1;
-            // }
-            // geneBuffer.SetData(creature.genes);
+            
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                var t = transform.GetChild(i);
+                var pos = worldSpace ? -t.position : -t.localPosition;
+                var skewed = new Vector3(pos.x * skewScale.x, pos.y * skewScale.y, pos.z * skewScale.z);
+            
+                creature.genes[i].offset = skewed;
+                creature.genes[i].scale = scale + scaleFine;
+                creature.genes[i].amplitude = amplitude;
+                creature.genes[i].frequency = frequency;
+                creature.genes[i].operation = operation;
+                creature.genes[i].iterations = 1;
+            }
+            geneBuffer.SetData(creature.genes);
           
 
-            lastGeneCount = geneCount;
         }
 
         private void OnDrawGizmos()
