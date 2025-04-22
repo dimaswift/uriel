@@ -12,27 +12,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
   m_Name: Adam
   m_EditorClassIdentifier: 
-  scale: 7.17
+  scale: 7.36
   offset: {x: 0, y: 0, z: 0}
   genes:
-  - iterations: 68
-    shift: -71
-    frequency: 34.4
-    amplitude: -0.12
-    operation: 1
-    offset: {x: 0, y: 0, z: 0}
-    scale: 21.59
-  - iterations: 28
-    shift: 8
-    frequency: 32.2
-    amplitude: 0.35
+  - iterations: 1
+    shift: 0
+    frequency: 1
+    amplitude: 1
     operation: 0
-    offset: {x: 0, y: 0.77, z: 0}
-    scale: 28.38
-  - iterations: 0
-    shift: 2
-    frequency: 26.72
-    amplitude: 0.03
-    operation: 2
-    offset: {x: 5.34, y: -2.14, z: -2.09}
-    scale: 1.31
+    offset: {x: 0.149, y: -0.164, z: -0.77580905}
+    scale: 15
+  - iterations: 1
+    shift: 0
+    frequency: 1
+    amplitude: 1
+    operation: 0
+    offset: {x: 0.62040454, y: 0.16933334, z: 0.167}
+    scale: 15
+  - iterations: 1
+    shift: 0
+    frequency: 1
+    amplitude: 1
+    operation: 0
+    offset: {x: 0.62040454, y: -0.49733335, z: 0.167}
+    scale: 15
+  - iterations: 1
+    shift: 0
+    frequency: 1
+    amplitude: 1
+    operation: 0
+    offset: {x: -0.79380906, y: -0.164, z: 0.167}
+    scale: 15

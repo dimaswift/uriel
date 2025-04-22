@@ -85,19 +85,22 @@ Shader "Uriel/Creature"
                     const Gene gene = _GeneBuffer[i];
                     for (int k = 0; k < gene.iterations; k++) {
                         
-                        const float a = float(k) / float(gene.iterations) * UNITY_PI * 2;
-                        const float3 source = float3(sin(a), cos(sin(a)), -sin(a * 2));
-                        const float dist = distance(id.volumePos + gene.offset, source) * gene.scale;
+                      //  const float a = float(k) / float(gene.iterations) * UNITY_PI;
+                        const float3 source = gene.offset;
+                        const float dist = distance(id.volumePos, source) * gene.scale;
                         switch (gene.operation)
                         {
                             case 0:
-                                h += sin(dist + _Time * gene.frequency) * gene.amplitude;
+                                h += sin(dist * gene.frequency) * gene.amplitude;
                             break;
                             case 1:
-                                h += cos(sqrt(dist) * gene.frequency) * gene.amplitude;
+                                h += cos(cos(cos(cos(cos(sin(cos(cos(dist * gene.frequency)))))))) * gene.amplitude;
                             break;
                             case 2:
-                                h += sin((1.0 / dist) * gene.frequency) * gene.amplitude;
+                                h += sin(sin(cos(cos(cos(sin(sin(sin(dist * gene.frequency)))))))) * gene.amplitude;
+                            break;
+                            case 3:
+                                h += sin(dist * sin(cos(cos(cos(sin(sin(sin(dist * gene.frequency)))))))) * gene.amplitude;
                             break;
                             default:
                                 break;
@@ -105,7 +108,7 @@ Shader "Uriel/Creature"
                     }
                 }
                 float3 col = hsv2rgb(h, 1, 1);
-                return float4(col.x, col.y, col.z, 1.0);  
+                return float4(col.x, col.x, col.x, 1.0);  
             }  
             
             ENDCG  
