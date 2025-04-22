@@ -30,7 +30,11 @@ Shader "Uriel/Creature"
             
             float _Scale;
             float3 _Offset;
-            int _GeneCount;
+            int _Sides;
+            float _Height;
+            float _Frequency;
+            float _Amplitude;
+            float _Radius;
             
             struct Gene
             {
@@ -41,6 +45,7 @@ Shader "Uriel/Creature"
                 int operation;
                 float3 offset;
                 float scale;
+                float phase;
             };
 
             StructuredBuffer<Gene> _GeneBuffer;
@@ -78,35 +83,45 @@ Shader "Uriel/Creature"
 
             fixed4 frag(v2f id) : SV_Target  
             {
-                float h = 0.0;
-                [loop]
-                for (int i = 0; i < _GeneCount; i++)
+                float h = 0;
+                const float angleStep = 2.0 * UNITY_PI / _Sides;
+                for (int i = 0; i < _Sides; i++)
                 {
-                    const Gene gene = _GeneBuffer[i];
-                    for (int k = 0; k < gene.iterations; k++) {
-                        
-                      //  const float a = float(k) / float(gene.iterations) * UNITY_PI;
-                        const float3 source = gene.offset;
-                        const float dist = distance(id.volumePos, source) * gene.scale;
-                        switch (gene.operation)
-                        {
-                            case 0:
-                                h += sin(dist * gene.frequency) * gene.amplitude;
-                            break;
-                            case 1:
-                                h += cos(cos(cos(cos(cos(sin(cos(cos(dist * gene.frequency)))))))) * gene.amplitude;
-                            break;
-                            case 2:
-                                h += sin(sin(cos(cos(cos(sin(sin(sin(dist * gene.frequency)))))))) * gene.amplitude;
-                            break;
-                            case 3:
-                                h += sin(dist * sin(cos(cos(cos(sin(sin(sin(dist * gene.frequency)))))))) * gene.amplitude;
-                            break;
-                            default:
-                                break;
-                        }
-                    }
+                    const float angle = i * angleStep;
+                    const float x = _Radius * cos(angle);
+                    const float z = _Radius * sin(angle);
+                    const float3 source = float3(x, _Height, z);
+                    const float dist = distance(id.volumePos, source);
+                    h += sin(dist + cos(dist + sin(dist * _Frequency))) * _Amplitude;
                 }
+                //
+                // for (int i = 0; i < _GeneCount; i++)
+                // {
+                //     const Gene gene = _GeneBuffer[i];
+                //     for (int k = 0; k < gene.iterations; k++) {
+                //         
+                //       //  const float a = float(k) / float(gene.iterations) * UNITY_PI;
+                //         const float3 source = gene.offset;
+                //         const float dist = distance(id.volumePos, source);
+                //         switch (gene.operation)
+                //         {
+                //             case 0:
+                //                 h += sin(dist + cos(dist + sin(dist * gene.frequency + gene.phase))) * gene.amplitude;
+                //             break;
+                //             case 1:
+                //                  h += sin(dist + cos(dist + sin(dist * gene.frequency + gene.phase))) * gene.amplitude;
+                //             break;
+                //             case 2:
+                //                 h += sin(sin(cos(cos(cos(sin(sin(sin(dist * gene.frequency)))))))) * gene.amplitude;
+                //             break;
+                //             case 3:
+                //                 h += sin(dist * sin(cos(cos(cos(sin(sin(sin(dist * gene.frequency)))))))) * gene.amplitude;
+                //             break;
+                //             default:
+                //                 break;
+                //         }
+                //     }
+                // }
                 float3 col = hsv2rgb(h, 1, 1);
                 return float4(col.x, col.x, col.x, 1.0);  
             }  

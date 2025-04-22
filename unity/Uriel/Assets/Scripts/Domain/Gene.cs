@@ -14,5 +14,6 @@ namespace Uriel.Domain
         public int operation;
         public Vector3 offset;
         public float scale;
+        public float phase;
     }
 }

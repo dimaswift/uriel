@@ -40,7 +40,7 @@ namespace Uriel.Utils
                 float angle = i * angleStep;
                 float x = radius * Mathf.Cos(angle);
                 float z = radius * Mathf.Sin(angle);
-                vertices.Add(new Vector3(x, -0.5f, z)); // Base at y = -0.5  
+                vertices.Add(new Vector3(x, -height, z)); // Base at y = -0.5  
             }
         }  
         

@@ -384,6 +384,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25516178d35a493ea09bf765c5525d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  step: 1
+  worldSpace: 0
   height: 100
   sides: 3
   fieldType: 0
@@ -1775,14 +1777,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25516178d35a493ea09bf765c5525d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  height: 6
-  sides: 6
+  step: 1
+  worldSpace: 0
+  height: 40
+  sides: 36
   fieldType: 5
-  radius: 6
+  radius: 80
   skew: {fileID: 962120928}
-  amplitude: 0.1
-  frequency: 24
-  scale: 0.94
+  amplitude: 1.85
+  frequency: 21
+  scale: 0.91
   scaleFine: 0.01
   operation: 0
   creature: {fileID: 11400000, guid: 201d3a365f993d24489c926ea77e606b, type: 2}

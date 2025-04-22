@@ -9,6 +9,8 @@ namespace Uriel.Behaviours
 {
     public class CreatureRenderer : MonoBehaviour
     {
+        [SerializeField] private float step = 1;
+        [SerializeField] private bool worldSpace;
         [SerializeField] private float height = 100;
         [SerializeField] private int sides = 3;
         [SerializeField] private PolyhedronGenerator.PolyhedronType fieldType;
@@ -44,6 +46,7 @@ namespace Uriel.Behaviours
             PolyhedronGenerator.GenerateVertices(vertices, fieldType, sides, radius, height);
             creature.genes = new Gene[vertices.Count];
             geneCount = creature.genes.Length;
+            transform.DetachChildren();
             for (int i = 0; i < vertices.Count; i++)
             {
                 var t = new GameObject(i.ToString());
@@ -64,27 +67,30 @@ namespace Uriel.Behaviours
             }
             if (lastGeneCount != creature.genes.Length)
             {
-                InitializeGeneBuffer();
+             //   InitializeGeneBuffer();
             }
 
             var skewScale = skew.localScale;
-            for (int i = 0; i < transform.childCount; i++)
+            if (creature.genes.Length != transform.childCount)
             {
-                var t = transform.GetChild(i);
-                var pos = -t.position;
-                var skewed = new Vector3(pos.x * skewScale.x, pos.y * skewScale.y, pos.z * skewScale.z);
-                creature.genes[i] = new Gene()
-                {
-                    offset = skewed,
-                    scale = scale + scaleFine,
-                    iterations = 3,
-                    amplitude = amplitude,
-                    frequency = frequency,
-                    operation = operation
-                };
+                creature.genes = new Gene[transform.childCount];
             }
-            geneBuffer.SetData(creature.genes);
-            mat.SetFloat("_Scale", creature.scale);
+            // for (int i = 0; i < transform.childCount; i++)
+            // {
+            //     var t = transform.GetChild(i);
+            //     var pos = worldSpace ? -t.position : -t.localPosition;
+            //     var skewed = new Vector3(pos.x * skewScale.x, pos.y * skewScale.y, pos.z * skewScale.z);
+            //
+            //     creature.genes[i].offset = skewed;
+            //     creature.genes[i].scale = scale + scaleFine;
+            //     creature.genes[i].amplitude = amplitude;
+            //     creature.genes[i].frequency = frequency;
+            //     creature.genes[i].operation = operation;
+            //     creature.genes[i].iterations = 1;
+            // }
+            // geneBuffer.SetData(creature.genes);
+          
+
             lastGeneCount = geneCount;
         }
 
@@ -148,6 +154,16 @@ namespace Uriel.Behaviours
                 return;
             }
 
+            mat.SetFloat("_Scale", scale);
+            mat.SetFloat("_Frequency", frequency);
+            mat.SetFloat("_Amplitude", amplitude);
+            mat.SetInt("_Sides", sides);
+            mat.SetFloat("_Radius", radius);
+            mat.SetFloat("_Height", height);
+            mat.SetFloat("_Step", step);
+            mat.SetVector("_Offset", transform.position);
+            mat.SetVector("_Anchor", skew.position);
+            
             UpdateGeneBuffer();
 
         }
