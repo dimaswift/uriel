@@ -74,10 +74,10 @@ Shader "Uriel/Creature"
                     size,0,0,0,   
                     0,size,0,0,  
                     0,0,size,0,  
-                    0,0,0,1);
+                    0,0,0,0);
                 float4 pos = mul(m, i.vertex);  
                 o.vertex = UnityObjectToClipPos(pos);  
-                o.volumePos = pos.xyz + _Offset;
+                o.volumePos = pos.xyz;
                 
                 return o;   
             }  
@@ -90,7 +90,6 @@ Shader "Uriel/Creature"
                     const Gene gene = _GeneBuffer[i];
                     for (int k = 0; k < gene.iterations; k++) {
                         
-                      //  const float a = float(k) / float(gene.iterations) * UNITY_PI;
                         const float3 source = gene.offset;
                         const float dist = distance(id.volumePos, source * _Scale);
                         switch (gene.operation)
@@ -102,10 +101,10 @@ Shader "Uriel/Creature"
                                  h += sin(dist + cos(dist + sin(dist * gene.frequency + gene.phase))) * gene.amplitude;
                             break;
                             case 2:
-                                h += sin(sin(cos(cos(cos(sin(sin(sin(dist * gene.frequency)))))))) * gene.amplitude;
+                                h += sin(dist * gene.frequency) * gene.amplitude;
                             break;
                             case 3:
-                                h += sin(dist * sin(cos(cos(cos(sin(sin(sin(dist * gene.frequency)))))))) * gene.amplitude;
+                                 h += sin(saturate(dist) * gene.frequency) * gene.amplitude;
                             break;
                             default:
                                 break;
