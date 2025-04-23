@@ -15,7 +15,6 @@ namespace Uriel.Behaviours
         [SerializeField] private int sides = 3;
         [SerializeField] private PolyhedronGenerator.PolyhedronType fieldType;
         [SerializeField] private float radius = 1;
-        [SerializeField] private Transform skew;
         [SerializeField] private float amplitude = 10;
         [SerializeField] private int frequency;
         [SerializeField] private float scale = 10;
@@ -28,8 +27,8 @@ namespace Uriel.Behaviours
         private ComputeBuffer geneBuffer;
      
         private int geneStride;
-        
-        
+        private Transform sigil;
+
         private void Awake()
         {
             mat = new Material(Shader.Find("Uriel/Creature"));
@@ -44,41 +43,36 @@ namespace Uriel.Behaviours
          
             var vertices = new List<Vector3>();
             PolyhedronGenerator.GenerateVertices(vertices, fieldType, sides, radius, height);
-           
+            sigil = new GameObject("Sigil").transform;
             
             for (int i = 0; i < vertices.Count; i++)
             {
                 var t = new GameObject(i.ToString());
-                t.transform.SetParent(transform);
+                t.transform.SetParent(sigil.transform);
                 t.transform.localPosition = vertices[i];
             }
-
-            geneBuffer = new ComputeBuffer(vertices.Count, geneStride);
-            mat.SetBuffer("_GeneBuffer", geneBuffer);
-            mat.SetInt("_GeneCount", vertices.Count);
         }
 
         private void UpdateGeneBuffer()
         {
-            if (creature == null)
+            if (creature == null || sigil == null)
             {
                 return;
             }
-
-            var skewScale = skew.localScale;
             
-            if (creature.genes.Length != transform.childCount)
+            if (creature.genes.Length != sigil.childCount || geneBuffer == null)
             {
-                creature.genes = new Gene[transform.childCount];
+                creature.genes = new Gene[sigil.childCount];
+                geneBuffer = new ComputeBuffer(sigil.childCount, geneStride);
+                mat.SetBuffer("_GeneBuffer", geneBuffer);
+                mat.SetInt("_GeneCount", sigil.childCount);
             }
             
-            for (int i = 0; i < transform.childCount; i++)
+            for (int i = 0; i < sigil.childCount; i++)
             {
-                var t = transform.GetChild(i);
-                var pos = worldSpace ? -t.position : -t.localPosition;
-                var skewed = new Vector3(pos.x * skewScale.x, pos.y * skewScale.y, pos.z * skewScale.z);
-            
-                creature.genes[i].offset = skewed;
+                var t = sigil.GetChild(i);
+                var pos = worldSpace ? t.position : t.localPosition;
+                creature.genes[i].offset = pos;
                 creature.genes[i].scale = scale + scaleFine;
                 creature.genes[i].amplitude = amplitude;
                 creature.genes[i].frequency = frequency;
@@ -86,8 +80,6 @@ namespace Uriel.Behaviours
                 creature.genes[i].iterations = 1;
             }
             geneBuffer.SetData(creature.genes);
-          
-
         }
 
         private void OnDrawGizmos()
@@ -158,8 +150,7 @@ namespace Uriel.Behaviours
             mat.SetFloat("_Height", height);
             mat.SetFloat("_Step", step);
             mat.SetVector("_Offset", transform.position);
-            mat.SetVector("_Anchor", skew.position);
-            
+            mat.SetMatrix("_Shape",transform.localToWorldMatrix);
             UpdateGeneBuffer();
 
         }

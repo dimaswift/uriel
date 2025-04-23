@@ -36,6 +36,7 @@ Shader "Uriel/Creature"
             float _Amplitude;
             float _Radius;
             int _GeneCount;
+            float4x4 _Shape;
             
             struct Gene
             {
@@ -69,7 +70,7 @@ Shader "Uriel/Creature"
             v2f vert(appdata_t i, uint instanceID: SV_InstanceID)  
             {  
                 v2f o;  
-                float size = _Radius;  
+                float size = 1.0;  
                 float4x4 m = float4x4(  
                     size,0,0,0,   
                     0,size,0,0,  
@@ -77,7 +78,7 @@ Shader "Uriel/Creature"
                     0,0,0,0);
                 float4 pos = mul(m, i.vertex);  
                 o.vertex = UnityObjectToClipPos(pos);  
-                o.volumePos = pos.xyz;
+                o.volumePos = mul(_Shape, pos);  
                 
                 return o;   
             }  
@@ -90,8 +91,8 @@ Shader "Uriel/Creature"
                     const Gene gene = _GeneBuffer[i];
                     for (int k = 0; k < gene.iterations; k++) {
                         
-                        const float3 source = gene.offset;
-                        const float dist = distance(id.volumePos, source * _Scale);
+                        const float3 source = (gene.offset - _Offset);
+                        const float dist = saturate(distance(id.volumePos, source));
                         switch (gene.operation)
                         {
                             case 0:
@@ -101,10 +102,10 @@ Shader "Uriel/Creature"
                                  h += sin(dist + cos(dist + sin(dist * gene.frequency + gene.phase))) * gene.amplitude;
                             break;
                             case 2:
-                                h += sin(dist * gene.frequency) * gene.amplitude;
+                                h += smoothstep(sin(dist * gene.frequency) * gene.amplitude, 1.0, 0.01);
                             break;
                             case 3:
-                                 h += sin(saturate(dist) * gene.frequency) * gene.amplitude;
+                                 h += sin(dist * gene.frequency) * gene.amplitude;
                             break;
                             default:
                                 break;
