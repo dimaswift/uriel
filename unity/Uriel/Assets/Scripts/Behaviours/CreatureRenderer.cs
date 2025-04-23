@@ -9,6 +9,7 @@ namespace Uriel.Behaviours
 {
     public class CreatureRenderer : MonoBehaviour
     {
+        [SerializeField] private Material sourceMat;
         [SerializeField] private float step = 1;
         [SerializeField] private bool worldSpace;
         [SerializeField] private float height = 100;
@@ -31,8 +32,8 @@ namespace Uriel.Behaviours
 
         private void Awake()
         {
-            mat = new Material(Shader.Find("Uriel/Creature"));
-            GetComponent<Renderer>().material = mat;
+            mat = Instantiate(sourceMat);
+            GetComponent<Renderer>().sharedMaterial = mat;
             InitializeGeneBuffer();
         }
 

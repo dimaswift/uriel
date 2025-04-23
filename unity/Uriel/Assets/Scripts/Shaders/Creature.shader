@@ -4,6 +4,8 @@ Shader "Uriel/Creature"
     {  
         _Scale ("Color scale", Range(0.0, 10.00)) = 6.12  
         _Offset ("Offset", Vector) = (0,0,0) 
+        _RampTex ("Ramp Texture", 2D) = "white" {}  
+        _RampThreshold ("Ramp Threshold", Range(0.0, 1.0)) = 0.5
     }  
     SubShader  
     {  
@@ -37,6 +39,8 @@ Shader "Uriel/Creature"
             float _Radius;
             int _GeneCount;
             float4x4 _Shape;
+            sampler2D _RampTex;
+            float _RampThreshold;
             
             struct Gene
             {
@@ -96,24 +100,25 @@ Shader "Uriel/Creature"
                         switch (gene.operation)
                         {
                             case 0:
-                                h += sin(dist * cos(dist + sin(dist * gene.frequency + gene.phase))) * gene.amplitude;
+                                h += sin(dist * cos(dist + sin(dist * gene.frequency + gene.phase + _Time))) * gene.amplitude;
                             break;
                             case 1:
-                                 h += sin(dist + cos(dist + sin(dist * gene.frequency + gene.phase))) * gene.amplitude;
+                                 h += sin(dist + cos(dist + sin(dist * gene.frequency + gene.phase + _Time))) * gene.amplitude;
                             break;
                             case 2:
-                                h += smoothstep(sin(dist * gene.frequency) * gene.amplitude, 1.0, 0.01);
+                                h += smoothstep(sin(dist * gene.frequency  + _Time) * gene.amplitude, 1.0, 0.01);
                             break;
                             case 3:
-                                 h += sin(dist * gene.frequency) * gene.amplitude;
+                                 h += sin(dist * gene.frequency  + _Time) * gene.amplitude;
                             break;
                             default:
                                 break;
                         }
                     }
                 }
-                float3 col = hsv2rgb(h, 1, 1);
-                return float4(col.x, col.y, col.z, 1.0);  
+               // float3 col = hsv2rgb(h, 1, 1);
+                float4 color = tex2D(_RampTex, float2(h, _RampThreshold));  
+                return color;  
             }  
             
             ENDCG  
