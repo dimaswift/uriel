@@ -2,10 +2,10 @@ Shader "Uriel/Creature"
 {  
     Properties  
     {  
-        _Scale ("Color scale", Range(0.0, 10.00)) = 6.12  
-        _Offset ("Offset", Vector) = (0,0,0) 
+        _Harmonics ("Harmonics", Int) = 1
         _RampTex ("Ramp Texture", 2D) = "white" {}  
         _RampThreshold ("Ramp Threshold", Range(0.0, 1.0)) = 0.5
+        _Speed ("Speed", Range(0.0, 1.0)) = 0.5
     }  
     SubShader  
     {  
@@ -15,7 +15,8 @@ Shader "Uriel/Creature"
         {  
             CGPROGRAM  
             #pragma vertex vert  
-            #pragma fragment frag  
+            #pragma fragment frag
+            
             #include "UnityCG.cginc"  
             
             struct appdata_t  
@@ -30,18 +31,13 @@ Shader "Uriel/Creature"
                 float3 volumePos : TEXCOORD0;
             };  
             
-            float _Scale;
             float3 _Offset;
-            int _Sides;
-            float _Height;
-            float _Frequency;
-            float _Amplitude;
-            float _Radius;
             int _GeneCount;
             float4x4 _Shape;
             sampler2D _RampTex;
             float _RampThreshold;
-            
+            float _Speed;
+            int _Harmonics;
             struct Gene
             {
                 int iterations;
@@ -100,25 +96,29 @@ Shader "Uriel/Creature"
                         switch (gene.operation)
                         {
                             case 0:
-                                h += sin(dist * cos(dist + sin(dist * gene.frequency + gene.phase + _Time))) * gene.amplitude;
+                                h += sin(dist * cos(dist + sin(dist * gene.frequency + gene.phase + _Time * _Speed))) * gene.amplitude;
                             break;
                             case 1:
-                                 h += sin(dist + cos(dist + sin(dist * gene.frequency + gene.phase + _Time))) * gene.amplitude;
+                                 h += sin(dist + cos(dist + sin(dist * gene.frequency + gene.phase + _Time * _Speed))) * gene.amplitude;
                             break;
                             case 2:
-                                h += smoothstep(sin(dist * gene.frequency  + _Time) * gene.amplitude, 1.0, 0.01);
+                                h += smoothstep(sin(dist * gene.frequency  + _Time * _Speed) * gene.amplitude, 1.0, 0.01);
                             break;
                             case 3:
-                                 h += sin(dist * gene.frequency  + _Time) * gene.amplitude;
+                                 h += sin(dist * gene.frequency  + _Time * _Speed) * gene.amplitude;
                             break;
                             default:
                                 break;
                         }
                     }
                 }
-               // float3 col = hsv2rgb(h, 1, 1);
-                float4 color = tex2D(_RampTex, float2(h, _RampThreshold));  
-                return color;  
+                 float3 color = hsv2rgb(h, 1, 1);
+                // if(int(round(abs(h * 5))) == _Harmonics)
+                // {
+                //     color = h > 0 ? float4(1,0,0, 1) : float4(0,0,1,1);  
+                //     return float4(color, 1);   
+                // }
+                return float4(color, 1);  
             }  
             
             ENDCG  

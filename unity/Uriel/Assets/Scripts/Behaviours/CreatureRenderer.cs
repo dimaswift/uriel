@@ -28,27 +28,36 @@ namespace Uriel.Behaviours
         private ComputeBuffer geneBuffer;
      
         private int geneStride;
-        private Transform sigil;
+        private List<Star> stars = new();
+        private Transform starsContainer;
 
         private void Awake()
         {
             mat = Instantiate(sourceMat);
             GetComponent<Renderer>().sharedMaterial = mat;
+            starsContainer = new GameObject("Stars").transform;
             InitializeGeneBuffer();
+            fieldType = PolyhedronGenerator.PolyhedronType.Icosahedron;
+            InitializeGeneBuffer();
+            fieldType = PolyhedronGenerator.PolyhedronType.Dodecahedron;
         }
 
         private void InitializeGeneBuffer()
         {
             if (geneBuffer != null) geneBuffer.Release();
             geneStride = Marshal.SizeOf(typeof(Gene));
-         
+            
             var vertices = new List<Vector3>();
             PolyhedronGenerator.GenerateVertices(vertices, fieldType, sides, radius, height);
-            sigil = new GameObject("Sigil").transform;
-            
+            var sigil = new GameObject(fieldType.ToString()).transform;
+            sigil.transform.SetParent(starsContainer);
+            Star prevStar = null;
             for (int i = 0; i < vertices.Count; i++)
             {
                 var t = new GameObject(i.ToString());
+                var s = t.AddComponent<Star>();
+                s.SetUp(prevStar);
+                prevStar = s;
                 t.transform.SetParent(sigil.transform);
                 t.transform.localPosition = vertices[i];
             }
@@ -56,29 +65,29 @@ namespace Uriel.Behaviours
 
         private void UpdateGeneBuffer()
         {
-            if (creature == null || sigil == null)
+            if (creature == null)
             {
                 return;
             }
-            
-            if (creature.genes.Length != sigil.childCount || geneBuffer == null)
+
+            stars.Clear();
+            starsContainer.GetComponentsInChildren(stars);
+            if (stars.Count == 0)
             {
-                creature.genes = new Gene[sigil.childCount];
-                geneBuffer = new ComputeBuffer(sigil.childCount, geneStride);
+                return;
+            }
+            if (creature.genes.Length != stars.Count || geneBuffer == null)
+            {
+                creature.genes = new Gene[stars.Count];
+                geneBuffer = new ComputeBuffer(stars.Count, geneStride);
                 mat.SetBuffer("_GeneBuffer", geneBuffer);
-                mat.SetInt("_GeneCount", sigil.childCount);
+                mat.SetInt("_GeneCount", stars.Count);
             }
             
-            for (int i = 0; i < sigil.childCount; i++)
+            for (int i = 0; i < stars.Count; i++)
             {
-                var t = sigil.GetChild(i);
-                var pos = worldSpace ? t.position : t.localPosition;
-                creature.genes[i].offset = pos;
-                creature.genes[i].scale = scale + scaleFine;
-                creature.genes[i].amplitude = amplitude;
-                creature.genes[i].frequency = frequency;
-                creature.genes[i].operation = operation;
-                creature.genes[i].iterations = 1;
+                var star = stars[i];
+                creature.genes[i] = star.GetGene();
             }
             geneBuffer.SetData(creature.genes);
         }
@@ -153,6 +162,10 @@ namespace Uriel.Behaviours
             mat.SetVector("_Offset", transform.position);
             mat.SetMatrix("_Shape",transform.localToWorldMatrix);
             UpdateGeneBuffer();
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                InitializeGeneBuffer();
+            }
 
         }
 
