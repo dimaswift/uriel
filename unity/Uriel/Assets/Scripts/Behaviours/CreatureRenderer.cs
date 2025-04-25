@@ -89,7 +89,7 @@ namespace Uriel.Behaviours
             mat.SetFloat("_Height", height);
             mat.SetFloat("_Step", step);
             mat.SetVector("_Offset", transform.position);
-            mat.SetMatrix("_Shape",transform.localToWorldMatrix);
+
             UpdateGeneBuffer();
         }
 

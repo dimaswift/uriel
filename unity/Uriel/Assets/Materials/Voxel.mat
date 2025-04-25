@@ -135,14 +135,16 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GradientMultiplier: 1
-    - _GradientThreshold: 0.5
+    - _GradientMultiplier: 1.82
+    - _GradientThreshold: 2.7
     - _Harmonics: 1
     - _Max: 1
     - _MaxColor: 0.086
     - _Metallic: 0
     - _Min: 0
     - _MinColor: 0
+    - _NormalDelta: 0.0128
+    - _NormalStrength: 1.267
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _Period: 0
@@ -152,12 +154,16 @@ Material:
     - _ReceiveShadows: 1
     - _Res: 64
     - _Resolution: 8
+    - _SampleDelta: 0.01
     - _Scale: 0.72
     - _Shell: 34.9
+    - _Shininess: 10
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _Speed: 0.5
+    - _SpecularMultiplier: 1.5
+    - _SpecularThreshold: 4.66
+    - _Speed: 0.81
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _StepSize: 0.0435
@@ -175,6 +181,8 @@ Material:
     - _Color_2: {r: 0, g: 1, b: 0.5188298, a: 1}
     - _Color_3: {r: 0, g: 1, b: 0.5890684, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Light: {r: 1, g: 1, b: 1, a: 1}
+    - _LightColor: {r: 1, g: 1, b: 1, a: 1}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []

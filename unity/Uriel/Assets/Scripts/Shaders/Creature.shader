@@ -6,6 +6,10 @@ Shader "Uriel/Creature"
         _GradientLUT ("Gradient LUT", 2D) = "white" {}
         _GradientThreshold ("Gradient Threshold", Range(0.0, 10.0)) = 0.5
         _GradientMultiplier ("Gradient Multiplier", Range(0.0, 10.0)) = 1
+        _Light ("Light", Color) = (1,1,1,1)
+        _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
+        _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
+        _Shininess("Shininess", Range(0.0, 10.0)) = 1.0
     }  
     SubShader  
     {  
@@ -21,23 +25,28 @@ Shader "Uriel/Creature"
        
             struct appdata_t  
             {  
-                float4 vertex : POSITION;  
-                float4 color : COLOR;  
+                float4 vertex : POSITION;
+                float3 normal : NORMAL;  
+                float4 color : COLOR;
             };  
 
             struct v2f  
             {  
                 float4 vertex : SV_POSITION;  
-                float3 volumePos : TEXCOORD0;
+                float3 worldNormal : TEXCOORD0;
+                float3 worldPos : TEXCOORD1;
             };  
             
             float3 _Offset;
             int _GeneCount;
-            float4x4 _Shape; 
             float _Speed;
             sampler2D _GradientLUT;  
             float _GradientMultiplier;
             float _GradientThreshold;
+            float4 _Light;
+            float _SpecularThreshold;
+            float _SpecularMultiplier;
+            float _Shininess;
             
             struct Gene
             {
@@ -53,7 +62,6 @@ Shader "Uriel/Creature"
 
             StructuredBuffer<Gene> _GeneBuffer;
 
-            
             float3 hsv2rgb(float h, float s, float v) {  
                 h = frac(h);  
                 float i = floor(h * 6.0);  
@@ -80,22 +88,22 @@ Shader "Uriel/Creature"
                     0,0,0,0);
                 float4 pos = mul(m, i.vertex);  
                 o.vertex = UnityObjectToClipPos(pos);  
-                o.volumePos = mul(_Shape, pos);  
-                
+                o.worldNormal = UnityObjectToWorldNormal(i.normal);
+                float4 worldPosRaw = mul(unity_ObjectToWorld, i.vertex);  
+                o.worldPos = worldPosRaw.xyz;
                 return o;   
-            }  
+            }
 
-            fixed4 frag(v2f id) : SV_Target  
+            float sampleField(float3 pos)
             {
                 float h = 0.0;
-  
-                for (int i = 0; i < _GeneCount; i++)
+                 for (int i = 0; i < _GeneCount; i++)
                 {
                     const Gene gene = _GeneBuffer[i];
                     for (int k = 0; k < gene.iterations; k++) {
                         
                         const float3 source = (gene.offset - _Offset);
-                        const float dist = saturate(distance(id.volumePos, source)  * gene.scale);
+                        const float dist = saturate(distance(pos, source)  * gene.scale);
                         switch (gene.operation)
                         {
                             case 0:
@@ -105,8 +113,8 @@ Shader "Uriel/Creature"
                                     s = j % 2 ==0 ? cos(s + dist  * gene.frequency + j) : sin(s + dist  * gene.frequency + j) ;
                                 }
                                 h += s ;
-
-                              
+                                
+                               // NdotL += sin(dist * gene.frequency + (UNITY_PI / (8) * gene.phase)) * gene.amplitude * (gene.shift + 1);
                             
                             break;
                             case 1:
@@ -124,9 +132,25 @@ Shader "Uriel/Creature"
                         }
                     }
                 }
- 
-                float3 color = tex2D(_GradientLUT, float2(h * _GradientThreshold, 0)) * _GradientMultiplier;   
-                return float4(color, 1);  
+                return h;
+            }
+            
+            fixed4 frag(v2f id) : SV_Target  
+            {
+                float value = sampleField(id.worldPos);
+                float3 normalDir = normalize(id.worldNormal);
+                float3 lightDir = normalize(float3(1,2,3));
+                float3 viewDir = normalize(UnityWorldSpaceViewDir(id.worldPos));
+                float3 halfwayDir = normalize(lightDir + viewDir);  
+                float NdotL = saturate(dot(normalDir, lightDir));
+                float3 diffuseLighting = NdotL * _Light.rgb;
+                float NdotH = saturate(dot(normalDir, halfwayDir));  
+                float3 diffuseColor = tex2D(_GradientLUT, float2(value * _GradientThreshold, 0)) * _GradientMultiplier;   
+                float specularValue = saturate(value * _SpecularThreshold) * _SpecularMultiplier;  
+                float3 ambient = UNITY_LIGHTMODEL_AMBIENT.rgb;
+                float3 specularLighting = pow(NdotH, _Shininess) * specularValue * _Light.rgb;  
+                float3 finalColor = (ambient + diffuseLighting) * diffuseColor + specularLighting;  
+                return float4(finalColor, 1);  
             }  
             
             ENDCG  
