@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using Uriel.Domain;
 
 namespace Uriel.Domain
@@ -8,6 +9,6 @@ namespace Uriel.Domain
     {
         public float scale = 1f;
         public Vector3 offset;
-        public Gene[] genes;
+        public List<Gene> genes = new();
     }
 }

@@ -1,20 +1,16 @@
 using System;
 using UnityEngine;
 using Uriel.Domain;
-using Random = UnityEngine.Random;
 
 namespace Uriel.Behaviours
 {
     public class Star : MonoBehaviour
     {
-        public float noise;
-        public float speed = 0.01f;
-        public int frequencyScale = 5;
-
-        private Star parent;
-        private Vector3 offset;
-        
-        public Gene gene = new Gene()
+        [SerializeField] private int speed = 0;
+        [SerializeField] private int operation;
+        [SerializeField] private int phase;
+        [SerializeField] private int shift;
+        [SerializeField] private Gene gene = new()
         {
             scale = 1,
             frequency = 25,
@@ -22,32 +18,25 @@ namespace Uriel.Behaviours
             iterations = 1
         };
 
-        private void Update()
-        {
-            if (!parent)
-            {
-                return;
-            }
-
-            
-
-        }
-
-        private void OnEnable()
-        {
-         
-        }
-
-        public void SetUp(Star parent)
-        {
-            this.parent = parent;
-        }
+        private float timer;
+        
         public Gene GetGene()
         {
-          
-            gene.offset = transform.position + Random.insideUnitSphere * noise;
+            gene.offset = transform.position;
+            gene.operation = operation;
+            gene.phase = phase;
+            gene.shift = shift;
             return gene;
         }
-    }
 
+        private void Update()
+        {
+            timer += speed * Time.deltaTime;
+            if (timer >= 1)
+            {
+                timer = 0;
+                phase++;
+            }
+        }
+    }
 }

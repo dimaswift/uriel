@@ -81,14 +81,6 @@ namespace Uriel.Behaviours
                 var newRotationY = euler.x - Input.GetAxis("Mouse Y") * freeLookSensitivity;
                 camTransform.localEulerAngles = new Vector3(newRotationY, newRotationX, 0f);
             }
-
-            var axis = Input.mouseScrollDelta.y;
-            
-            if (axis != 0)
-            {
-                var zoom = fastMode ? fastZoomSensitivity : zoomSensitivity;
-                camTransform.position = transform.position + camTransform.forward * (axis * zoom);
-            }
         }
         
         private void ProcessOrthographic()

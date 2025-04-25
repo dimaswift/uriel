@@ -2,10 +2,10 @@ Shader "Uriel/Creature"
 {  
     Properties  
     {  
-        _Harmonics ("Harmonics", Int) = 1
-        _RampTex ("Ramp Texture", 2D) = "white" {}  
-        _RampThreshold ("Ramp Threshold", Range(0.0, 1.0)) = 0.5
         _Speed ("Speed", Range(0.0, 1.0)) = 0.5
+        _GradientLUT ("Gradient LUT", 2D) = "white" {}
+        _GradientThreshold ("Gradient Threshold", Range(0.0, 10.0)) = 0.5
+        _GradientMultiplier ("Gradient Multiplier", Range(0.0, 10.0)) = 1
     }  
     SubShader  
     {  
@@ -18,7 +18,7 @@ Shader "Uriel/Creature"
             #pragma fragment frag
             
             #include "UnityCG.cginc"  
-            
+       
             struct appdata_t  
             {  
                 float4 vertex : POSITION;  
@@ -33,11 +33,12 @@ Shader "Uriel/Creature"
             
             float3 _Offset;
             int _GeneCount;
-            float4x4 _Shape;
-            sampler2D _RampTex;
-            float _RampThreshold;
+            float4x4 _Shape; 
             float _Speed;
-            int _Harmonics;
+            sampler2D _GradientLUT;  
+            float _GradientMultiplier;
+            float _GradientThreshold;
+            
             struct Gene
             {
                 int iterations;
@@ -51,6 +52,7 @@ Shader "Uriel/Creature"
             };
 
             StructuredBuffer<Gene> _GeneBuffer;
+
             
             float3 hsv2rgb(float h, float s, float v) {  
                 h = frac(h);  
@@ -86,17 +88,26 @@ Shader "Uriel/Creature"
             fixed4 frag(v2f id) : SV_Target  
             {
                 float h = 0.0;
+  
                 for (int i = 0; i < _GeneCount; i++)
                 {
                     const Gene gene = _GeneBuffer[i];
                     for (int k = 0; k < gene.iterations; k++) {
                         
                         const float3 source = (gene.offset - _Offset);
-                        const float dist = saturate(distance(id.volumePos, source));
+                        const float dist = saturate(distance(id.volumePos, source)  * gene.scale);
                         switch (gene.operation)
                         {
                             case 0:
-                                h += sin(dist * cos(dist + sin(dist * gene.frequency + gene.phase + _Time * _Speed))) * gene.amplitude;
+                                float s = sin(dist * gene.frequency + (UNITY_PI / (8) * gene.phase)) * gene.amplitude * (gene.shift + 1);
+                                for (int j = 0; j < gene.shift; j++)
+                                {
+                                    s = j % 2 ==0 ? cos(s + dist  * gene.frequency + j) : sin(s + dist  * gene.frequency + j) ;
+                                }
+                                h += s ;
+
+                              
+                            
                             break;
                             case 1:
                                  h += sin(dist + cos(dist + sin(dist * gene.frequency + gene.phase + _Time * _Speed))) * gene.amplitude;
@@ -105,19 +116,16 @@ Shader "Uriel/Creature"
                                 h += smoothstep(sin(dist * gene.frequency  + _Time * _Speed) * gene.amplitude, 1.0, 0.01);
                             break;
                             case 3:
-                                 h += sin(dist * gene.frequency  + _Time * _Speed) * gene.amplitude;
+                                h += sin(dist * gene.frequency  + _Time * _Speed) * gene.amplitude;
+                                h += sin((dist * gene.frequency  + _Time * _Speed) + UNITY_PI / gene.phase) * gene.amplitude;
                             break;
                             default:
                                 break;
                         }
                     }
                 }
-                 float3 color = hsv2rgb(h, 1, 1);
-                // if(int(round(abs(h * 5))) == _Harmonics)
-                // {
-                //     color = h > 0 ? float4(1,0,0, 1) : float4(0,0,1,1);  
-                //     return float4(color, 1);   
-                // }
+ 
+                float3 color = tex2D(_GradientLUT, float2(h * _GradientThreshold, 0)) * _GradientMultiplier;   
                 return float4(color, 1);  
             }  
             

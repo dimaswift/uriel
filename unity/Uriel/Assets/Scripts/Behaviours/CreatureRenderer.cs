@@ -9,12 +9,13 @@ namespace Uriel.Behaviours
 {
     public class CreatureRenderer : MonoBehaviour
     {
+        [SerializeField] private GameObject sky;
         [SerializeField] private Material sourceMat;
         [SerializeField] private float step = 1;
         [SerializeField] private bool worldSpace;
         [SerializeField] private float height = 100;
         [SerializeField] private int sides = 3;
-        [SerializeField] private PolyhedronGenerator.PolyhedronType fieldType;
+      
         [SerializeField] private float radius = 1;
         [SerializeField] private float amplitude = 10;
         [SerializeField] private int frequency;
@@ -26,125 +27,53 @@ namespace Uriel.Behaviours
         private Material mat;
 
         private ComputeBuffer geneBuffer;
-     
-        private int geneStride;
-        private List<Star> stars = new();
-        private Transform starsContainer;
-
+        
+        private readonly List<Constellation> constellations = new();
+        
         private void Awake()
         {
             mat = Instantiate(sourceMat);
             GetComponent<Renderer>().sharedMaterial = mat;
-            starsContainer = new GameObject("Stars").transform;
-            InitializeGeneBuffer();
-            fieldType = PolyhedronGenerator.PolyhedronType.Icosahedron;
-            InitializeGeneBuffer();
-            fieldType = PolyhedronGenerator.PolyhedronType.Dodecahedron;
         }
-
-        private void InitializeGeneBuffer()
-        {
-            if (geneBuffer != null) geneBuffer.Release();
-            geneStride = Marshal.SizeOf(typeof(Gene));
-            
-            var vertices = new List<Vector3>();
-            PolyhedronGenerator.GenerateVertices(vertices, fieldType, sides, radius, height);
-            var sigil = new GameObject(fieldType.ToString()).transform;
-            sigil.transform.SetParent(starsContainer);
-            Star prevStar = null;
-            for (int i = 0; i < vertices.Count; i++)
-            {
-                var t = new GameObject(i.ToString());
-                var s = t.AddComponent<Star>();
-                s.SetUp(prevStar);
-                prevStar = s;
-                t.transform.SetParent(sigil.transform);
-                t.transform.localPosition = vertices[i];
-            }
-        }
-
+        
         private void UpdateGeneBuffer()
         {
-            if (creature == null)
+            if (creature == null || sky == null)
             {
                 return;
             }
 
-            stars.Clear();
-            starsContainer.GetComponentsInChildren(stars);
-            if (stars.Count == 0)
+            sky.GetComponentsInChildren(constellations);
+            
+            if (constellations.Count == 0)
             {
                 return;
             }
-            if (creature.genes.Length != stars.Count || geneBuffer == null)
+
+            creature.genes.Clear();
+
+            foreach (Constellation constellation in constellations)
             {
-                creature.genes = new Gene[stars.Count];
-                geneBuffer = new ComputeBuffer(stars.Count, geneStride);
-                mat.SetBuffer("_GeneBuffer", geneBuffer);
-                mat.SetInt("_GeneCount", stars.Count);
+                constellation.FillGeneBuffer(creature.genes);
+            }
+
+            mat.SetInt("_GeneCount", creature.genes.Count);
+            
+            if (creature.genes.Count == 0)
+            {
+                return;
             }
             
-            for (int i = 0; i < stars.Count; i++)
+            if (geneBuffer == null || geneBuffer.count != creature.genes.Count)
             {
-                var star = stars[i];
-                creature.genes[i] = star.GetGene();
+                if(geneBuffer != null) geneBuffer.Release();
+                geneBuffer = new ComputeBuffer(creature.genes.Count, Marshal.SizeOf(typeof(Gene)));
+                mat.SetBuffer("_GeneBuffer", geneBuffer);
             }
+            
             geneBuffer.SetData(creature.genes);
         }
-
-        private void OnDrawGizmos()
-        {
-            if (creature == null)
-            {
-                return;
-            }
-
-            foreach (Gene g1 in creature.genes)
-            {
-                foreach (Gene g2 in creature.genes)
-                {
-                    Gizmos.color = Color.green;
-                    Gizmos.DrawLine(g1.offset, g2.offset);
-                }
-               
-            }
-
-            // foreach (Gene gene in creature.genes)
-            // {
-            //     Vector3? prev = null;
-            //     for (int k = 0; k < gene.iterations; k++)
-            //     {
-            //         float a = (float)k / (gene.iterations) * Mathf.PI;
-            //         Vector3 source = new Vector3(Mathf.Sin(a), Mathf.Cos(Mathf.Sin(a)), -Mathf.Sin(a * gene.shift)) + gene.offset + creature.offset;
-            //         Gizmos.color = Color.green;
-            //         Gizmos.DrawSphere(source, 0.01f);
-            //         if (prev.HasValue)
-            //         {
-            //             Gizmos.DrawLine(source, prev.Value);
-            //         }
-            //         prev = source;
-            //     }
-            //
-            //     for (int i = 0; i < gene.iterations; i++)
-            //     {
-            //         float a = (float)i / (gene.iterations) * Mathf.PI;
-            //         Vector3 sourceA =
-            //             new Vector3(Mathf.Sin(a), Mathf.Cos(Mathf.Sin(a)), -Mathf.Sin(a * gene.shift)) +
-            //             gene.offset + creature.offset;
-            //         for (int k = 0; k < gene.iterations; k++)
-            //         {
-            //             float b = (float)k / (gene.iterations) * Mathf.PI;
-            //             Vector3 sourceB =
-            //                 new Vector3(Mathf.Sin(b), Mathf.Cos(Mathf.Sin(b)), -Mathf.Sin(b * gene.shift)) +
-            //                 gene.offset + creature.offset;
-            //             Gizmos.DrawLine(sourceA, sourceB);
-            //             
-            //         }
-            //     }
-            // }
-          
-        }
-
+        
         private void Update()
         {
             if (!creature)
@@ -162,11 +91,6 @@ namespace Uriel.Behaviours
             mat.SetVector("_Offset", transform.position);
             mat.SetMatrix("_Shape",transform.localToWorldMatrix);
             UpdateGeneBuffer();
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                InitializeGeneBuffer();
-            }
-
         }
 
         private void OnDestroy()
