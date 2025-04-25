@@ -1,4 +1,3 @@
-// 3DTextureViewer.shader  
 Shader "Uriel/Ray"  
 {  
     Properties  

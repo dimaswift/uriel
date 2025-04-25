@@ -10,11 +10,14 @@ namespace Uriel.Behaviours
     {
         [SerializeField] private float scale = 1.0f;
         [SerializeField] private float frequency = 1.0f;
+        [Range(0f, 0.1f)][SerializeField] private float scaleFine = 1.0f;
+        [Range(0f, 0.1f)] [SerializeField] private float frequencyFine = 1.0f;
         [SerializeField] private Vector2 uv;
         [SerializeField] private PlatonicSolids.Type type;
         [SerializeField] private PlatonicSolids.Mode mode;
         private readonly List<Star> stars = new();
 
+        
         private void Awake()
         {
             Generate();
@@ -37,11 +40,6 @@ namespace Uriel.Behaviours
             }
         }
 
-        private void FixedUpdate()
-        {
-            //Generate();
-        }
-
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.cyan;
@@ -60,8 +58,8 @@ namespace Uriel.Behaviours
             foreach (Star star in stars)
             {
                 var gene = star.GetGene();
-                gene.frequency *= frequency;
-                gene.scale *= scale;
+                gene.frequency *= frequency + frequencyFine;
+                gene.scale *= scale + scaleFine;
                 genes.Add(gene);
             }
         }

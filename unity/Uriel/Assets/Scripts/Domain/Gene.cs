@@ -7,13 +7,11 @@ namespace Uriel.Domain
     [System.Serializable]
     public struct Gene
     {
-        public int iterations;
-        public int shift;
+        public uint iterations;
         public float frequency;
         public float amplitude;
-        public int operation;
-        public Vector3 offset;
+        public Vector3 source;
         public float scale;
         public float phase;
     }
-}
+} 

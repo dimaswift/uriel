@@ -535,6 +535,7 @@ GameObject:
   - component: {fileID: 674396018}
   - component: {fileID: 674396017}
   - component: {fileID: 674396020}
+  - component: {fileID: 674396022}
   - component: {fileID: 674396021}
   m_Layer: 0
   m_Name: Adam
@@ -542,7 +543,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!23 &674396017
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -595,7 +596,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 674396016}
-  m_Mesh: {fileID: 6461297695846733525, guid: 05ed4b4b39e3e904b9960183d185fa8f, type: 3}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &674396019
 Transform:
   m_ObjectHideFlags: 0
@@ -624,17 +625,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sky: {fileID: 148487146}
-  sourceMat: {fileID: 2100000, guid: 48f45af6841dd414d8f19954343eef9d, type: 2}
-  step: 1
-  worldSpace: 1
-  height: 1
-  sides: 4
-  radius: 1
-  amplitude: 0.34
-  frequency: 59
-  scale: 0.72
-  scaleFine: 0.00124
-  operation: 3
   creature: {fileID: 11400000, guid: 201d3a365f993d24489c926ea77e606b, type: 2}
 --- !u!54 &674396021
 Rigidbody:
@@ -663,6 +653,19 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &674396022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 674396016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f225b4fd770c4143afd590702d391f07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sourceMat: {fileID: 2100000, guid: 48f45af6841dd414d8f19954343eef9d, type: 2}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -712,6 +715,69 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1340172180
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1340172182}
+  - component: {fileID: 1340172183}
+  - component: {fileID: 1340172184}
+  m_Layer: 0
+  m_Name: Test
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1340172182
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1340172180}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1340172183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1340172180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1be5fe429a9ef649b6fd6ba5453f4c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  compute: {fileID: 7200000, guid: eebe8041951d61c4fa5605806b673a2a, type: 3}
+  material: {fileID: 2100000, guid: 81b07e3d2e58bc845b4c121f0cfbf032, type: 2}
+  mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  resolution: 128
+--- !u!114 &1340172184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1340172180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25516178d35a493ea09bf765c5525d53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sky: {fileID: 148487146}
+  creature: {fileID: 11400000, guid: 201d3a365f993d24489c926ea77e606b, type: 2}
 --- !u!1 &1992392639
 GameObject:
   m_ObjectHideFlags: 0
@@ -756,8 +822,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 970d7827044b4d148f0f5cd3195aa3f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scale: 1
-  frequency: 2
+  scale: 1.25
+  frequency: 0.53
+  scaleFine: 0
+  frequencyFine: 0.007
   uv: {x: 0, y: 0}
   type: 1
   mode: 2
@@ -769,5 +837,6 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 180048308}
+  - {fileID: 1340172182}
   - {fileID: 674396019}
   - {fileID: 148487147}

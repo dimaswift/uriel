@@ -1,0 +1,30 @@
+#pragma kernel CSMain
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+ 
+RWStructuredBuffer<float4x4> _Particles;
+
+uint _Resolution;
+uint _GeneCount;
+StructuredBuffer<Gene> _GeneBuffer;
+
+[numthreads(1024, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    const uint index = id.x;
+
+    uint x = index % _Resolution;  
+    uint y = (index / _Resolution) % _Resolution;  
+    uint z = index / (_Resolution * _Resolution);
+    float size = 1.0 / _Resolution;
+    float3 pos = (float3(x, y, z) - float3(_Resolution * 0.5, _Resolution * 0.5, _Resolution * 0.5)) * size;
+    float v0 = sampleField(pos, _GeneCount, _GeneBuffer);
+    float v1 = 0.0;
+    float v2 = 0.0;
+   
+    _Particles[index] = float4x4(
+        size, 0, 0, pos.x,
+        0, size, 0, pos.y,
+        0, 0, size, pos.z,
+        v0, v1, v2, 1);
+}

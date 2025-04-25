@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using Uriel.Domain;
 
@@ -7,25 +6,22 @@ namespace Uriel.Behaviours
     public class Star : MonoBehaviour
     {
         [SerializeField] private int speed = 0;
-        [SerializeField] private int operation;
         [SerializeField] private int phase;
-        [SerializeField] private int shift;
+        [SerializeField] private uint iterations = 1;
         [SerializeField] private Gene gene = new()
         {
             scale = 1,
             frequency = 25,
             amplitude = 0.36f,
-            iterations = 1
         };
 
         private float timer;
         
         public Gene GetGene()
         {
-            gene.offset = transform.position;
-            gene.operation = operation;
+            gene.source = transform.position;
             gene.phase = phase;
-            gene.shift = shift;
+            gene.iterations = iterations;
             return gene;
         }
 
