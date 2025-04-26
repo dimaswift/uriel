@@ -54,6 +54,21 @@ namespace Uriel.Behaviours
             {
                 TriggerCapture();
             }
+
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                string fullFolderPath = Path.Combine(Application.dataPath, saveFolderPath);
+                if (!Directory.Exists(fullFolderPath))
+                {
+                    Directory.CreateDirectory(fullFolderPath);
+                    Debug.Log($"Created directory: {fullFolderPath}");
+                }
+                string fileName = $"{targetCube.name}_{Time.frameCount}.png";
+                string filePath = Path.Combine(fullFolderPath, fileName);
+
+                ScreenCapture.CaptureScreenshot(filePath);
+                Debug.Log($"Captured: {filePath}");  
+            }
         }
 
         void Awake()  
@@ -70,11 +85,6 @@ namespace Uriel.Behaviours
                 return;  
             }  
 
-            if (!captureCamera.orthographic)  
-            {  
-                Debug.LogWarning("Screenshotter: Capture Camera is not set to Orthographic. Setting it now.", this);  
-                captureCamera.orthographic = true;  
-            }  
         }  
         
         [ContextMenu("Capture Cube Sides")]  
@@ -100,7 +110,8 @@ namespace Uriel.Behaviours
                 return false;  
             }  
 
-            targetRenderer = targetCube.GetComponent<Renderer>();  
+            targetRenderer = targetCube.GetComponent<Renderer>();
+
             
             if (targetRenderer == null || !targetRenderer.enabled)  
             {  
@@ -112,15 +123,11 @@ namespace Uriel.Behaviours
             {  
                  Debug.LogError("Screenshotter: Capture Camera is not assigned or found.", this);  
                  return false;  
-            }  
-
-            if (!captureCamera.orthographic)  
-            {  
-                 Debug.LogError("Screenshotter: Capture Camera must be Orthographic.", captureCamera);  
-                 return false;  
-            }  
+            }
             return true;  
         }  
+        
+        
         
         private IEnumerator CaptureSidesCoroutine(string fullSavePath)  
         {  
@@ -153,7 +160,11 @@ namespace Uriel.Behaviours
             var camController = GetComponent<CameraController>();
 
             if(camController) camController.enabled = false;
-            
+            bool orthographic = captureCamera.orthographic;
+            if (!orthographic)
+            {
+                captureCamera.orthographic = true;
+            }  
             foreach (ViewInfo view in views)
             {
                 captureCamera.transform.position = bounds.center - view.direction * cameraDistance;  
@@ -197,7 +208,7 @@ namespace Uriel.Behaviours
             }
 
             if (camController) camController.enabled = true;
-            
+            captureCamera.orthographic = true;
             captureCamera.transform.position = originalPosition;  
             captureCamera.transform.rotation = originalRotation;  
             captureCamera.orthographicSize = originalOrthoSize;  

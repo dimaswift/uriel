@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using Uriel.Domain;
@@ -7,12 +8,12 @@ namespace Uriel.Behaviours
 {
     public class CreatureProcessor : MonoBehaviour
     {
-        public event System.Action<ComputeBuffer> OnBufferCreated = b => { };
+        public event Action<ComputeBuffer> OnBufferCreated = b => { };
         public int GeneCount => creature.genes.Count;
         
         [SerializeField] private GameObject sky;
         [SerializeField] private Creature creature;
-        
+        [SerializeField] private bool useSky;
         private ComputeBuffer geneBuffer;
         private readonly List<Constellation> constellations = new();
 
@@ -27,16 +28,21 @@ namespace Uriel.Behaviours
             }
             return geneBuffer;
         }
-        
-        public void UpdateGeneBuffer()
+
+        private void Start()
         {
-            if (creature == null || sky == null)
+           
+        }
+
+        private void FillGenesFromSky()
+        {
+            if (sky == null)
             {
                 return;
             }
 
             sky.GetComponentsInChildren(constellations);
-     
+            
             if (constellations.Count == 0)
             {
                 return;
@@ -47,6 +53,20 @@ namespace Uriel.Behaviours
             foreach (Constellation constellation in constellations)
             {
                 constellation.FillGeneBuffer(creature.genes);
+            }
+
+        }
+        
+        public void UpdateGeneBuffer()
+        {
+            if (creature == null)
+            {
+                return;
+            }
+            
+            if (useSky)
+            {
+                FillGenesFromSky();
             }
             
             if (creature.genes.Count == 0)

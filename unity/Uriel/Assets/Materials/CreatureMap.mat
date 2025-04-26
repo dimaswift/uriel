@@ -62,7 +62,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _GradientLUT:
-        m_Texture: {fileID: 2800000, guid: 5c3d49cc0b3b2694e91ecbf8aa7af6b9, type: 3}
+        m_Texture: {fileID: 2800000, guid: e11ffa00b579cfc489886886ef8276f4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -136,7 +136,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _GradientMultiplier: 1.48
-    - _GradientThreshold: 3.62
+    - _GradientThreshold: 2.2
     - _Harmonics: 1
     - _Max: 1
     - _MaxColor: 0.086

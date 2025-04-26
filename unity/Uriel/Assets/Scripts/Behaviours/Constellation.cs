@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using Uriel.Domain;
 using Uriel.Utils;
+using Random = UnityEngine.Random;
 
 namespace Uriel.Behaviours
 {
     public class Constellation : MonoBehaviour
     {
+        [SerializeField] private bool updateEachFrame;
+        [SerializeField] private uint iterations = 0;
         [SerializeField] private float scale = 1.0f;
         [SerializeField] private float frequency = 1.0f;
         [Range(0f, 0.1f)][SerializeField] private float scaleFine = 1.0f;
@@ -16,11 +19,32 @@ namespace Uriel.Behaviours
         [SerializeField] private PlatonicSolids.Type type;
         [SerializeField] private PlatonicSolids.Mode mode;
         private readonly List<Star> stars = new();
-
-        
+        private float iterationsTimer;
+        private float iterationSpeed = 1.0f;
+        [SerializeField] private float frequencyDrift;
         private void Awake()
         {
             Generate();
+        }
+
+        private void FixedUpdate()
+        {
+            if (updateEachFrame)
+            {
+                Generate();
+            }
+        }
+
+        private void Update()
+        {
+            frequencyFine = Mathf.Sin(Time.time * frequencyDrift) / Mathf.PI;
+            iterationsTimer += Time.deltaTime * iterationSpeed;
+            if (iterationsTimer >= 1.0f)
+            {
+                iterations = (uint)Random.Range(0, 18);
+                iterationsTimer = 0;
+                iterationSpeed = Random.Range(0.2f, 0.5f);
+            }
         }
 
         private void Generate()
@@ -60,6 +84,7 @@ namespace Uriel.Behaviours
                 var gene = star.GetGene();
                 gene.frequency *= frequency + frequencyFine;
                 gene.scale *= scale + scaleFine;
+                gene.iterations += iterations;
                 genes.Add(gene);
             }
         }

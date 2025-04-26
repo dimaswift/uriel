@@ -81,8 +81,8 @@ namespace Uriel.Utils
                 case Type.Octahedron:  
                     GenerateOctahedronVertices(baseVertices);  
                     break;  
-                case Type.Dodecahedron:  
-                    GenerateDodecahedronVertices(baseVertices);  
+                case Type.Dodecahedron:
+                    GenerateDodecahedronPoints(baseVertices, mode, uv);  
                     break;  
                 case Type.Icosahedron:  
                     GenerateIcosahedronVertices(baseVertices);  
@@ -195,12 +195,9 @@ namespace Uriel.Utils
     // --- Public Method ---  
 
     public static void GenerateCubePoints(
-        List<Vector3> points, // Output list  
-        Mode mode = Mode.Vertex, // Which points to generate  
+        List<Vector3> points,
+        Mode mode = Mode.Vertex, 
         Vector2 uv = default // UV coordinates for Edge/Face modes  
-        // Edge: uv.x (0-1) interpolates edge  
-        // Face: uv (x,y) defines point on face  
-        //       (0,0)=center, (0.5,0.5)=corner C  
     )
     {
         points.Clear(); // Ensure the list is empty  
@@ -260,7 +257,7 @@ namespace Uriel.Utils
         }
     }
 
-    private static void GenerateOctahedronVertices(List<Vector3> vertices)  
+        private static void GenerateOctahedronVertices(List<Vector3> vertices)  
         {  
             // Octahedron with vertices on the primary axes  
             vertices.Add(new Vector3(0, 1, 0));    // top  
@@ -271,41 +268,137 @@ namespace Uriel.Utils
             vertices.Add(new Vector3(0, -1, 0));   // bottom  
         }  
             
-        private static void GenerateDodecahedronVertices(List<Vector3> vertices)  
+        // Define edges (30 edges connecting vertices)  
+        private static readonly int[,] DodecahedronEdges = new int[,]  
         {  
-            // Dodecahedron vertices (20 vertices)  
-            // Constructed from cubes and golden ratio  
+            // These are the 30 edges of a dodecahedron  
+            { 0, 1 }, { 0, 4 }, { 0, 8 }, { 1, 2 }, { 1, 9 },  
+            { 2, 3 }, { 2, 10 }, { 3, 4 }, { 3, 11 }, { 4, 5 },  
+            { 5, 6 }, { 5, 12 }, { 6, 7 }, { 6, 13 }, { 7, 8 },  
+            { 7, 14 }, { 8, 9 }, { 9, 10 }, { 10, 11 }, { 11, 12 },  
+            { 12, 13 }, { 13, 14 }, { 14, 15 }, { 15, 16 }, { 15, 19 },  
+            { 16, 17 }, { 16, 18 }, { 17, 18 }, { 17, 19 }, { 18, 19 }  
+        };  
+
+        // Dodecahedron has 12 pentagonal faces  
+        private static readonly int[,] DodecahedronFaces = new int[,]  
+        {  
+            { 0, 1, 2, 3, 4 },      // Face 1  
+            { 0, 4, 5, 6, 7 },      // Face 2  
+            { 0, 7, 8, 9, 1 },      // Face 3  
+            { 1, 9, 10, 11, 2 },    // Face 4  
+            { 2, 11, 12, 13, 3 },   // Face 5  
+            { 3, 13, 14, 5, 4 },    // Face 6  
+            { 5, 14, 15, 16, 6 },   // Face 7  
+            { 6, 16, 17, 8, 7 },    // Face 8  
+            { 8, 17, 18, 10, 9 },   // Face 9  
+            { 10, 18, 19, 12, 11 }, // Face 10  
+            { 12, 19, 15, 14, 13 }, // Face 11  
+            { 15, 19, 18, 17, 16 }  // Face 12  
+        };  
+
+        // Helper to get the base vertices  
+        private static List<Vector3> _GenerateDodecahedronVertexPositions()  
+        {  
+            List<Vector3> vertices = new List<Vector3>();  
             float a = 1.0f;  
             float b = 1.0f / phi;  
             float c = phi;  
-                
+                    
             // Add all permutations of (±1, ±1, ±1)  
             for (int i = -1; i <= 1; i += 2)  
-            for (int j = -1; j <= 1; j += 2)  
-            for (int k = -1; k <= 1; k += 2)  
-                vertices.Add(new Vector3(i * a, j * a, k * a));  
-                
+                for (int j = -1; j <= 1; j += 2)  
+                    for (int k = -1; k <= 1; k += 2)  
+                        vertices.Add(new Vector3(i * a, j * a, k * a));  
+                    
             // Add all even permutations of (0, ±phi, ±1/phi)  
             vertices.Add(new Vector3(0, b, c));  
             vertices.Add(new Vector3(0, -b, c));  
             vertices.Add(new Vector3(0, b, -c));  
             vertices.Add(new Vector3(0, -b, -c));  
-                
+                    
             vertices.Add(new Vector3(c, 0, b));  
             vertices.Add(new Vector3(-c, 0, b));  
             vertices.Add(new Vector3(c, 0, -b));  
             vertices.Add(new Vector3(-c, 0, -b));  
-                
+                    
             vertices.Add(new Vector3(b, c, 0));  
             vertices.Add(new Vector3(-b, c, 0));  
             vertices.Add(new Vector3(b, -c, 0));  
             vertices.Add(new Vector3(-b, -c, 0));  
-                
+                    
             // Scale to make unit edge length  
             float scale = 1.0f / (a * Mathf.Sqrt(3.0f));  
             for (int i = 0; i < vertices.Count; i++)  
             {  
                 vertices[i] *= scale;  
+            }  
+
+            return vertices;  
+        }  
+
+// Public method that supports different modes  
+        public static void GenerateDodecahedronPoints(  
+            List<Vector3> points,  
+            Mode mode = Mode.Vertex,  
+            Vector2 uv = default // UV coordinates for Edge/Face modes  
+        )  
+        {  
+            points.Clear();  
+            var vertices = _GenerateDodecahedronVertexPositions();  
+
+            switch (mode)  
+            {  
+                case Mode.Vertex:  
+                    points.AddRange(vertices);  
+                    break;  
+
+                case Mode.Edge:  
+                    for (int i = 0; i < DodecahedronEdges.GetLength(0); i++)  
+                    {  
+                        int idxA = DodecahedronEdges[i, 0];  
+                        int idxB = DodecahedronEdges[i, 1];  
+                        // Interpolate using uv.x, clamped between 0 and 1  
+                        float t = Mathf.Clamp01(uv.x);  
+                        Vector3 pos = Vector3.Lerp(vertices[idxA], vertices[idxB], t);  
+                        points.Add(pos);  
+                    }  
+                    break;  
+
+                case Mode.Face:
+                    for (int i = 0; i < DodecahedronFaces.GetLength(0); i++)
+                    {
+                        Vector3 faceCenter = Vector3.zero;
+                        int vertexCount = 5; // Dodecahedron faces are pentagons  
+
+                        // Sum the positions of the vertices defining this face  
+                        for (int v = 0; v < vertexCount; v++)
+                        {
+                            int vertexIndex = DodecahedronFaces[i, v];
+                            // Basic check to avoid index out of bounds  
+                            if (vertexIndex >= 0 && vertexIndex < vertices.Count)
+                            {
+                                faceCenter += vertices[vertexIndex];
+                            }
+                            else
+                            {
+                                // Log an error if the index is invalid  
+                                Debug.LogError(
+                                    $"Invalid vertex index {vertexIndex} found in DodecahedronFaces definition for face {i}.");
+                                // Skip this face to prevent further errors  
+                                goto NextFace;
+                            }
+                        }
+
+                        // Calculate the average position (the geometric center)  
+                        faceCenter /= vertexCount;
+
+                        // Add the calculated center point for this face  
+                        points.Add(faceCenter);
+
+                        NextFace: ; // Label to jump to if an invalid index was found  
+                    }  
+                    break;  
             }  
         }  
             
