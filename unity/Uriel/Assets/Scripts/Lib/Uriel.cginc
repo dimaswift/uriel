@@ -11,22 +11,21 @@ struct Gene
     float3 source;
     float scale;
     float phase;
+    int harmonic;
 }; 
  
 float sampleField(float3 pos, uint geneCount, StructuredBuffer<Gene> buffer)
 {
     float result = 0.0;
-    
     for (uint i = 0; i < geneCount; i++)
     {
         const Gene gene = buffer[i]; 
-        const float dist = saturate(distance(pos, gene.source)  * gene.scale);
-        float v = sin(dist * gene.frequency + (PI / 8 * gene.phase)) * gene.amplitude * (gene.iterations + 1);
+        const float dist = saturate(distance(pos, gene.source) * gene.scale);
         for (uint j = 0; j < gene.iterations; j++)
         {
-            v = j % 2 ==0 ? cos(v + dist  * gene.frequency + j) : sin(v + dist  * gene.frequency + j); 
+            result += sin(dist * gene.frequency * dot(gene.source, float3(0,j,0))) * gene.amplitude;
         }
-        result += v;  
+      
     }
     
     return result; 

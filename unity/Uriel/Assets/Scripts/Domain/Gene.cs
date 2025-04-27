@@ -13,5 +13,6 @@ namespace Uriel.Domain
         public Vector3 source;
         public float scale;
         public float phase;
+        public int harmonic;
     }
 } 

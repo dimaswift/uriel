@@ -5,9 +5,9 @@ namespace Uriel.Behaviours
 {
     public class Star : MonoBehaviour
     {
-        [SerializeField] private int speed = 13;
+        [SerializeField] private int speed;
         [SerializeField] private int phase;
-        [SerializeField] private uint iterations = 3;
+        [SerializeField] private uint iterations = 0;
         [SerializeField] private Gene gene = new()
         {
             scale = 1,
@@ -35,7 +35,6 @@ namespace Uriel.Behaviours
                 phase++;
                
             }
-
         }
     }
 }

@@ -9,6 +9,9 @@ namespace Uriel.Behaviours
 {
     public class Constellation : MonoBehaviour
     {
+        [SerializeField] private int harmonic = 1;
+        [SerializeField] private float iterationSpeed = 1.0f;
+        [SerializeField] private float frequencyDrift;
         [SerializeField] private bool updateEachFrame;
         [SerializeField] private uint iterations = 0;
         [SerializeField] private float scale = 1.0f;
@@ -20,8 +23,7 @@ namespace Uriel.Behaviours
         [SerializeField] private PlatonicSolids.Mode mode;
         private readonly List<Star> stars = new();
         private float iterationsTimer;
-        private float iterationSpeed = 1.0f;
-        [SerializeField] private float frequencyDrift;
+      
         private void Awake()
         {
             Generate();
@@ -85,6 +87,7 @@ namespace Uriel.Behaviours
                 gene.frequency *= frequency + frequencyFine;
                 gene.scale *= scale + scaleFine;
                 gene.iterations += iterations;
+                gene.harmonic += harmonic;
                 genes.Add(gene);
             }
         }
