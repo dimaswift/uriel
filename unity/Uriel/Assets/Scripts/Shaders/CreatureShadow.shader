@@ -41,7 +41,6 @@ Shader "Uriel/CreatureShadow"
             
     
             uint _Steps;
-            float _Radius;
             sampler2D _GradientLUT;  
             float _GradientMultiplier;
             float _GradientThreshold;
@@ -75,27 +74,8 @@ Shader "Uriel/CreatureShadow"
             
             fixed4 frag(v2f id) : SV_Target  
             {
-                const float3 gridPoint = id.worldPos;  
-                const float3 emitterPoint = _Source;  
-                const float3 rayDir = normalize(gridPoint - emitterPoint);  
-                float total = 0.0;
-                const float rayLength = length(gridPoint - emitterPoint);  
-                const float stepSize = rayLength / _Steps;
-                [loop]
-                for (int i = 0; i < _Steps; i++)  
-                {  
-                    const float t = i * stepSize;  
-                    const float3 p = emitterPoint + rayDir * t;
-                    float v = sampleField(p, _GeneCount, _GeneBuffer);
-                  
-                    for (int j = 0; j < _Depth; j++)
-                    {
-                        const float3 p_next = emitterPoint + rayDir * ((t + j) * _Frequency);
-                        const float v_next = sampleField(p_next, _GeneCount, _GeneBuffer);
-                        total += smoothstep(_Min, _Max, v - v_next) * _Strength;
-                        v = v_next;
-                    }
-                }  
+                float total = rayMarchField(_Source, id.worldPos, _Steps, _Depth,
+        _Frequency, _Min, _Max,  _Strength, _GeneCount, _GeneBuffer);
                 float3 diffuseColor;
                 if(_Grayscale == 0)
                 {

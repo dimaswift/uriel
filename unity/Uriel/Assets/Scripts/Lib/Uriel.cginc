@@ -12,8 +12,8 @@ struct Gene
     float scale;
     float phase;
     int harmonic;
-}; 
- 
+};
+
 float sampleField(float3 pos, uint geneCount, StructuredBuffer<Gene> buffer)
 {
     float result = 0.0;
@@ -27,11 +27,33 @@ float sampleField(float3 pos, uint geneCount, StructuredBuffer<Gene> buffer)
             
             result += j % 2 ==0 ? sin(d) * gene.amplitude : cos(d)  * gene.amplitude;
         }
-      
     }
-    
     return result; 
-}  
+}
+
+float rayMarchField(float3 origin, float3 target, uint steps, uint depth, float frequency,
+    float min, float max, float amplitude, uint geneCount, StructuredBuffer<Gene> buffer)
+{
+    const float3 dir = target - origin;
+    const float rayLength = length(dir);  
+    const float stepSize = rayLength / steps;
+    const float3 rayDir = normalize(dir);  
+    float total = 0.0;
+    for (uint i = 0; i < steps; i++)  
+    {  
+        const float t = i * stepSize;  
+        const float3 p = origin + rayDir * t;
+        float v = sampleField(p, geneCount, buffer);
+        for (uint j = 0; j < depth; j++)
+        {
+            const float3 p_next = origin + rayDir * ((t + j) * frequency);
+            const float v_next = sampleField(p_next, geneCount, buffer);
+            total += smoothstep(min, max, v - v_next) * amplitude;
+            v = v_next;
+        }
+    }
+    return total;
+}
 
 float3 hsv2rgb(float h, float s, float v) {
     h = frac(h); 

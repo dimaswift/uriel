@@ -1,0 +1,52 @@
+#pragma kernel CSMain
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+RWTexture2D<float4> _Result;
+
+uint _Steps;
+Texture2D _Gradient;  
+float _GradientMultiplier;
+float _GradientThreshold;
+float _Frequency;
+float _Amplitude;
+float _Min;
+float _Max;
+float2 _Size;
+bool _Grayscale;
+uint _Depth;
+uint _Width;
+uint _Height;
+float3 _Target;       
+float3 _Source;
+float _Focus;
+float3 _Normal;
+uint _GeneCount;
+StructuredBuffer<Gene> _GeneBuffer; 
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _Width || id.y >= _Height)  
+        return;  
+    const float x = float(id.x) / _Width;  
+    const float y = float(id.y) / _Height;
+    const float2 uv = float2(x - 0.5, y - 0.5);
+    const float3 forward = normalize(_Normal);  
+    float3 right = normalize(cross(float3(0, 1, 0), forward));  
+    if (length(right) < 0.001)  
+        right = normalize(cross(float3(0, 0, 1), forward));  
+    const float3 up = normalize(cross(forward, right));  
+    const float3 gridPoint = (_Target + right * uv.x * _Size.x  / (_Focus * 0.01) + up * uv.y * _Size.y  / (_Focus * 0.01));
+    
+    const float3 emitterPoint = _Source;  
+    float total = rayMarchField(emitterPoint, gridPoint, _Steps, _Depth,
+        _Frequency, _Min, _Max, _Amplitude, _GeneCount, _GeneBuffer);
+    float4 diffuseColor = _Gradient[uint2(total * _GradientThreshold, 0)] * _GradientMultiplier;
+    if (_Grayscale)
+    {
+        diffuseColor = saturate(total);
+    }
+    
+    _Result[id.xy] = diffuseColor;
+}
