@@ -292,7 +292,7 @@ Camera:
   far clip plane: 1000
   field of view: 70.3
   orthographic: 1
-  orthographic size: 3.5
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -317,7 +317,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.20370159, y: 0.95068747, z: -6.7749634}
+  m_LocalPosition: {x: 0.20370159, y: -5, z: -6.7749634}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -891,13 +891,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1992392639}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.69625986, y: -0, z: -0, w: 0.7177898}
-  m_LocalPosition: {x: 0, y: 0.631, z: -0.815}
-  m_LocalScale: {x: 0.87974524, y: 0.97348, z: 1.3700453}
+  m_LocalRotation: {x: -0.7466382, y: 0, z: 0, w: -0.6652304}
+  m_LocalPosition: {x: 0, y: -1.6, z: -0.31}
+  m_LocalScale: {x: 1.01, y: 0.78, z: 1.9}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 148487147}
-  m_LocalEulerAnglesHint: {x: 808.256, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 456.6, y: 0, z: 0}
 --- !u!114 &1992392641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -913,10 +913,10 @@ MonoBehaviour:
   harmonic: 7
   iterationSpeed: 0
   frequencyDrift: 0
-  updateEachFrame: 0
+  updateEachFrame: 1
   iterations: 12
-  scale: 1
-  frequency: 1
+  scale: 0.4
+  frequency: 1.2
   scaleFine: 0
   frequencyFine: 0
   uv: {x: 0, y: 0}
@@ -952,7 +952,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.53, z: -1.675}
-  m_LocalScale: {x: 8.195449, y: 8.195449, z: 8.195449}
+  m_LocalScale: {x: 32, y: 32, z: 32}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1035,9 +1035,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25516178d35a493ea09bf765c5525d53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sky: {fileID: 1782578110}
+  sky: {fileID: 148487146}
   creature: {fileID: 11400000, guid: 201d3a365f993d24489c926ea77e606b, type: 2}
-  useSky: 0
+  useSky: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

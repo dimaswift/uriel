@@ -2,7 +2,7 @@ Shader "Uriel/CreatureShadow"
 {  
     Properties  
     {  
-        _Depth ("Depth", Range(0, 5)) = 1
+        _Depth ("Depth", Range(0, 10)) = 1
         _Steps ("Steps", Range(1, 256)) = 64
         _GradientLUT ("Gradient LUT", 2D) = "white" {}
         _GradientThreshold ("Gradient Threshold", Range(0.0, 1.0)) = 0.5
