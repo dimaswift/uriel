@@ -28,12 +28,7 @@ namespace Uriel.Behaviours
             }
             return geneBuffer;
         }
-
-        private void Start()
-        {
-           
-        }
-
+        
         private void FillGenesFromSky()
         {
             if (sky == null)
