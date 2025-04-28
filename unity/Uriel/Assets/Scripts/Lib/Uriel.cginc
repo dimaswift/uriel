@@ -23,7 +23,9 @@ float sampleField(float3 pos, uint geneCount, StructuredBuffer<Gene> buffer)
         const float dist = saturate(distance(pos, gene.source) * gene.scale);
         for (uint j = 0; j < gene.iterations; j++)
         {
-            result += sin(dist * gene.frequency * dot(gene.source, float3(0,j,0))) * gene.amplitude;
+            float d = dist * gene.frequency;
+            
+            result += j % 2 ==0 ? sin(d) * gene.amplitude : cos(d)  * gene.amplitude;
         }
       
     }

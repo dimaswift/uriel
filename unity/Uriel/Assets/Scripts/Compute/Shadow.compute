@@ -1,0 +1,61 @@
+#pragma kernel CSMain
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+uint _Resolution;
+uint _GeneCount;
+float3 _Source;
+float3 _Target;
+float3 _Normal;
+float _Size;
+int _Steps;
+float _Frequency;
+float _Strength;
+bool _Grayscale;
+bool _Saturate;
+float _Min;
+float _Max;
+StructuredBuffer<Gene> _GeneBuffer;
+
+RWTexture2D<float4> _Result;
+
+[numthreads(32, 32, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _Resolution || id.y >= _Resolution)  
+        return;  
+        
+    float x = float(id.x) / _Resolution;  
+    float y = float(id.y) / _Resolution;  
+    
+    float2 uv = float2(x - 0.5, y - 0.5);  
+    
+    const float3 forward = normalize(_Normal);  
+    float3 right = normalize(cross(float3(0, 1, 0), forward));  
+    if (length(right) < 0.001)  
+        right = normalize(cross(float3(0, 0, 1), forward));  
+    const float3 up = normalize(cross(forward, right));  
+    
+   
+    const float3 gridPoint = _Target + right * uv.x * _Size + up * uv.y * _Size;  
+    
+ 
+    const float3 rayDir = normalize(gridPoint - _Source);  
+    
+    float total = 0.0;  
+    
+    const float rayLength = length(gridPoint - _Source);  
+    const float stepSize = rayLength / _Steps;  
+    
+
+    for (int i = 0; i < _Steps; i++)  
+    {  
+        const float t = i * stepSize;  
+        const float3 p = _Source + rayDir * t;
+        float v = sin(sampleField(p, _GeneCount, _GeneBuffer) * _Frequency);
+        if (_Saturate) v = saturate(v);
+        total += v * _Strength;
+    }  
+    float3 color = _Grayscale ? smoothstep(_Min, _Max, total) : hsv2rgb(total, 1, 1);
+    _Result[id.xy] = float4(color, 1.0); 
+}
