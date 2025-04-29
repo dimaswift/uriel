@@ -10,9 +10,14 @@ Shader "Uriel/LitSurface"
         _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
         _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
         _Shininess("Shininess", Range(0.0, 10.0)) = 1.0
-        _Displacement("Displacement", Range(-1.0, 1.0)) = 0.1
+        _Displacement("Displacement", Range(-0.3, 0.3)) = 0.1
         _Phase("Phase", Range(-100.0, 100.0)) = 1.0
+        _Frequency("Frequency", Range(-20.0, 20.0)) = 1.0
         _WiggleSpeed("Wiggle Speed", Range(0, 100.0)) = 1.0
+        _WiggleOffset("Wiggle Offset", Vector) = (0,0,0)
+        _WiggleScale("Wiggle Scale",  Range(0.0, 3.14)) = 0
+        _WiggleSteps("Wiggle Steps",  Range(1, 100.0)) = 1
+        _WiggleIrregularity("Wiggle Irregularity",  Range(0, 10.0)) = 0
     }  
     SubShader  
     {  
@@ -56,15 +61,26 @@ Shader "Uriel/LitSurface"
             uint _WaveCount;
             float _WiggleSpeed;
             float _Displacement;
+            float3 _WiggleOffset;
+            float _WiggleScale;
+            float _WiggleIrregularity;
+            int _WiggleSteps;
+            float _Frequency;
             StructuredBuffer<Wave> _WaveBuffer; 
             
             v2f vert(const appdata_t input)  
             {  
                 v2f o;
                 float4 v = input.vertex;
-                const float value = sin(sampleField(mul(unity_ObjectToWorld, input.vertex), _WaveCount, _WaveBuffer)
-                    * _Phase + _Time * _WiggleSpeed) * _Displacement;
-                v -= float4(input.normal, 1.0) * value;
+                float value = 0.0;
+                for (int i = 1; i <= _WiggleSteps; ++i)
+                {
+                    float f = (sampleField(mul(unity_ObjectToWorld, input.vertex + input.normal * _WiggleScale / i * _WiggleIrregularity), _WaveCount, _WaveBuffer) * _Frequency)
+                    + (_Phase + _WiggleSpeed * _Time);
+               
+                    value += sin(f) * _Displacement;
+                }
+                v -= float4(input.normal, 1.0) * sin(value);
                 o.world_normal = UnityObjectToWorldNormal(input.normal);
                 o.world_pos = mul(unity_ObjectToWorld, input.vertex);
                 o.vertex = UnityObjectToClipPos(v); 

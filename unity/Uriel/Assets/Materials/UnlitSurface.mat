@@ -129,11 +129,11 @@ Material:
     - _Depth: 0.29
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
-    - _Displacement: 0.1
+    - _Displacement: 0.009
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
-    - _Frequency: 1
+    - _Frequency: -1.43
     - _Frequency2: 348.78
     - _FrequencyInversed: 4.89
     - _FrequencySquared: -2.48
@@ -148,13 +148,13 @@ Material:
     - _Metallic: 0
     - _Min: 0
     - _MinColor: 0
-    - _Multiplier: 2
+    - _Multiplier: 3.1
     - _NormalDelta: 0.0128
     - _NormalStrength: 1.267
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _Period: 0
-    - _Phase: 8
+    - _Phase: -7.6
     - _Quality: 4.04
     - _QueueOffset: 0
     - _RampThreshold: 2.2
@@ -175,10 +175,13 @@ Material:
     - _SrcBlendAlpha: 1
     - _StepSize: 0.0435
     - _Surface: 0
-    - _Threshold: 2.11
+    - _Threshold: 1.56
     - _ThresholdThin: 0.01
     - _UseLight: 0
+    - _WiggleIrregularity: 0.8
+    - _WiggleScale: 2.529
     - _WiggleSpeed: 100
+    - _WiggleSteps: 16.3
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
@@ -195,5 +198,7 @@ Material:
     - _LightSource: {r: 0, g: 1, b: 1, a: 1}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _WiggleOffset: {r: 0, g: 0, b: 0, a: 1}
+    - _WiggleScale: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

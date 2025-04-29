@@ -1009,14 +1009,14 @@ MonoBehaviour:
   iterationSpeed: 0
   frequencyDrift: 0
   updateEachFrame: 1
-  ripples: 13
+  ripples: 3
   density: 1.13
-  frequency: 0.16
-  amplitude: 1.03
-  densityFine: 0.41
+  frequency: 0.91
+  amplitude: 2.17
+  densityFine: 0.01
   frequencyFine: 0
   uv: {x: 0, y: 0}
-  type: 1
+  type: 3
   mode: 0
 --- !u!1 &2013009286
 GameObject:
