@@ -5,8 +5,8 @@
 RWStructuredBuffer<float4x4> _Particles;
 
 uint _Resolution;
-uint _GeneCount;
-StructuredBuffer<Gene> _GeneBuffer;
+uint _WaveCount;
+StructuredBuffer<Wave> _WaveBuffer;
 
 [numthreads(1024, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
@@ -18,7 +18,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     uint z = index / (_Resolution * _Resolution);
     float size = 1.0 / _Resolution;
     float3 pos = (float3(x, y, z) - float3(_Resolution * 0.5, _Resolution * 0.5, _Resolution * 0.5)) * size;
-    float v0 = sampleField(pos, _GeneCount, _GeneBuffer);
+    float v0 = sampleField(pos, _WaveCount, _WaveBuffer);
     float v1 = 0.0;
     float v2 = 0.0;
    

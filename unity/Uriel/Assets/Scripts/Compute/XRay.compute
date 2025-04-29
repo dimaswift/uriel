@@ -21,8 +21,8 @@ float3 _Target;
 float3 _Source;
 float _Focus;
 float3 _Normal;
-uint _GeneCount;
-StructuredBuffer<Gene> _GeneBuffer; 
+uint _WaveCount;
+StructuredBuffer<Wave> _WaveBuffer; 
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -41,7 +41,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     const float3 emitterPoint = _Source;  
     float total = rayMarchField(emitterPoint, gridPoint, _Steps, _Depth,
-        _Frequency, _Min, _Max, _Amplitude, _GeneCount, _GeneBuffer);
+        _Frequency, _Min, _Max, _Amplitude, _WaveCount, _WaveBuffer);
     float4 diffuseColor = _Gradient[uint2(total * _GradientThreshold, 0)] * _GradientMultiplier;
     if (_Grayscale)
     {

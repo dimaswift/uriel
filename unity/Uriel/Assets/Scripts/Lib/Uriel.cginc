@@ -3,36 +3,35 @@
 
 #define PI 3.14159265359
 
-struct Gene 
+struct Wave 
 {
-    uint iterations;
+    float3 source;
+    uint ripples;
+    uint harmonic;
     float frequency;
     float amplitude;
-    float3 source;
-    float scale;
+    float density;
     float phase;
-    int harmonic;
 };
 
-float sampleField(float3 pos, uint geneCount, StructuredBuffer<Gene> buffer)
+float sampleField(float3 pos, uint count, StructuredBuffer<Wave> buffer)
 {
     float result = 0.0;
-    for (uint i = 0; i < geneCount; i++)
+    for (uint i = 0; i < count; i++)
     {
-        const Gene gene = buffer[i]; 
-        const float dist = saturate(distance(pos, gene.source) * gene.scale);
-        for (uint j = 0; j < gene.iterations; j++)
+        const Wave wave = buffer[i]; 
+        const float dist = saturate(distance(pos, wave.source) * wave.density);
+        for (uint j = 0; j < wave.ripples; j++)
         {
-            float d = dist * gene.frequency;
-            
-            result += j % 2 ==0 ? sin(d) * gene.amplitude : cos(d)  * gene.amplitude;
+            const float d = dist * wave.frequency;
+            result += j % wave.harmonic == 0 ? sin(d) * wave.amplitude : cos(d)  * wave.amplitude;
         }
     }
     return result; 
 }
 
 float rayMarchField(float3 origin, float3 target, uint steps, uint depth, float frequency,
-    float min, float max, float amplitude, uint geneCount, StructuredBuffer<Gene> buffer)
+    float min, float max, float amplitude, uint waveCount, StructuredBuffer<Wave> buffer)
 {
     const float3 dir = target - origin;
     const float rayLength = length(dir);  
@@ -43,11 +42,11 @@ float rayMarchField(float3 origin, float3 target, uint steps, uint depth, float 
     {  
         const float t = i * stepSize;  
         const float3 p = origin + rayDir * t;
-        float v = sampleField(p, geneCount, buffer);
+        float v = sampleField(p, waveCount, buffer);
         for (uint j = 0; j < depth; j++)
         {
             const float3 p_next = origin + rayDir * ((t + j) * frequency);
-            const float v_next = sampleField(p_next, geneCount, buffer);
+            const float v_next = sampleField(p_next, waveCount, buffer);
             total += smoothstep(min, max, v - v_next) * amplitude;
             v = v_next;
         }
