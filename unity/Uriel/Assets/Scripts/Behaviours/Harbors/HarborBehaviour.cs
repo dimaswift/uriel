@@ -45,12 +45,12 @@ namespace Uriel.Behaviours
             }
 
             spiral.GetComponentsInChildren(constellations);
-            
+           
             if (constellations.Count == 0)
             {
                 return;
             }
-
+            
             harbor.waves.Clear();
 
             foreach (Constellation constellation in constellations)

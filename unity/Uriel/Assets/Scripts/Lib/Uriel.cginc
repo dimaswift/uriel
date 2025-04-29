@@ -21,11 +21,17 @@ float sampleField(float3 pos, uint count, StructuredBuffer<Wave> buffer)
     {
         const Wave wave = buffer[i]; 
         const float dist = saturate(distance(pos, wave.source) * wave.density);
+        result += sin(dist * wave.frequency) * wave.amplitude;
         for (uint j = 0; j < wave.ripples; j++)
         {
-            const float d = dist * wave.frequency;
-            result += j % wave.harmonic == 0 ? sin(d) * wave.amplitude : cos(d)  * wave.amplitude;
+            const float d = dist * (wave.frequency / wave.ripples);
+            result += sin(d * (float(j) / wave.ripples)) * wave.amplitude;
+            for (uint h = 0; h < wave.harmonic; h++)
+            {
+                result += saturate(sin(d * (float(h) / wave.harmonic))) * wave.amplitude;
+            }
         }
+     
     }
     return result; 
 }

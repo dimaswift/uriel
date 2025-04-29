@@ -1005,15 +1005,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 970d7827044b4d148f0f5cd3195aa3f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  harmonic: 6
-  iterationSpeed: 0
-  frequencyDrift: 0
-  updateEachFrame: 1
-  ripples: 3
-  density: 1.13
-  frequency: 0.91
-  amplitude: 2.17
-  densityFine: 0.01
+  depth: 1
+  harmonic: 10
+  updateEachFrame: 0
+  ripples: 11
+  density: 0.914
+  frequency: 2.2
+  amplitude: 1.41
+  densityFine: 0
   frequencyFine: 0
   uv: {x: 0, y: 0}
   type: 3

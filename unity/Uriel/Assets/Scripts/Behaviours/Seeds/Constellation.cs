@@ -8,12 +8,11 @@ namespace Uriel.Behaviours
 {
     public class Constellation : MonoBehaviour
     {
+        public int depth;
         [SerializeField] private uint harmonic = 2;
-        [SerializeField] private float iterationSpeed = 1.0f;
-        [SerializeField] private float frequencyDrift;
         [SerializeField] private bool updateEachFrame;
         [SerializeField] private uint ripples = 0;
-        [SerializeField] private float density = 1.0f;
+        [Range(0f, 2f)] [SerializeField] private float density = 1.0f;
         [SerializeField] private float frequency = 1.0f;
         [SerializeField] private float amplitude = 1.0f;
         [SerializeField] private float densityFine = 1.0f;
@@ -22,7 +21,7 @@ namespace Uriel.Behaviours
         [SerializeField] private PlatonicSolids.Type type;
         [SerializeField] private PlatonicSolids.Mode mode;
         private readonly List<Star> stars = new();
-        private float rippleTimer;
+
       
         private void Awake()
         {
@@ -37,18 +36,6 @@ namespace Uriel.Behaviours
             }
         }
 
-        private void Update()
-        {
-            frequencyFine = Mathf.Sin(Time.time * frequencyDrift) / Mathf.PI;
-            rippleTimer += Time.deltaTime * iterationSpeed;
-            if (rippleTimer >= 1.0f)
-            {
-                ripples = (uint)Random.Range(0, 18);
-                rippleTimer = 0;
-                iterationSpeed = Random.Range(0.2f, 0.5f);
-            }
-        }
-
         private void Generate()
         {
             var vertices = new List<Vector3>();
@@ -57,10 +44,12 @@ namespace Uriel.Behaviours
             {
                 Destroy(star.gameObject);
             }
+            
             for (int i = 0; i < vertices.Count; i++)
             {
                 var t = new GameObject(i.ToString());
                 t.AddComponent<Star>();
+          
                 t.transform.SetParent(transform);
                 t.transform.localPosition = vertices[i];
             }
