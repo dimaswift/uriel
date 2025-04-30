@@ -28,6 +28,10 @@ namespace Uriel.Domain
         public static readonly int Width = Shader.PropertyToID("_Width");
         public static readonly int Height = Shader.PropertyToID("_Height");
         public static readonly int Focus = Shader.PropertyToID("_Focus");
+        public static readonly int Speed = Shader.PropertyToID("_Speed");
+        public static readonly int Time = Shader.PropertyToID("_Time");
+        public static readonly int Phase = Shader.PropertyToID("_Phase");
+        public static readonly int Scale = Shader.PropertyToID("_Scale");
     }
 }
 

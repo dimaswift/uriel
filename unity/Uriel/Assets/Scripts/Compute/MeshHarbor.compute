@@ -1,0 +1,34 @@
+#pragma kernel CSMain
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+StructuredBuffer<float3> _InputVertexBuffer;
+RWStructuredBuffer<float3> _OutputVertexBuffer;
+RWStructuredBuffer<float3> _NormalBuffer;
+StructuredBuffer<Wave> _WaveBuffer;
+int _WaveCount;
+float _Scale;
+float _Frequency;
+float _Amplitude;
+float _Phase;
+float _Time;
+float _Speed;
+
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    const float3 vertex = _InputVertexBuffer[id.x];
+    const float3 normal = _NormalBuffer[id.x];
+    float value = 0.0;
+    for (int i = 0; i < _WaveCount; i++)
+    {
+        const Wave wave = _WaveBuffer[i];
+        for (int k = 0; k < wave.harmonic; k++)
+        {
+            const float f = sampleShape(vertex + normal * _Scale * (float(k) / wave.harmonic), wave) * _Frequency + (_Phase + _Speed * _Time);
+            value += sin(f) * _Amplitude * 0.001;
+        }
+       
+    }
+    _OutputVertexBuffer[id.x] = vertex + float3(normal) * sin(value);
+}

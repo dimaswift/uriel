@@ -134,7 +134,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &148487147
 Transform:
   m_ObjectHideFlags: 0
@@ -329,8 +329,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.22728318, y: 0.30966204, z: -0.07649199, w: -0.9201091}
-  m_LocalPosition: {x: 0.7943669, y: 0.7483112, z: -1.0912439}
+  m_LocalRotation: {x: -0.08555919, y: 0.8076264, z: -0.12106737, w: -0.57075554}
+  m_LocalPosition: {x: 2.2104385, y: 0.74778664, z: 0.8358468}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -547,8 +547,6 @@ GameObject:
   - component: {fileID: 674396019}
   - component: {fileID: 674396018}
   - component: {fileID: 674396017}
-  - component: {fileID: 674396020}
-  - component: {fileID: 674396022}
   m_Layer: 0
   m_Name: Adam
   m_TagString: Untagged
@@ -608,7 +606,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 674396016}
-  m_Mesh: {fileID: 6461297695846733525, guid: a8f18abe4676f1d4b9b096bf7d589501, type: 3}
+  m_Mesh: {fileID: 6461297695846733525, guid: fc34b78473eaeff43b594934a26306ed, type: 3}
 --- !u!4 &674396019
 Transform:
   m_ObjectHideFlags: 0
@@ -624,33 +622,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &674396020
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 674396016}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25516178d35a493ea09bf765c5525d53, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spiral: {fileID: 148487148}
-  harbor: {fileID: 11400000, guid: 201d3a365f993d24489c926ea77e606b, type: 2}
-  useSpiral: 1
---- !u!114 &674396022
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 674396016}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f225b4fd770c4143afd590702d391f07, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &715354080
 GameObject:
   m_ObjectHideFlags: 0
@@ -961,6 +932,60 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1395742867}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1646746220
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1646746222}
+  - component: {fileID: 1646746221}
+  m_Layer: 0
+  m_Name: MeshHarbor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1646746221
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1646746220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a606c5c539ce408786fe11b1fc8e7e05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  calculateNormals: 1
+  savePath: C:\Unity\uriel\unity\Uriel\Assets\Models
+  target: {fileID: 674396017}
+  harbor: {fileID: 11400000, guid: 201d3a365f993d24489c926ea77e606b, type: 2}
+  compute: {fileID: 7200000, guid: 28494770ba86f214ea1838e474ef0889, type: 3}
+  frequency: 0.22
+  amplitude: 1.71
+  scale: -0.38
+  phase: -926.7
+  speed: 2.22
+--- !u!4 &1646746222
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1646746220}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1992392639
 GameObject:
   m_ObjectHideFlags: 0
@@ -1146,3 +1171,4 @@ SceneRoots:
   - {fileID: 674396019}
   - {fileID: 148487147}
   - {fileID: 715354082}
+  - {fileID: 1646746222}

@@ -1,4 +1,4 @@
-Shader "Uriel/LitSurface"  
+Shader "Uriel/LitSurfaceSingle"  
 {  
     Properties  
     {  
@@ -10,14 +10,15 @@ Shader "Uriel/LitSurface"
         _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
         _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
         _Shininess("Shininess", Range(0.0, 10.0)) = 1.0
-        _Displacement("Displacement", Range(-0.3, 0.3)) = 0.1
-        _Phase("Phase", Range(-100.0, 100.0)) = 1.0
-        _Frequency("Frequency", Range(-20.0, 20.0)) = 1.0
-        _WiggleSpeed("Wiggle Speed", Range(0, 100.0)) = 1.0
-        _WiggleOffset("Wiggle Offset", Vector) = (0,0,0)
-        _WiggleScale("Wiggle Scale",  Range(0.0, 3.14)) = 0
-        _WiggleSteps("Wiggle Steps",  Range(1, 100.0)) = 1
-        _WiggleIrregularity("Wiggle Irregularity",  Range(0, 10.0)) = 0
+
+        [Enum(Tetrahedron,0, Octahedron,1, Cube,2, Icosahedron,3, Dodecahedron,4)] _Shape("Displacement Shape", Int) = 1  
+        _WaveFrequency("Wave Frequency", Range(-20.0, 20.0)) = 5.0
+        _WaveAmplitude("Wave Amplitude", Range(-100.0, 100.0)) = 5.0
+        _WaveDensity("Wave Density", Range(0.0, 2.0)) = 0.5
+        _WavePhase("Wave Phase", Range(-10.0, 10.0)) = 0.0
+        _WaveHarmonic("Wave Harmonic", Int) = 0
+        _WaveRipples("Wave Ripples", Range(0, 100.0)) = 1
+        _WaveSource("Wave Source", Vector) = (0,0,0)
     }  
     SubShader  
     {  
@@ -57,41 +58,36 @@ Shader "Uriel/LitSurface"
             float _SpecularThreshold;
             float _SpecularMultiplier;
             float _Shininess;
-            float _Phase;
-            uint _WaveCount;
-            float _WiggleSpeed;
-            float _Displacement;
-            float3 _WiggleOffset;
-            float _WiggleScale;
-            float _WiggleIrregularity;
-            int _WiggleSteps;
-            float _Frequency;
-            StructuredBuffer<Wave> _WaveBuffer; 
+            
+            float _WaveFrequency;
+            float _WaveAmplitude;
+            float _WavePhase;
+            float _WaveDensity;
+            uint _WaveHarmonic;
+            uint _WaveRipples;
+            float3 _WaveSource;
+            float2 _WaveRotation;
+            uint _Shape;
+            
+            Wave getWave()
+            {
+                return createWave(_Shape,_WaveSource, _WaveRotation, _WaveRipples, _WaveHarmonic, _WaveFrequency, _WaveAmplitude, _WaveDensity, _WavePhase);
+            }
             
             v2f vert(const appdata_t input)  
             {  
                 v2f o;
-                float4 v = input.vertex;
-                float value = 0.0;
-                for (int i = 1; i <= _WiggleSteps; ++i)
-                {
-                    float f = (sampleField(mul(unity_ObjectToWorld, input.vertex + input.normal * _WiggleScale / i * _WiggleIrregularity), _WaveCount, _WaveBuffer) * _Frequency)
-                    + (_Phase + _WiggleSpeed * _Time);
-               
-                    value += sin(f) * _Displacement;
-                }
-                v -= float4(input.normal, 1.0) * sin(value);
                 o.world_normal = UnityObjectToWorldNormal(input.normal);
                 o.world_pos = mul(unity_ObjectToWorld, input.vertex);
-                o.vertex = UnityObjectToClipPos(v); 
+                o.vertex = UnityObjectToClipPos(input.vertex); 
                 return o;   
             }
             
             fixed4 frag(const v2f id) : SV_Target  
             {
                 
-                float value = sampleField(id.world_pos, _WaveCount, _WaveBuffer);
-                const float3 diffuse_color = tex2D(_Gradient, float2(value * _Threshold, 0)) * _Multiplier;
+                float value = sampleShape(id.world_pos, getWave());
+                const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;
                 const float3 normal_dir = normalize(id.world_normal);
                 const float3 ambient = ShadeSH9(float4(normal_dir, 1));  
                 const float3 light_dir = normalize(_LightSource);
