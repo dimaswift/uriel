@@ -20,6 +20,7 @@ struct Wave
     float amplitude;
     float density;
     float phase;
+    float depth;
 };
 
 float3x3 createRotationMatrix(float latitudeDegrees, float longitudeDegrees);
@@ -35,11 +36,11 @@ struct Solid {
 };  
 
 Wave createWave(uint type, float3 source, float2 coordinates, uint ripples, uint harmonic, float frequency,   
-                float amplitude, float density, float phase)  
+                float amplitude, float density, float phase, float depth)  
 {  
     Wave w;  
     w.source = source;  
-    w.ripples = ripples;  
+    w.ripples = ripples;   
     w.harmonic = harmonic;  
     w.frequency = frequency;  
     w.amplitude = amplitude;  
@@ -47,6 +48,7 @@ Wave createWave(uint type, float3 source, float2 coordinates, uint ripples, uint
     w.phase = phase;
     w.type = type;
     w.rotation = coordinates;
+    w.depth = depth;
     return w;  
 }  
 
@@ -126,7 +128,7 @@ static const float3 DODECAHEDRON[DODECAHEDRON_SIZE] =
 };
 
 
-float sampleShape(const float3 pos, const Wave wave)
+float sampleShape(const float3 pos, const float3 normal, const Wave wave)
 {
     float result = 0.0;
     uint size;
@@ -177,10 +179,14 @@ float sampleShape(const float3 pos, const Wave wave)
                 break;
         }
         const float3 rotatedVertex = rotatePointByLatLong(vertex, wave.rotation.x, wave.rotation.y);
-        const float dist = saturate(distance(pos, rotatedVertex + wave.source) * wave.density);
+       
         for (uint k = 0; k < wave.ripples; k++)
         {
-            result += sin(dist * wave.frequency + wave.phase) * wave.amplitude; 
+            for (uint h = 0; h < wave.harmonic; h++)
+            {
+                const float dist = saturate(distance(pos - normal * wave.depth * (float(h) / wave.harmonic), rotatedVertex + wave.source) * wave.density);
+                result += sin(dist * wave.frequency + wave.phase) * wave.amplitude; 
+            }
         }
     }
     return result; 

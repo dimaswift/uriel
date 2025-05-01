@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
+  m_Name: Heart
+  m_EditorClassIdentifier: 
+  waves:
+  - source: {x: 0.32, y: -0.27, z: 0}
+    rotation: {x: -12.8, y: 8.28}
+    ripples: 2
+    harmonic: 190
+    type: 2
+    frequency: 2.78
+    amplitude: 0.3
+    density: 1.29
+    phase: -53.2
+  - source: {x: 1.27, y: 1, z: 1}
+    rotation: {x: -3.99, y: 63.19}
+    ripples: 2
+    harmonic: 190
+    type: 2
+    frequency: 1.01
+    amplitude: 0.26
+    density: 0.71
+    phase: -70.2
+  - source: {x: -0.81, y: 0.15, z: 0.51}
+    rotation: {x: -23.27, y: 8.94}
+    ripples: 17
+    harmonic: 190
+    type: 4
+    frequency: 0.68
+    amplitude: 0.79
+    density: 1.44
+    phase: -80.2

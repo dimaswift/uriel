@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
-  m_Name: Adam
+  m_Name: Fish
   m_EditorClassIdentifier: 
   waves:
   - source: {x: -0.04, y: 0.06, z: 0}

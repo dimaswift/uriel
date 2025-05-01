@@ -16,6 +16,7 @@ namespace Uriel.Domain
         public float amplitude;
         public float density;
         public float phase;
+        public float depth;
     }
 
     public enum Solid

@@ -80,6 +80,7 @@ Shader "Uriel/LitDisplacement"
             float _WaveAmplitude;
             float _WavePhase;
             float _WaveDensity;
+            float _WaveDepth;
             uint _WaveHarmonic;
             uint _WaveRipples;
             float3 _WaveSource;
@@ -88,7 +89,7 @@ Shader "Uriel/LitDisplacement"
             
             Wave getWave()
             {
-                return createWave(_Shape, _WaveSource, _Rotation, _WaveRipples, _WaveHarmonic, _WaveFrequency, _WaveAmplitude, _WaveDensity, _WavePhase);
+                return createWave(_Shape, _WaveSource, _Rotation, _WaveRipples, _WaveHarmonic, _WaveFrequency, _WaveAmplitude, _WaveDensity, _WavePhase, _WaveDepth);
             }
             
             v2f vert(const appdata_t input)  
@@ -96,13 +97,10 @@ Shader "Uriel/LitDisplacement"
                 v2f o;
                 float4 v = input.vertex;
                 float value = 0.0;
-                for (int i = 1; i <= _WiggleSteps; ++i)
-                {
-                    float f = (sampleShape(mul(unity_ObjectToWorld, input.vertex + input.normal * _WiggleScale / i * _WiggleIrregularity), getWave()) * _Frequency)
+                float f = (sampleShape(mul(unity_ObjectToWorld, input.vertex), input.normal, getWave()) * _Frequency)
                     + (_Phase + _WiggleSpeed * _Time);
                
                     value += sin(f) * _Displacement;
-                }
                 v -= float4(input.normal, 1.0) * sin(value);
                 o.world_normal = UnityObjectToWorldNormal(input.normal);
                 o.world_pos = mul(unity_ObjectToWorld, v);
@@ -113,7 +111,7 @@ Shader "Uriel/LitDisplacement"
             fixed4 frag(const v2f id) : SV_Target  
             {
                 
-                float value = sampleShape(id.world_pos, getWave());
+                float value = sampleShape(id.world_pos, id.world_normal, getWave());
                 const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;
                 const float3 normal_dir = normalize(id.world_normal);
                 const float3 ambient = ShadeSH9(float4(normal_dir, 1));  

@@ -961,16 +961,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a606c5c539ce408786fe11b1fc8e7e05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  saveDirectory: 
   calculateNormals: 1
-  savePath: C:\Unity\uriel\unity\Uriel\Assets\Models
   target: {fileID: 674396017}
-  harbor: {fileID: 11400000, guid: 201d3a365f993d24489c926ea77e606b, type: 2}
+  harbor: {fileID: 11400000, guid: ccc08d28c177c7f469d054dbd60aab6a, type: 2}
   compute: {fileID: 7200000, guid: 28494770ba86f214ea1838e474ef0889, type: 3}
-  frequency: 0.22
-  amplitude: 1.71
-  scale: -0.38
-  phase: -926.7
-  speed: 2.22
+  frequency: 33
+  amplitude: 33
+  scale: 0
+  phase: 0
+  speed: 3
 --- !u!4 &1646746222
 Transform:
   m_ObjectHideFlags: 0

@@ -62,7 +62,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Gradient:
-        m_Texture: {fileID: 2800000, guid: 8319c9a98ccfb5448873b5669ffd33e7, type: 3}
+        m_Texture: {fileID: 2800000, guid: bc59c5bf6aba7cb4ca63fe26634c5558, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _GradientLUT:
@@ -178,7 +178,7 @@ Material:
     - _SrcBlendAlpha: 1
     - _StepSize: 0.0435
     - _Surface: 0
-    - _Threshold: 0.01
+    - _Threshold: 0.08
     - _ThresholdThin: 0.01
     - _UseLight: 0
     - _WaveAmplitude: -9.9

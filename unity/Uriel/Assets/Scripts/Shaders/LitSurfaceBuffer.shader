@@ -66,7 +66,7 @@ Shader "Uriel/LitSurfaceBuffer"
                 float value = 0.0;
                 for (int i = 0; i < _WaveCount; ++i)
                 {
-                    value += sampleShape(id.world_pos, _WaveBuffer[i]);
+                    value += sampleShape(id.world_pos, id.world_normal, _WaveBuffer[i]);
                 }
                 const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;
                 const float3 normal_dir = normalize(id.world_normal);
