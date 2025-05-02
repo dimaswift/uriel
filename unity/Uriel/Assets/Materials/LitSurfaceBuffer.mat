@@ -62,7 +62,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Gradient:
-        m_Texture: {fileID: 2800000, guid: bc59c5bf6aba7cb4ca63fe26634c5558, type: 3}
+        m_Texture: {fileID: 2800000, guid: e11ffa00b579cfc489886886ef8276f4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _GradientLUT:
@@ -150,7 +150,7 @@ Material:
     - _Metallic: 0
     - _Min: 0
     - _MinColor: 0
-    - _Multiplier: 0.71
+    - _Multiplier: 0.94
     - _NormalDelta: 0.0128
     - _NormalStrength: 1.267
     - _OcclusionStrength: 1
@@ -165,28 +165,29 @@ Material:
     - _Resolution: 8
     - _SampleDelta: 0.01
     - _Scale: 0.72
-    - _Shape: 1
+    - _Shape: 4
     - _Shell: 34.9
-    - _Shininess: 310.3
+    - _Shininess: 99.8
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _SpecularMultiplier: 0.213
-    - _SpecularThreshold: 1.566
+    - _SpecularMultiplier: 0
+    - _SpecularThreshold: 0
     - _Speed: 0.392
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _StepSize: 0.0435
     - _Surface: 0
-    - _Threshold: 0.08
+    - _Threshold: 4.9
     - _ThresholdThin: 0.01
     - _UseLight: 0
-    - _WaveAmplitude: -9.9
-    - _WaveDensity: 1.063
-    - _WaveFrequency: 3.16
-    - _WaveHarmonic: 0.13
-    - _WavePhase: -4.27
-    - _WaveRipples: 2.1
+    - _WaveAmplitude: -0.046
+    - _WaveDensity: 0.63
+    - _WaveDepth: -22.4
+    - _WaveFrequency: -42.64
+    - _WaveHarmonic: 0
+    - _WavePhase: 5.13
+    - _WaveRipples: 12.7
     - _WiggleIrregularity: 0
     - _WiggleScale: 0.724
     - _WiggleSpeed: 0
@@ -207,7 +208,7 @@ Material:
     - _LightSource: {r: 0, g: 1, b: 1, a: 1}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _WaveSource: {r: 0, g: 0, b: 0, a: 0.02}
+    - _WaveSource: {r: 0, g: 0, b: 0, a: -1.5}
     - _WiggleOffset: {r: 0, g: 0, b: 0, a: 1}
     - _WiggleScale: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

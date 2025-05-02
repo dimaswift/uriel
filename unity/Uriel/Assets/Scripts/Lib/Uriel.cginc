@@ -184,7 +184,7 @@ float sampleShape(const float3 pos, const float3 normal, const Wave wave)
         {
             for (uint h = 0; h < wave.harmonic; h++)
             {
-                const float dist = saturate(distance(pos - normal * wave.depth * (float(h) / wave.harmonic), rotatedVertex + wave.source) * wave.density);
+                const float dist = saturate(distance(pos + normal * wave.depth * (float(h) / wave.harmonic), rotatedVertex + wave.source) * wave.density);
                 result += sin(dist * wave.frequency + wave.phase) * wave.amplitude; 
             }
         }

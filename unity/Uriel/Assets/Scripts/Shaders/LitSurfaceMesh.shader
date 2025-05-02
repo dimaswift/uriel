@@ -1,4 +1,4 @@
-Shader "Uriel/LitSurfaceSingle"  
+Shader "Uriel/LitSurfaceMesh"  
 {  
     Properties  
     {  
@@ -7,19 +7,9 @@ Shader "Uriel/LitSurfaceSingle"
         _Threshold ("Threshold", Range(0.0, 10.0)) = 0.5
         _Multiplier ("Multiplier", Range(0.0, 10.0)) = 1
         _Light ("Light", Color) = (1,1,1,1)
-        _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
-        _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
-        _Shininess("Shininess", Range(0.0, 10.0)) = 1.0
-
-        [Enum(Tetrahedron,0, Octahedron,1, Cube,2, Icosahedron,3, Dodecahedron,4)] _Shape("Displacement Shape", Int) = 1  
-        _WaveFrequency("Wave Frequency", Float) = 5.0
-        _WaveAmplitude("Wave Amplitude", Range(-1.0, 1.0)) = 0.1
-        _WaveDensity("Wave Density", Range(0.0, 2.0)) = 0.5
-        _WavePhase("Wave Phase", Range(-10.0, 10.0)) = 0.0
-        _WaveHarmonic("Wave Harmonic", Range(0, 50)) = 0
-        _WaveRipples("Wave Ripples", Range(0, 50)) = 1
-        _WaveSource("Wave Source", Vector) = (0,0,0)
-        _WaveDepth("Wave Depth", Float) = 1.0
+        _SpecularThreshold("Specular Threshold", Range(0.0, 5.0)) = 0.25
+        _SpecularMultiplier("Specular Multiplier", Range(0.0, 5.0)) = 0.5
+        _Shininess("Shininess", Range(0.0, 500.0)) = 1.0
     }  
     SubShader  
     {  
@@ -35,7 +25,6 @@ Shader "Uriel/LitSurfaceSingle"
             #include "AutoLight.cginc"  
             #include "UnityCG.cginc"
             #include "Assets/Scripts/Lib/Uriel.cginc"
-           
             
             struct appdata_t  
             {  
@@ -59,22 +48,10 @@ Shader "Uriel/LitSurfaceSingle"
             float _SpecularThreshold;
             float _SpecularMultiplier;
             float _Shininess;
-            
-            float _WaveFrequency;
-            float _WaveAmplitude;
-            float _WavePhase;
-            float _WaveDensity;
-            uint _WaveHarmonic;
-            uint _WaveRipples;
-            float3 _WaveSource;
-            float2 _WaveRotation;
-            uint _Shape;
-            float _WaveDepth;
-            
-            Wave getWave()
-            {
-                return createWave(_Shape,_WaveSource, _WaveRotation, _WaveRipples, max(1, _WaveHarmonic), _WaveFrequency, _WaveAmplitude, _WaveDensity, _WavePhase, _WaveDepth);
-            }
+            int _VertexCount;
+            uint _WaveCount;
+            StructuredBuffer<Wave> _WaveBuffer;
+            StructuredBuffer<float3> _VertexBuffer;
             
             v2f vert(const appdata_t input)  
             {  
@@ -87,8 +64,16 @@ Shader "Uriel/LitSurfaceSingle"
             
             fixed4 frag(const v2f id) : SV_Target  
             {
-                
-                float value = sampleShape(id.world_pos, id.world_normal, getWave());
+                float value = 0.0;
+                for (int i = 0; i < _WaveCount; i++)
+                {
+                    const Wave wave = _WaveBuffer[i];
+                    for (int k = 0; k < _VertexCount; k++)
+                    {
+                        const float dist = saturate(distance(id.world_pos, _VertexBuffer[k] * wave.depth) * wave.density);
+                        value += sin(dist * wave.frequency + wave.phase) * wave.amplitude; 
+                    }
+                }
                 const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;
                 const float3 normal_dir = normalize(id.world_normal);
                 const float3 ambient = ShadeSH9(float4(normal_dir, 1));  
@@ -98,10 +83,10 @@ Shader "Uriel/LitSurfaceSingle"
                 const float l = saturate(dot(normal_dir, light_dir));
                 const float3 diffuse_lighting = l  * _Light.rgb;
                 const float h = saturate(dot(normal_dir, halfway_dir));  
-                const float specular_value = saturate(value * _SpecularThreshold) * _SpecularMultiplier;  
+                const float specular_value = _SpecularThreshold * _SpecularMultiplier;  
                 const float3 specular_lighting = pow(h, _Shininess) * specular_value * _Light.rgb;  
                 const float3 final_color = (diffuse_lighting + ambient) * diffuse_color + specular_lighting;  
-                return float4(final_color, 1);  
+                return float4(diffuse_color, 1);  
             }  
             
             ENDCG  

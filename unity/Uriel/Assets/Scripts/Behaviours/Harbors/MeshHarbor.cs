@@ -31,6 +31,9 @@ namespace Uriel.Behaviours
         private Vector3[] vertices;
         private Vector3[] normals;
         private Material mat;
+
+        public ComputeBuffer GetOutputVertexBuffer() => outputVertexBuffer;
+        
         private void Awake()
         {
             currentMesh = target.GetComponent<MeshFilter>().mesh;
@@ -103,6 +106,8 @@ namespace Uriel.Behaviours
             compute.Dispatch(0, Mathf.CeilToInt(inputVertexBuffer.count / 64f), 1, 1);
             outputVertexBuffer.GetData(vertices);
             currentMesh.SetVertices(vertices);
+
+            
             if (calculateNormals)
             {
                 currentMesh.RecalculateNormals();

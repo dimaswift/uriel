@@ -1,0 +1,42 @@
+#pragma kernel CSMain
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+RWTexture2D<float4> _Texture;
+StructuredBuffer<Wave> _WaveBuffer;
+StructuredBuffer<float3> _VertexBuffer;
+StructuredBuffer<float3> _NormalBuffer;
+int _VertexCount;
+int _WaveCount;
+int _Resolution;
+float _Amplitude;
+float _Scale;
+float4x4 _Matrix;
+
+float3 _Offset;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    
+    const float x = float(id.x) / _Resolution;  
+    const float y = float(id.y) / _Resolution;
+    const float3 uv = float3(x - 0.5, y - 0.5, 0) * _Scale + _Offset;
+    float value = 0;
+    
+    for (int i = 0; i < _VertexCount; i++)
+    {
+        const float3 vertex = mul(_VertexBuffer[i], _Matrix);
+        const float3 normal = _NormalBuffer[i];
+        for (int j = 0; j < _WaveCount; j++)
+        {
+            const Wave wave = _WaveBuffer[j];
+            const float dist = saturate(distance(uv, vertex + normal * wave.depth) * wave.density);
+            value += sin(dist * wave.frequency + wave.phase) * wave.amplitude; 
+        }
+    }
+    
+    float3 col = hsv2rgb(sin(value) * _Amplitude, 1.0, 1.0);
+
+    _Texture[id.xy] = float4(col.x, col.x, col.x, 1.0);
+}

@@ -80,7 +80,7 @@ Shader "Uriel/LitSurfaceBuffer"
                 const float specular_value = _SpecularThreshold * _SpecularMultiplier;  
                 const float3 specular_lighting = pow(h, _Shininess) * specular_value * _Light.rgb;  
                 const float3 final_color = (diffuse_lighting + ambient) * diffuse_color + specular_lighting;  
-                return float4(final_color, 1);  
+                return float4(diffuse_color, 1);  
             }  
             
             ENDCG  
