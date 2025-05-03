@@ -3,9 +3,10 @@
 
 #include "Assets/Scripts/Lib/Uriel.cginc"
 
-#define SAMPLE_STEPS 2
+#define SAMPLE_STEPS 1
 
-RWStructuredBuffer<float4x4> _Particles;
+RWStructuredBuffer<Particle> _Particles;
+
 int _ParticlesCount;
 uint _WaveCount;
 float _Size;
@@ -17,27 +18,24 @@ float4x4 _Reference;
 float _SampleRadius;
 float _DeltaTime;
 float _Speed;
+float _Time;
+float _Acceleration;
 
 [numthreads(64, 1, 1)]
 void Init(uint3 id : SV_DispatchThreadID)
 {
-    float4x4 p = _Particles[id.x];
-    _Particles[id.x] = p;
+ 
 }
 
 [numthreads(64, 1, 1)]
 void Process(uint3 id : SV_DispatchThreadID)
 {
-    float s = _Size;
-    float4x4 p = _Particles[id.x];
-    float3 pos = float3(p[0][3], p[1][3], p[2][3]);
-    
-    float density = 0.0;
-    const float phase = p[3][1];
-    const float3 sample_point = ((pos) * _Scale);
+    Particle p = _Particles[id.x];
+    const float3 sample_point = p.position * _Scale;
     float3 gradient = float3(0,0,0);
     uint size;
     const Wave wave = _WaveBuffer[0];
+    p.charge = 0.0;
     switch (wave.type)
     {
         case Solid::Tetrahedron:
@@ -64,54 +62,50 @@ void Process(uint3 id : SV_DispatchThreadID)
         float3 vertex;
         switch (wave.type)
         {
-        case Solid::Tetrahedron:
-            vertex = TETRAHEDRON[i];
-            break;
-        case Solid::Octahedron:
-            vertex = OCTAHEDRON[i];
-            break;
-        case Solid::Cube:
-            vertex = CUBE[i];
-            break;
-        case Solid::Icosahedron:
-            vertex = ICOSAHEDRON[i];
-            break;
-        case Solid::Dodecahedron:
-            vertex = DODECAHEDRON[i];
-            break;
-        default:
-            vertex = float3(0,0,0);
-            break;
+            case Solid::Tetrahedron:
+                vertex = TETRAHEDRON[i];
+                break;
+            case Solid::Octahedron:
+                vertex = OCTAHEDRON[i];
+                break;
+            case Solid::Cube:
+                vertex = CUBE[i];
+                break;
+            case Solid::Icosahedron:
+                vertex = ICOSAHEDRON[i];
+                break;
+            case Solid::Dodecahedron:
+                vertex = DODECAHEDRON[i];
+                break;
+            default:
+                vertex = float3(0,0,0);
+                break;
         }
- 
-        const float sample_offset = float(SAMPLE_STEPS) * 0.5;
-       
+
+
         
-        for (int x = 0; x < SAMPLE_STEPS; x++)
+        for (int x = -SAMPLE_STEPS; x <= SAMPLE_STEPS; x++)
         {
-            for (int y = 0; y < SAMPLE_STEPS; y++)
+            for (int y = -SAMPLE_STEPS; y <= SAMPLE_STEPS; y++)
             {
-                for (int z = 0; z < SAMPLE_STEPS; z++)
+                for (int z = -SAMPLE_STEPS; z <= SAMPLE_STEPS; z++)
                 {
-                    const float3 offset = float3(x - sample_offset, y - sample_offset, z - sample_offset) * _SampleRadius;
-                    const float dist = saturate(distance(sample_point + offset, vertex) * wave.density);
+                    const float3 offset = float3(x, y, z) * wave.depth;
+                    const float dist = saturate(distance(sample_point + offset, vertex) * wave.density * 0.1);
                     const float d = sin(dist * wave.frequency) * wave.amplitude;
                     gradient += offset * d;
-                    density += d;
+                    p.charge += d;
+                  
                 }
             }
         }
+        
+        p.position -= p.velocity * (_DeltaTime  * max(1, length(sample_point))) * wave.ripples * 0.001;
+        p.velocity += gradient * wave.ripples * 0.1 * _DeltaTime;
     }
     
-    const float4x4 translationMatrix = float4x4(  
-        s, 0, 0, pos.x + gradient.x * _Speed * _DeltaTime,  
-        0, s, 0, pos.y + gradient.y * _Speed * _DeltaTime,  
-        0, 0, s, pos.z + gradient.z * _Speed * _DeltaTime,  
-        0, 0, 0, 1  
-    );  
+  
     
-    float4x4 final = translationMatrix;
-    final[3][0] = density;
-    _Particles[id.x] = final;
+    _Particles[id.x] = p;
 }
 

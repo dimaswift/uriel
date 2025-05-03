@@ -1,9 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices;
-using UnityEngine;
+﻿using UnityEngine;
 using Uriel.Domain;
-using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
@@ -12,6 +8,7 @@ namespace Uriel.Behaviours
         [SerializeField] private float scale = 1;
         [SerializeField] private float radius = 5;
         [SerializeField] private float speed = 1f;
+        [SerializeField] private float acceleration = 1f;
         [SerializeField] private float sampleRadius = 0.1f;
         [SerializeField] private Mesh mesh;
         [SerializeField] private Material mat;
@@ -48,7 +45,6 @@ namespace Uriel.Behaviours
             particleRenderer.Randomize(radius, particleSize);
         }
         
-        
 
         private void Update()
         {
@@ -60,6 +56,8 @@ namespace Uriel.Behaviours
             compute.SetInt(ShaderProps.SolidType, (int) type);
             compute.SetFloat(ShaderProps.DeltaTime, Time.deltaTime);
             compute.SetFloat(ShaderProps.Speed, speed);
+            compute.SetFloat(ShaderProps.Time, Time.time);
+            compute.SetFloat(ShaderProps.Acceleration, acceleration);
             compute.Dispatch(processKernel, Mathf.CeilToInt(CubedCapacity / 64f), 1, 1);
 
             if (Input.GetKeyDown(KeyCode.R))
@@ -67,7 +65,12 @@ namespace Uriel.Behaviours
                 particleRenderer.Randomize(radius, particleSize);
                 compute.Dispatch(initKernel, Mathf.CeilToInt(CubedCapacity / 64f), 1, 1);
             }
-         
+
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                particleRenderer.ArrangeInACube(capacity, radius, particleSize);
+                compute.Dispatch(initKernel, Mathf.CeilToInt(CubedCapacity / 64f), 1, 1);
+            }
         }
     }
 }

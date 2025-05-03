@@ -26,7 +26,10 @@ struct Wave
 struct Particle 
 {
     float3 position;
+    float3 velocity;
     float charge;
+    float size;
+    float mass;
 };
 
 float3x3 createRotationMatrix(float latitudeDegrees, float longitudeDegrees);

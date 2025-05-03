@@ -178,7 +178,7 @@ Material:
     - _SrcBlendAlpha: 1
     - _StepSize: 0.0435
     - _Surface: 0
-    - _Threshold: 4.9
+    - _Threshold: 3.8
     - _ThresholdThin: 0.01
     - _UseLight: 0
     - _WaveAmplitude: -0.046

@@ -17,7 +17,6 @@ Shader "Uriel/Particle"
         Tags  
         {  
             "RenderType" = "Opaque"  
-            "Queue" = "Transparent" 
         }  
         Pass  
         {  
@@ -39,11 +38,11 @@ Shader "Uriel/Particle"
                 float4 vertex : SV_POSITION;
                 float3 world_normal : TEXCOORD0;
                 float3 world_pos : TEXCOORD1;
-                float3 data : TEXCOORD2; 
+                Particle particle: TEXCOORD2;
             };
             
-            StructuredBuffer<float4x4> _Particles;
-              float3 _LightSource;
+            StructuredBuffer<Particle> _Particles;
+            float3 _LightSource;
             sampler2D _Gradient;  
             float _Multiplier;
             float _Threshold;
@@ -54,24 +53,31 @@ Shader "Uriel/Particle"
             int _VertexCount;
             uint _WaveCount;
             StructuredBuffer<Wave> _WaveBuffer;
-            StructuredBuffer<float3> _VertexBuffer;
+          
+     
             v2f vert(appdata_t i, uint instanceID: SV_InstanceID)  
             {  
                 v2f o;
                 
-                const float4x4 p = _Particles[instanceID];
-                const float4 pos = mul(p, i.vertex);  
+                const Particle p = _Particles[instanceID];
+                float4x4 m = float4x4(
+                    p.size, 0, 0, p.position.x,
+                    0, p.size, 0, p.position.y,
+                    0, 0, p.size, p.position.z,
+                    0, 0, 0, 1);
+                const float4 pos = mul(m, i.vertex);  
                 o.vertex = UnityObjectToClipPos(pos);
                 o.world_normal = UnityObjectToWorldNormal(i.normal);
-                o.data = p[3];
                 o.world_pos = mul(unity_ObjectToWorld, i.vertex);
+                o.particle = p;
                 return o;  
             }  
 
             fixed4 frag(v2f i) : SV_Target  
             {
-
-                const float3 diffuse_color = tex2D(_Gradient, float2(i.data.x * _Threshold, 0)) * _Multiplier;;
+                
+          //      const float3 diffuse_color = tex2D(_Gradient, float2(i.data.x * _Threshold, 0)) * _Multiplier;;
+                const float3 diffuse_color = hsv2rgb(i.particle.charge * _Threshold, 1.0, 1.0) * _Multiplier;
                 const float3 normal_dir = normalize(i.world_normal);
                 const float3 ambient = ShadeSH9(float4(normal_dir, 1));  
                 const float3 light_dir = normalize(_LightSource);
@@ -83,7 +89,7 @@ Shader "Uriel/Particle"
                 const float specular_value = _SpecularThreshold * _SpecularMultiplier;  
                 const float3 specular_lighting = pow(h, _Shininess) * specular_value * _Light.rgb;  
                 const float3 final_color = (diffuse_lighting + ambient) * diffuse_color + specular_lighting;  
-                return float4(final_color, 1);  
+                return float4(diffuse_color, 1);  
             }   
             ENDCG  
         }  

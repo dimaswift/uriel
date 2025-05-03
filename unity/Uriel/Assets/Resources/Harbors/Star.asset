@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
-  m_Name: Eve
+  m_Name: Star
   m_EditorClassIdentifier: 
   waves:
   - source: {x: -10.54, y: -0.16, z: 0.05}
     rotation: {x: 3.4, y: -96.2}
-    ripples: 5
-    harmonic: 79
+    ripples: 3
+    harmonic: 583
     type: 4
-    frequency: -8.31
-    amplitude: -0.01
+    frequency: -24.9
+    amplitude: 1.36
     density: 4.44
     phase: -1.51
-    depth: 1.8
+    depth: -0.27

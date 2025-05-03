@@ -38,7 +38,7 @@ namespace Uriel.Domain
         public static readonly int Reference = Shader.PropertyToID("_Reference");
         public static readonly int SampleRadius = Shader.PropertyToID("_SampleRadius");
         public static readonly int DeltaTime = Shader.PropertyToID("_DeltaTime");
-        
+        public static readonly int Acceleration = Shader.PropertyToID("_Acceleration");
     }
 }
 

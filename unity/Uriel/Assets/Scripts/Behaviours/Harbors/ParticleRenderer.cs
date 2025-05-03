@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Unity.Mathematics;
+﻿using System.Runtime.InteropServices;
 using UnityEngine;
 using Uriel.Domain;
 using Random = UnityEngine.Random;
@@ -14,14 +12,14 @@ namespace Uriel.Behaviours
         private Mesh mesh;
         private Material mat;
 
-        private float4x4[] particlesList;
+        private Particle[] particlesList;
 
         public ParticleRenderer Init(Mesh mesh, Material mat, int capacity)
         {
             
             this.mesh = mesh;
-            particlesList = new float4x4[capacity];
-            particlesBuffer = new ComputeBuffer(capacity, sizeof(float) * 4 * 4);
+            particlesList = new Particle[capacity];
+            particlesBuffer = new ComputeBuffer(capacity, Marshal.SizeOf(typeof(Particle)));
             uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
             args[0] = mesh.GetIndexCount(0);
             args[1] = (uint)capacity;
@@ -42,11 +40,14 @@ namespace Uriel.Behaviours
         {
             for (int i = 0; i < particlesList.Length; i++)
             {
-                var p = Random.insideUnitSphere * radius;
-                particlesList[i] = new (size, 0, 0, p.x, 
-                                                0, size, 0, p.y, 
-                                                0, 0, size, p.z,
-                                                0, 0, 0, 1);
+                var pos = Random.insideUnitSphere * radius;
+                particlesList[i] = new Particle()
+                {
+                    position = pos,
+                    size = size,
+                    charge = 0,
+                    mass = 1f
+                };
             }
             particlesBuffer.SetData(particlesList);
         }
@@ -62,11 +63,13 @@ namespace Uriel.Behaviours
                     for (int z = -half; z < half; z++)
                     {
                         Vector3 pos = new Vector3(x, y, z) * radius;
-                        particlesList[i++] = new(
-                            size, 0, 0, pos.x,
-                            0, size, 0, pos.y,
-                            0, 0, size, pos.z,
-                            0, 0, 0, 1);
+                        particlesList[i++] = new Particle()
+                        {
+                            position = pos,
+                            size = size,
+                            charge = 0,
+                            mass = 1f
+                        };
                     }
                 }
             }

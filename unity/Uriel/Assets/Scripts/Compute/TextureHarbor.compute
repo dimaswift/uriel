@@ -26,7 +26,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     for (int i = 0; i < _VertexCount; i++)
     {
-        const float3 vertex = mul(_VertexBuffer[i], _Matrix);
+        const float3 vertex = mul(_Matrix, _VertexBuffer[i]);
         const float3 normal = _NormalBuffer[i];
         for (int j = 0; j < _WaveCount; j++)
         {

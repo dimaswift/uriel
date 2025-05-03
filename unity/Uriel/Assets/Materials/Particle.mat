@@ -129,13 +129,13 @@ Material:
     - _Max: 2.4
     - _Metallic: 0
     - _Min: 2.4487
-    - _Multiplier: 3.33
+    - _Multiplier: 0.25
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _Radius: 1.6
     - _ReceiveShadows: 1
-    - _Shininess: 40.1
+    - _Shininess: 0
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -147,7 +147,7 @@ Material:
     - _Steps: 190.5
     - _Strength: 0.011
     - _Surface: 0
-    - _Threshold: 0.01
+    - _Threshold: 1.4
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
@@ -155,7 +155,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Light: {r: 1, g: 1, b: 1, a: 1}
-    - _LightSource: {r: 0, g: 1, b: 1, a: 1}
+    - _LightSource: {r: 5.59, g: 1.65, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
