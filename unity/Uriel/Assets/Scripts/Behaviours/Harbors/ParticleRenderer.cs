@@ -50,6 +50,30 @@ namespace Uriel.Behaviours
             }
             particlesBuffer.SetData(particlesList);
         }
+
+        public void ArrangeInACube(int sideCount, float radius, float size)
+        {
+            int i = 0;
+            int half = sideCount / 2;
+            for (int x = -half; x < half; x++)
+            {
+                for (int y = -half; y < half; y++)
+                {
+                    for (int z = -half; z < half; z++)
+                    {
+                        Vector3 pos = new Vector3(x, y, z) * radius;
+                        particlesList[i++] = new(
+                            size, 0, 0, pos.x,
+                            0, size, 0, pos.y,
+                            0, 0, size, pos.z,
+                            0, 0, 0, 1);
+                    }
+                }
+            }
+          
+            particlesBuffer.SetData(particlesList);
+        }
+
         
         public ParticleRenderer LinkMaterial(Material material)
         {

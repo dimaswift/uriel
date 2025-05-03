@@ -34,7 +34,11 @@ namespace Uriel.Domain
         public static readonly int Phase = Shader.PropertyToID("_Phase");
         public static readonly int Scale = Shader.PropertyToID("_Scale");
         public static readonly int SolidType = Shader.PropertyToID("_SolidType");
-
+        public static readonly int Offset = Shader.PropertyToID("_Offset");
+        public static readonly int Reference = Shader.PropertyToID("_Reference");
+        public static readonly int SampleRadius = Shader.PropertyToID("_SampleRadius");
+        public static readonly int DeltaTime = Shader.PropertyToID("_DeltaTime");
+        
     }
 }
 

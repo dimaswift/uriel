@@ -58,7 +58,7 @@ Wave createWave(uint type, float3 source, float2 coordinates, uint ripples, uint
     return w;  
 }  
 
-static const float3 TETRAHEDRON[TETRAHEDRON_SIZE] =   
+const float3 TETRAHEDRON[TETRAHEDRON_SIZE] =   
 {  
     float3(0.35355339, 0.35355339, 0.35355339),  
     float3(0.35355339, -0.35355339, -0.35355339),  
@@ -66,7 +66,7 @@ static const float3 TETRAHEDRON[TETRAHEDRON_SIZE] =
     float3(-0.35355339, -0.35355339, 0.35355339)  
 };
 
-static const float3 OCTAHEDRON[OCTAHEDRON_SIZE] =   
+const float3 OCTAHEDRON[OCTAHEDRON_SIZE] =   
 {  
     float3(1.0f, 0.0f, 0.0f),  
     float3(-1.0f, 0.0f, 0.0f),  
@@ -76,7 +76,7 @@ static const float3 OCTAHEDRON[OCTAHEDRON_SIZE] =
     float3(0.0f, 0.0f, -1.0f)  
 };
 
-static const float3 CUBE[CUBE_SIZE] =   
+const float3 CUBE[CUBE_SIZE] =   
 {  
     float3(-0.5f, -0.5f, -0.5f),  
     float3(0.5f, -0.5f, -0.5f),  
@@ -88,7 +88,7 @@ static const float3 CUBE[CUBE_SIZE] =
     float3(0.5f, 0.5f, 0.5f)  
 };
 
-static const float3 ICOSAHEDRON[ICOSAHEDRON_SIZE] =   
+const float3 ICOSAHEDRON[ICOSAHEDRON_SIZE] =   
 {  
     float3(0.000000, 0.525731, 0.850651),  
     float3(0.000000, -0.525731, 0.850651),  
@@ -106,7 +106,7 @@ static const float3 ICOSAHEDRON[ICOSAHEDRON_SIZE] =
     float3(-0.850651, 0.000000, -0.525731)  
 };  
 
-static const float3 DODECAHEDRON[DODECAHEDRON_SIZE] =   
+const float3 DODECAHEDRON[DODECAHEDRON_SIZE] =   
 {  
     float3(0.577350, 0.577350, 0.577350),  
     float3(0.577350, 0.577350, -0.577350),  
