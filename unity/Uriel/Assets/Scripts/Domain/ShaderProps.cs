@@ -7,6 +7,7 @@ namespace Uriel.Domain
         public static readonly int WaveCount = Shader.PropertyToID("_WaveCount");
         public static readonly int WaveBuffer = Shader.PropertyToID("_WaveBuffer");
         public static readonly int Particles = Shader.PropertyToID("_Particles");
+        public static readonly int ParticlesCount = Shader.PropertyToID("_ParticlesCount");
         public static readonly int Resolution = Shader.PropertyToID("_Resolution");
         public static readonly int Source = Shader.PropertyToID("_Source");
         public static readonly int Steps = Shader.PropertyToID("_Steps");
@@ -32,6 +33,8 @@ namespace Uriel.Domain
         public static readonly int Time = Shader.PropertyToID("_Time");
         public static readonly int Phase = Shader.PropertyToID("_Phase");
         public static readonly int Scale = Shader.PropertyToID("_Scale");
+        public static readonly int SolidType = Shader.PropertyToID("_SolidType");
+
     }
 }
 

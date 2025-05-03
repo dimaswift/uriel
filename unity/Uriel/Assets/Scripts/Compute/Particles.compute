@@ -1,0 +1,38 @@
+#pragma kernel Init
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+ 
+RWStructuredBuffer<float4x4> _Particles;
+int _ParticlesCount;
+uint _WaveCount;
+float _Size;
+StructuredBuffer<Wave> _WaveBuffer;
+uint _SolidType;
+float _Scale;
+
+[numthreads(64, 1, 1)]
+void Init(uint3 id : SV_DispatchThreadID)
+{
+    float s = _Size;
+    float4x4 p = _Particles[id.x];
+    float3 pos = float3(p[0][3], p[1][3], p[2][3]);
+    
+    float v = 0.0;
+    
+    for (uint i = 0; i < _WaveCount; ++i)
+    {
+        v += sampleShape(pos * _Scale, float3(0,0,0) - pos, _WaveBuffer[i]);
+    }
+
+    if (pos.x > 0)
+    {
+        s = 0;
+    }
+    
+    _Particles[id.x] = float4x4(
+        s,0,0,pos.x,
+        0,s,0,pos.y,
+        0,0,s,pos.z,
+        v,0,0,1);
+}
+

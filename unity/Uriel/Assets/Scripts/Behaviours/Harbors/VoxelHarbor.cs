@@ -43,6 +43,8 @@ namespace Uriel.Behaviours
             compute.SetBuffer(0, ShaderProps.Particles, particlesBuffer);
             compute.SetInt(ShaderProps.Resolution, resolution);
             material.SetBuffer(ShaderProps.Particles, particlesBuffer);
+            
+            
         }
 
        

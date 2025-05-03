@@ -23,6 +23,12 @@ struct Wave
     float depth;
 };
 
+struct Particle 
+{
+    float3 position;
+    float charge;
+};
+
 float3x3 createRotationMatrix(float latitudeDegrees, float longitudeDegrees);
 
 float3 rotatePointByLatLong(const float3 p, float latitude_degrees, const float longitude_degrees);
@@ -127,6 +133,29 @@ static const float3 DODECAHEDRON[DODECAHEDRON_SIZE] =
     float3(-0.356822, -0.934172, 0.000000)  
 };
 
+float3 getSolidPoint(uint type, uint index)
+{
+    switch (type)
+    {
+    case Solid::Tetrahedron:
+        if (index >= TETRAHEDRON_SIZE) return float3(0,0,0);
+        return TETRAHEDRON[index];
+    case Solid::Octahedron:
+        if (index >= OCTAHEDRON_SIZE) return float3(0,0,0);
+        return OCTAHEDRON[index];
+    case Solid::Cube:
+        if (index >= CUBE_SIZE) return float3(0,0,0);
+        return CUBE[index];
+    case Solid::Icosahedron:
+        if (index >= ICOSAHEDRON_SIZE) return float3(0,0,0);
+        return ICOSAHEDRON[index];
+    case Solid::Dodecahedron:
+        if (index >= DODECAHEDRON_SIZE) return float3(0,0,0);
+        return DODECAHEDRON[index];
+    default:
+        return float3(0,0,0);
+    }
+}
 
 float sampleShape(const float3 pos, const float3 normal, const Wave wave)
 {

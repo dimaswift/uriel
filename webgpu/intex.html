@@ -1,0 +1,368 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>WebGPU Compute and Rendering</title>  
+    <script src="https://cdn.tailwindcss.com"></script>  
+    <style>  
+        canvas {  
+            display: block;  
+            width: 100%;  
+            height: 100%;  
+        }  
+    </style>  
+</head>  
+<body class="bg-gray-900 text-white">  
+    <div class="container mx-auto p-4">  
+        <h1 class="text-2xl font-bold mb-4">WebGPU Compute and Rendering</h1>  
+        <div class="border border-gray-700 rounded-lg overflow-hidden relative">  
+            <canvas id="gpuCanvas" class="w-full h-[600px]"></canvas>  
+            <div id="status" class="absolute top-2 left-2 bg-black/50 p-2 rounded text-sm"></div>  
+        </div>  
+        <div class="mt-4 flex gap-4">  
+            <button id="toggleComputeBtn" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">Toggle Compute Shader</button>  
+            <div class="text-sm my-auto" id="fps"></div>  
+        </div>  
+    </div>  
+
+    <script type="module">  
+        // Shader code as strings  
+        const computeShaderCode = `  
+            @group(0) @binding(0) var<storage, read_write> data: array<f32>;  
+
+            @compute @workgroup_size(64)  
+            fn main(  
+                @builtin(global_invocation_id) global_id: vec3<u32>,  
+                @builtin(workgroup_id) workgroup_id: vec3<u32>  
+            ) {  
+                let index = global_id.x;  
+                
+                // Modify data with a simple computation  
+                // This example creates a sine wave pattern based on time and position  
+                if (index < arrayLength(&data)) {  
+                    let t = f32(data[0]); // Use first element as time  
+                    let normalized = f32(index) / f32(arrayLength(&data));  
+                    data[index] = sin(normalized * 10.0 + t) * 0.5 + 0.5;  
+                }  
+            }  
+        `;  
+
+        const vertexShaderCode = `  
+            struct VertexOutput {  
+                @builtin(position) position: vec4f,  
+                @location(0) color: vec4f,  
+                @location(1) uv: vec2f,  
+            };  
+
+            @vertex  
+            fn main(  
+                @builtin(vertex_index) vertexIndex: u32  
+            ) -> VertexOutput {  
+                // Define a triangle covering the entire clip space  
+                var pos = array<vec2f, 6>(  
+                    vec2f(-1.0, -1.0),  
+                    vec2f(1.0, -1.0),  
+                    vec2f(1.0, 1.0),  
+                    vec2f(-1.0, -1.0),  
+                    vec2f(1.0, 1.0),  
+                    vec2f(-1.0, 1.0)  
+                );  
+                
+                var uv = array<vec2f, 6>(  
+                    vec2f(0.0, 0.0),  
+                    vec2f(1.0, 0.0),  
+                    vec2f(1.0, 1.0),  
+                    vec2f(0.0, 0.0),  
+                    vec2f(1.0, 1.0),  
+                    vec2f(0.0, 1.0)  
+                );  
+
+                var output: VertexOutput;  
+                output.position = vec4f(pos[vertexIndex], 0.0, 1.0);  
+                output.uv = uv[vertexIndex];  
+                output.color = vec4f(uv[vertexIndex], 0.5, 1.0);  
+                return output;  
+            }  
+        `;  
+
+        const fragmentShaderCode = `  
+            @group(0) @binding(0) var<storage, read> computeData: array<f32>;  
+            @group(0) @binding(1) var<uniform> dimensions: vec2u;  
+
+            @fragment  
+            fn main(  
+                @location(0) color: vec4f,  
+                @location(1) uv: vec2f  
+            ) -> @location(0) vec4f {  
+                // Sample from compute buffer based on UV coordinates  
+                let width = dimensions.x;  
+                let dataIndex = min(  
+                    u32(uv.x * f32(width)),  
+                    width - 1u  
+                );  
+                
+                if (dataIndex < arrayLength(&computeData)) {  
+                    let value = computeData[dataIndex];  
+                    return vec4f(value, color.g, 1.0 - value, 1.0);  
+                }  
+                
+                return color;  
+            }  
+        `;  
+
+        // Main application  
+        async function init() {  
+            const statusElement = document.getElementById('status');  
+            const fpsElement = document.getElementById('fps');  
+            const toggleComputeBtn = document.getElementById('toggleComputeBtn');  
+            
+            statusElement.textContent = "Initializing WebGPU...";  
+            
+            // Check if WebGPU is supported  
+            if (!navigator.gpu) {  
+                statusElement.textContent = "WebGPU is not supported in your browser";  
+                return;  
+            }  
+            
+            // Get GPU adapter  
+            const adapter = await navigator.gpu.requestAdapter();  
+            if (!adapter) {  
+                statusElement.textContent = "Failed to get GPU adapter";  
+                return;  
+            }  
+            
+            // Get GPU device  
+            const device = await adapter.requestDevice();  
+            
+            // Setup canvas  
+            const canvas = document.getElementById('gpuCanvas');  
+            const context = canvas.getContext('webgpu');  
+            
+            // Configure canvas context  
+            const devicePixelRatio = window.devicePixelRatio || 1;  
+            const presentationSize = [  
+                canvas.clientWidth * devicePixelRatio,  
+                canvas.clientHeight * devicePixelRatio  
+            ];  
+            canvas.width = presentationSize[0];  
+            canvas.height = presentationSize[1];  
+            
+            const presentationFormat = navigator.gpu.getPreferredCanvasFormat();  
+            context.configure({  
+                device,  
+                format: presentationFormat,  
+                alphaMode: 'premultiplied'  
+            });  
+
+            // Create data for compute shader  
+            const dataSize = 1024;  
+            const dataBuffer = device.createBuffer({  
+                size: dataSize * Float32Array.BYTES_PER_ELEMENT,  
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST  
+            });  
+            
+            // Initialize data with zeros  
+            const initialData = new Float32Array(dataSize);  
+            device.queue.writeBuffer(dataBuffer, 0, initialData);  
+            
+            // Create uniform buffer for dimensions  
+            const uniformBuffer = device.createBuffer({  
+                size: 2 * Uint32Array.BYTES_PER_ELEMENT,  
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST  
+            });  
+            device.queue.writeBuffer(  
+                uniformBuffer,   
+                0,  
+                new Uint32Array([dataSize, 1])  
+            );  
+            
+            // Create compute bind group layout  
+            const computeBindGroupLayout = device.createBindGroupLayout({  
+                entries: [  
+                    {  
+                        binding: 0,  
+                        visibility: GPUShaderStage.COMPUTE,  
+                        buffer: { type: 'storage' } // read_write for compute  
+                    }  
+                ]  
+            });  
+            
+            // Create render bind group layout  
+            const renderBindGroupLayout = device.createBindGroupLayout({  
+                entries: [  
+                    {  
+                        binding: 0,  
+                        visibility: GPUShaderStage.FRAGMENT,  
+                        buffer: { type: 'read-only-storage' } // read-only for fragment  
+                    },  
+                    {  
+                        binding: 1,  
+                        visibility: GPUShaderStage.FRAGMENT,  
+                        buffer: { type: 'uniform' }  
+                    }  
+                ]  
+            });  
+            
+            // Create compute bind group  
+            const computeBindGroup = device.createBindGroup({  
+                layout: computeBindGroupLayout,  
+                entries: [  
+                    {  
+                        binding: 0,  
+                        resource: { buffer: dataBuffer }  
+                    }  
+                ]  
+            });  
+            
+            // Create render bind group  
+            const renderBindGroup = device.createBindGroup({  
+                layout: renderBindGroupLayout,  
+                entries: [  
+                    {  
+                        binding: 0,  
+                        resource: { buffer: dataBuffer }  
+                    },  
+                    {  
+                        binding: 1,  
+                        resource: { buffer: uniformBuffer }  
+                    }  
+                ]  
+            });  
+            
+            // Create compute pipeline  
+            const computePipeline = device.createComputePipeline({  
+                layout: device.createPipelineLayout({  
+                    bindGroupLayouts: [computeBindGroupLayout]  
+                }),  
+                compute: {  
+                    module: device.createShaderModule({  
+                        code: computeShaderCode  
+                    }),  
+                    entryPoint: 'main'  
+                }  
+            });  
+            
+            // Create render pipeline  
+            const renderPipeline = device.createRenderPipeline({  
+                layout: device.createPipelineLayout({  
+                    bindGroupLayouts: [renderBindGroupLayout]  
+                }),  
+                vertex: {  
+                    module: device.createShaderModule({  
+                        code: vertexShaderCode  
+                    }),  
+                    entryPoint: 'main'  
+                },  
+                fragment: {  
+                    module: device.createShaderModule({  
+                        code: fragmentShaderCode  
+                    }),  
+                    entryPoint: 'main',  
+                    targets: [  
+                        {  
+                            format: presentationFormat  
+                        }  
+                    ]  
+                },  
+                primitive: {  
+                    topology: 'triangle-list'  
+                }  
+            });  
+
+            let useComputeShader = true;  
+            toggleComputeBtn.addEventListener('click', () => {  
+                useComputeShader = !useComputeShader;  
+                toggleComputeBtn.textContent = useComputeShader ?   
+                    "Disable Compute Shader" : "Enable Compute Shader";  
+            });  
+
+            let lastFrameTime = performance.now();  
+            let frameCount = 0;  
+            let totalTime = 0;  
+            
+            // Main render loop  
+            function frame() {  
+                const now = performance.now();  
+                const deltaTime = now - lastFrameTime;  
+                lastFrameTime = now;  
+                
+                // Update FPS counter  
+                frameCount++;  
+                totalTime += deltaTime;  
+                if (totalTime >= 1000) {  
+                    const fps = Math.round((frameCount * 1000) / totalTime);  
+                    fpsElement.textContent = `${fps} FPS`;  
+                    frameCount = 0;  
+                    totalTime = 0;  
+                }  
+
+                // Resize canvas if needed  
+                const devicePixelRatio = window.devicePixelRatio || 1;  
+                const presentationSize = [  
+                    canvas.clientWidth * devicePixelRatio,  
+                    canvas.clientHeight * devicePixelRatio  
+                ];  
+                
+                if (canvas.width !== presentationSize[0] || canvas.height !== presentationSize[1]) {  
+                    canvas.width = presentationSize[0];  
+                    canvas.height = presentationSize[1];  
+                    context.configure({  
+                        device,  
+                        format: presentationFormat,  
+                        alphaMode: 'premultiplied'  
+                    });  
+                }  
+                
+                // Get a command encoder for the current frame  
+                const commandEncoder = device.createCommandEncoder();  
+                
+                // Update time value in the first element of the buffer  
+                const timeData = new Float32Array(1);  
+                timeData[0] = performance.now() / 1000;  
+                device.queue.writeBuffer(dataBuffer, 0, timeData);  
+                
+                // Run compute pass if enabled  
+                if (useComputeShader) {  
+                    const computePass = commandEncoder.beginComputePass();  
+                    computePass.setPipeline(computePipeline);  
+                    computePass.setBindGroup(0, computeBindGroup);  
+                    computePass.dispatchWorkgroups(Math.ceil(dataSize / 64));  
+                    computePass.end();  
+                }  
+                
+                // Run render pass  
+                const renderPass = commandEncoder.beginRenderPass({  
+                    colorAttachments: [  
+                        {  
+                            view: context.getCurrentTexture().createView(),  
+                            clearValue: { r: 0.0, g: 0.0, b: 0.1, a: 1.0 },  
+                            loadOp: 'clear',  
+                            storeOp: 'store'  
+                        }  
+                    ]  
+                });  
+                
+                renderPass.setPipeline(renderPipeline);  
+                renderPass.setBindGroup(0, renderBindGroup);  
+                renderPass.draw(6);  // Draw 2 triangles (6 vertices)  
+                renderPass.end();  
+                
+                // Submit commands and continue  
+                device.queue.submit([commandEncoder.finish()]);  
+                requestAnimationFrame(frame);  
+            }  
+            
+            // Start the render loop  
+            requestAnimationFrame(frame);  
+            statusElement.textContent = "WebGPU running";  
+        }  
+
+        // Initialize the application  
+        init().catch(error => {  
+            console.error(error);  
+            document.getElementById('status').textContent = `Error: ${error.message}`;  
+        });  
+    </script>  
+</body>  
+</html>  
