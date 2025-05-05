@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: LitSurfaceBuffer
-  m_Shader: {fileID: 4800000, guid: 2385d59435854a868c78f1b863c7039b, type: 3}
+  m_Shader: {fileID: 4800000, guid: 811e7d2634c24123a2091efc3a9a9182, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -33,7 +33,7 @@ Material:
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
-  m_LockedProperties: 
+  m_LockedProperties: _WaveAmplitude
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -134,7 +134,9 @@ Material:
     - _DisplacementShape: 4
     - _DstBlend: 0
     - _DstBlendAlpha: 0
+    - _End: 50
     - _EnvironmentReflections: 1
+    - _Falloff: 0
     - _Frequency: 1.06
     - _Frequency2: 348.78
     - _FrequencyInversed: 4.89
@@ -150,13 +152,24 @@ Material:
     - _Metallic: 0
     - _Min: 0
     - _MinColor: 0
-    - _Multiplier: 0.94
+    - _Multiplier: 0.51
     - _NormalDelta: 0.0128
     - _NormalStrength: 1.267
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _Period: 0
     - _Phase: -1.1
+    - _Phase_1: 20.2
+    - _Phase_2: 9.28
+    - _Phase_3: 7.27
+    - _Phase_4: 13.34
+    - _Phase_5: 18.7
+    - _Plane_1: 0
+    - _Plane_2: 0
+    - _Plane_3: 10.84
+    - _Plane_4: 6.12
+    - _Plane_5: 4.38
+    - _Plane_6: 130.91
     - _Quality: 4.04
     - _QueueOffset: 0
     - _RampThreshold: 2.2
@@ -176,23 +189,28 @@ Material:
     - _Speed: 0.392
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
+    - _Start: 50
     - _StepSize: 0.0435
     - _Surface: 0
-    - _Threshold: 3.8
+    - _Threshold: 1238
     - _ThresholdThin: 0.01
     - _UseLight: 0
-    - _WaveAmplitude: -0.046
-    - _WaveDensity: 0.63
-    - _WaveDepth: -22.4
-    - _WaveFrequency: -42.64
-    - _WaveHarmonic: 0
-    - _WavePhase: 5.13
-    - _WaveRipples: 12.7
+    - _WaveAmplitude: 0.1
+    - _WaveDensity: 2
+    - _WaveDepth: 2
+    - _WaveDepthFine: 0.0889
+    - _WaveFrequency: 5.22
+    - _WaveHarmonic: 8.29
+    - _WavePhase: -10
+    - _WaveRipples: 8.05
     - _WiggleIrregularity: 0
     - _WiggleScale: 0.724
     - _WiggleSpeed: 0
     - _WiggleSteps: 1
     - _WorkflowMode: 1
+    - _X: 2
+    - _Y: 2
+    - _Z: 2
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}

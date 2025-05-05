@@ -71,6 +71,8 @@ namespace Uriel.Behaviours
                 particleRenderer.ArrangeInACube(capacity, radius, particleSize);
                 compute.Dispatch(initKernel, Mathf.CeilToInt(CubedCapacity / 512f), 1, 1);
             }
+
+            particleRenderer.Draw();
         }
     }
 }

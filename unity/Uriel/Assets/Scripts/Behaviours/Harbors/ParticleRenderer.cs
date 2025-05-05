@@ -85,7 +85,7 @@ namespace Uriel.Behaviours
             return this;
         }
 
-        private void Update()
+        public void Draw()
         {
             Graphics.DrawMeshInstancedIndirect(mesh, 0, mat,
                 new Bounds(transform.position, Vector3.one * (float.MaxValue)), meshBuffer);

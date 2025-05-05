@@ -59,7 +59,7 @@ Wave createWave(uint type, float3 source, float2 coordinates, uint ripples, uint
 float sampleShape(const float3 pos, const float3 normal, const Wave wave)
 {
     float result = 0.0;
-    for (uint i = 0; i < SEQUENCE_BUFFER_SIZE; i++)
+    for (uint i = 0; i < 4; i++)
     {
         const float3 vertex = getPlatonicVertex(wave.type, wave.harmonic, i);
         const float3 rotatedVertex = rotatePointByLatLong(vertex, wave.rotation.x, wave.rotation.y);

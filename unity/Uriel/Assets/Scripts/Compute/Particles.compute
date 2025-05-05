@@ -3,7 +3,7 @@
 
 #include "Assets/Scripts/Lib/Uriel.cginc"
 
-#define SAMPLE_STEPS 1
+#define SAMPLE_STEPS 2
 
 RWStructuredBuffer<Particle> _Particles;
 
@@ -27,6 +27,12 @@ void Init(uint3 id : SV_DispatchThreadID)
  
 }
 
+float Distance(float4 a, float4 b)
+{
+    float4 diff = a - b;
+    return sqrt(dot(diff, diff));
+}
+
 [numthreads(512, 1, 1)]
 void Process(uint3 id : SV_DispatchThreadID)
 {
@@ -37,11 +43,28 @@ void Process(uint3 id : SV_DispatchThreadID)
     p.charge = 0.0;
     
     const PlatonicSequence sequence = getSequence(wave.type, wave.harmonic);
-    
-    for (int i = 0; i < SEQUENCE_BUFFER_SIZE; ++i)
+    const float4 tesseract[16] = {
+        float4(-1, -1, -1, -1),
+        float4(-1, -1, -1,  1),
+        float4(-1, -1,  1, -1),
+        float4(-1, -1,  1,  1),
+        float4(-1,  1, -1, -1),
+        float4(-1,  1, -1,  1),
+        float4(-1,  1,  1, -1),
+        float4(-1,  1,  1,  1),
+        float4( 1, -1, -1, -1),
+        float4( 1, -1, -1,  1),
+        float4( 1, -1,  1, -1),
+        float4( 1, -1,  1,  1),
+        float4( 1,  1, -1, -1),
+        float4( 1,  1, -1,  1),
+        float4( 1,  1,  1, -1),
+        float4( 1,  1,  1,  1)
+    };
+  
+    for (int i = 0; i < 16; ++i)
     {
-        const uint seq_index = sequence.indices[i];
-        const float3 vertex = PLATONIC_VERTICES[seq_index];
+        float4 v = tesseract[i] * wave.density;
         
         for (int x = -SAMPLE_STEPS; x <= SAMPLE_STEPS; x++)
         {
@@ -50,7 +73,7 @@ void Process(uint3 id : SV_DispatchThreadID)
                 for (int z = -SAMPLE_STEPS; z <= SAMPLE_STEPS; z++)
                 {
                     const float3 offset = float3(x, y, z) * wave.depth;
-                    const float dist = saturate(distance(sample_point + offset, vertex) * wave.density * 0.1);
+                    const float dist = saturate(Distance(float4(sample_point + offset, 0), v));
                     const float d = sin(dist * wave.frequency) * wave.amplitude;
                     gradient += offset * d;
                     p.charge += d;
@@ -58,6 +81,7 @@ void Process(uint3 id : SV_DispatchThreadID)
             }
         }
     }
+
     
     p.position -= p.velocity * (_DeltaTime  * max(1, length(sample_point))) * wave.ripples * 0.001;
     p.velocity += gradient * wave.ripples * 0.1 * _DeltaTime;
