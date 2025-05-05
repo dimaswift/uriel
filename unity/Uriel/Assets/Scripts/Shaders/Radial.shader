@@ -1,4 +1,4 @@
-Shader "Uriel/Pentatope"  
+Shader "Uriel/Radial"  
 {  
     Properties  
     {  
@@ -9,9 +9,8 @@ Shader "Uriel/Pentatope"
         _WaveAmplitude("Wave Amplitude", Range(-0.1, 0.1)) = 0.1
         _WaveDensity("Wave Density", Float) = 0.5
         _WaveDepth("Wave Depth", Float) = 1.0
-        _X("X", Int) = 1
-        _Y("Y", Int) = 1
-        _Z("Z", Int) = 1
+        _Steps("Steps", Int) = 1
+        _Saturation("Saturation", Float) = 0
     }  
     SubShader  
     {  
@@ -42,7 +41,6 @@ Shader "Uriel/Pentatope"
                 float3 world_normal : TEXCOORD0;
                 float3 world_pos : TEXCOORD1;
             };
-
             
             sampler2D _Gradient;  
             float _Multiplier;
@@ -51,7 +49,8 @@ Shader "Uriel/Pentatope"
             float _WaveAmplitude;
             float _WaveDensity;
             float _WaveDepth;
-            int _X, _Y, _Z;
+            float _Saturation;
+            int _Steps;
 
             v2f vert(const appdata_t input)  
             {  
@@ -65,17 +64,28 @@ Shader "Uriel/Pentatope"
             fixed4 frag(const v2f id) : SV_Target  
             {
                 float value = 0;
-
-                for (int y = -_Y; y <= _Y; y++)
+                float a = PI * 1.0 / max(1, _Steps);
+                float d = sqrt(a);
+                float num_phi = round(PI / d);
+                float d_phi = PI / num_phi;
+                float d_theta = a / d_phi;
+                for (int m = 0; m < num_phi; ++m)
                 {
-                    for (int x = -_X; x <= _X; x++)
+                    float phi = PI * (m + 0.5) / num_phi;
+                    float num_theta = round(2 * PI * sin(phi) / d_theta);
+                    for (int n = 0; n < num_theta; ++n)
                     {
-                        for (int z = -_Z; z <= _Z; z++)
+                        float theta = 2 * PI * n / num_theta;
+                        float x = sin(phi) * cos(theta);
+                        float y = sin(phi) * sin(theta);
+                        float z = cos(phi);
+                        const float3 offset2 = float3(x, y, z) * _WaveDepth;
+                        float dist = distance(id.world_pos, offset2 ) *  _WaveDensity;
+                        for (int s = 0; s < min(1,ceil(_Saturation)); ++s)
                         {
-                            const float3 offset2 = float3(x, y, z) * _WaveDepth;
-                            const float dist = distance(id.world_pos * _WaveDensity, offset2);
-                            value += sin(dist * _WaveFrequency) * 0.000001 * _WaveAmplitude; 
+                            dist = saturate(dist) * _Saturation;
                         }
+                        value += sin(dist * _WaveFrequency) * 0.000001 * _WaveAmplitude; 
                     }
                 }
                 const float3 diffuse_color = hsv2rgb(value * (_Threshold * 1000), 1, 1) * _Multiplier;

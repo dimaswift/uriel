@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: LitSurfaceBuffer
-  m_Shader: {fileID: 4800000, guid: 811e7d2634c24123a2091efc3a9a9182, type: 3}
+  m_Shader: {fileID: 4800000, guid: cc7d049a912944c8b208461b55f87b64, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -152,7 +152,7 @@ Material:
     - _Metallic: 0
     - _Min: 0
     - _MinColor: 0
-    - _Multiplier: 0.51
+    - _Multiplier: 0.47
     - _NormalDelta: 0.0128
     - _NormalStrength: 1.267
     - _OcclusionStrength: 1
@@ -172,11 +172,13 @@ Material:
     - _Plane_6: 130.91
     - _Quality: 4.04
     - _QueueOffset: 0
+    - _Radius: 1
     - _RampThreshold: 2.2
     - _ReceiveShadows: 1
     - _Res: 64
     - _Resolution: 8
     - _SampleDelta: 0.01
+    - _Saturation: 5.06
     - _Scale: 0.72
     - _Shape: 4
     - _Shell: 34.9
@@ -191,15 +193,16 @@ Material:
     - _SrcBlendAlpha: 1
     - _Start: 50
     - _StepSize: 0.0435
+    - _Steps: 22.15
     - _Surface: 0
-    - _Threshold: 1238
+    - _Threshold: 6656
     - _ThresholdThin: 0.01
     - _UseLight: 0
-    - _WaveAmplitude: 0.1
-    - _WaveDensity: 2
-    - _WaveDepth: 2
+    - _WaveAmplitude: 0.0248
+    - _WaveDensity: 0.71
+    - _WaveDepth: 1.7
     - _WaveDepthFine: 0.0889
-    - _WaveFrequency: 5.22
+    - _WaveFrequency: 15.2
     - _WaveHarmonic: 8.29
     - _WavePhase: -10
     - _WaveRipples: 8.05
