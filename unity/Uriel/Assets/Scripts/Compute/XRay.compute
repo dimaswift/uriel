@@ -17,7 +17,7 @@ bool _Grayscale;
 uint _Depth;
 uint _Width;
 uint _Height;
-float3 _Target;       
+float3 _Target;        
 float3 _Source;
 float _Focus;
 float3 _Normal;

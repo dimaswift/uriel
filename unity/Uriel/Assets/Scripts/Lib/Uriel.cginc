@@ -9,6 +9,9 @@
 #define ICOSAHEDRON_SIZE 12
 #define DODECAHEDRON_SIZE 20
 
+#define BUFFER_SIZE DODECAHEDRON_SIZE
+#include "PlatonicSolids.cginc"
+
 struct Wave 
 {
     float3 source;
@@ -36,14 +39,6 @@ float3x3 createRotationMatrix(float latitudeDegrees, float longitudeDegrees);
 
 float3 rotatePointByLatLong(const float3 p, float latitude_degrees, const float longitude_degrees);
 
-struct Solid {  
-    static const uint Tetrahedron = 0;  
-    static const uint Octahedron = 1;  
-    static const uint Cube = 2;  
-    static const uint Icosahedron = 3;
-    static const uint Dodecahedron = 4;
-};  
-
 Wave createWave(uint type, float3 source, float2 coordinates, uint ripples, uint harmonic, float frequency,   
                 float amplitude, float density, float phase, float depth)  
 {  
@@ -61,165 +56,15 @@ Wave createWave(uint type, float3 source, float2 coordinates, uint ripples, uint
     return w;  
 }  
 
-const float3 TETRAHEDRON[TETRAHEDRON_SIZE] =   
-{  
-    float3(0.35355339, 0.35355339, 0.35355339),  
-    float3(0.35355339, -0.35355339, -0.35355339),  
-    float3(-0.35355339, 0.35355339, -0.35355339),  
-    float3(-0.35355339, -0.35355339, 0.35355339)  
-};
-
-const float3 OCTAHEDRON[OCTAHEDRON_SIZE] =   
-{  
-    float3(1.0f, 0.0f, 0.0f),  
-    float3(-1.0f, 0.0f, 0.0f),  
-    float3(0.0f, 1.0f, 0.0f),  
-    float3(0.0f, -1.0f, 0.0f),  
-    float3(0.0f, 0.0f, 1.0f),  
-    float3(0.0f, 0.0f, -1.0f)  
-};
-
-const float3 CUBE[CUBE_SIZE] =   
-{  
-    float3(-0.5f, -0.5f, -0.5f),  
-    float3(0.5f, -0.5f, -0.5f),  
-    float3(-0.5f, 0.5f, -0.5f),  
-    float3(0.5f, 0.5f, -0.5f),  
-    float3(-0.5f, -0.5f, 0.5f),  
-    float3(0.5f, -0.5f, 0.5f),  
-    float3(-0.5f, 0.5f, 0.5f),  
-    float3(0.5f, 0.5f, 0.5f)  
-};
-
-const float3 ICOSAHEDRON[ICOSAHEDRON_SIZE] =   
-{  
-    float3(0.000000, 0.525731, 0.850651),  
-    float3(0.000000, -0.525731, 0.850651),  
-    float3(0.000000, 0.525731, -0.850651),  
-    float3(0.000000, -0.525731, -0.850651),  
-    
-    float3(0.525731, 0.850651, 0.000000),  
-    float3(-0.525731, 0.850651, 0.000000),  
-    float3(0.525731, -0.850651, 0.000000),  
-    float3(-0.525731, -0.850651, 0.000000),  
-    
-    float3(0.850651, 0.000000, 0.525731),  
-    float3(0.850651, 0.000000, -0.525731),  
-    float3(-0.850651, 0.000000, 0.525731),  
-    float3(-0.850651, 0.000000, -0.525731)  
-};  
-
-const float3 DODECAHEDRON[DODECAHEDRON_SIZE] =   
-{  
-    float3(0.577350, 0.577350, 0.577350),  
-    float3(0.577350, 0.577350, -0.577350),  
-    float3(0.577350, -0.577350, 0.577350),  
-    float3(0.577350, -0.577350, -0.577350),  
-    float3(-0.577350, 0.577350, 0.577350),  
-    float3(-0.577350, 0.577350, -0.577350),  
-    float3(-0.577350, -0.577350, 0.577350),  
-    float3(-0.577350, -0.577350, -0.577350),  
-    
-    float3(0.000000, 0.356822, 0.934172),  
-    float3(0.000000, -0.356822, 0.934172),  
-    float3(0.000000, 0.356822, -0.934172),  
-    float3(0.000000, -0.356822, -0.934172),  
-    
-    float3(0.934172, 0.000000, 0.356822),  
-    float3(-0.934172, 0.000000, 0.356822),  
-    float3(0.934172, 0.000000, -0.356822),  
-    float3(-0.934172, 0.000000, -0.356822),  
-    
-    float3(0.356822, 0.934172, 0.000000),  
-    float3(-0.356822, 0.934172, 0.000000),  
-    float3(0.356822, -0.934172, 0.000000),  
-    float3(-0.356822, -0.934172, 0.000000)  
-};
-
-float3 getSolidPoint(uint type, uint index)
-{
-    switch (type)
-    {
-    case Solid::Tetrahedron:
-        if (index >= TETRAHEDRON_SIZE) return float3(0,0,0);
-        return TETRAHEDRON[index];
-    case Solid::Octahedron:
-        if (index >= OCTAHEDRON_SIZE) return float3(0,0,0);
-        return OCTAHEDRON[index];
-    case Solid::Cube:
-        if (index >= CUBE_SIZE) return float3(0,0,0);
-        return CUBE[index];
-    case Solid::Icosahedron:
-        if (index >= ICOSAHEDRON_SIZE) return float3(0,0,0);
-        return ICOSAHEDRON[index];
-    case Solid::Dodecahedron:
-        if (index >= DODECAHEDRON_SIZE) return float3(0,0,0);
-        return DODECAHEDRON[index];
-    default:
-        return float3(0,0,0);
-    }
-}
-
 float sampleShape(const float3 pos, const float3 normal, const Wave wave)
 {
     float result = 0.0;
-    uint size;
-
-    switch (wave.type)
+    for (uint i = 0; i < SEQUENCE_BUFFER_SIZE; i++)
     {
-        case Solid::Tetrahedron:
-            size = TETRAHEDRON_SIZE;
-            break;
-        case Solid::Octahedron:
-            size = OCTAHEDRON_SIZE;
-            break;
-        case Solid::Cube:
-            size = CUBE_SIZE;
-            break;
-        case Solid::Icosahedron:
-            size = ICOSAHEDRON_SIZE;
-            break;
-        case Solid::Dodecahedron:
-            size = DODECAHEDRON_SIZE;
-            break;
-        default:
-            size = 0;
-            break;
-    }
-    for (uint i = 0; i < size; i++)
-    {
-        float3 vertex;
-        switch (wave.type)
-        {
-            case Solid::Tetrahedron:
-                vertex = TETRAHEDRON[i];
-                break;
-            case Solid::Octahedron:
-                vertex = OCTAHEDRON[i];
-                break;
-            case Solid::Cube:
-                vertex = CUBE[i];
-                break;
-            case Solid::Icosahedron:
-                vertex = ICOSAHEDRON[i];
-                break;
-            case Solid::Dodecahedron:
-                vertex = DODECAHEDRON[i];
-                break;
-            default:
-                vertex = float3(0,0,0);
-                break;
-        }
+        const float3 vertex = getPlatonicVertex(wave.type, wave.harmonic, i);
         const float3 rotatedVertex = rotatePointByLatLong(vertex, wave.rotation.x, wave.rotation.y);
-       
-        for (uint k = 0; k < wave.ripples; k++)
-        {
-            for (uint h = 0; h < wave.harmonic; h++)
-            {
-                const float dist = saturate(distance(pos + normal * wave.depth * (float(h) / wave.harmonic), rotatedVertex + wave.source) * wave.density);
-                result += sin(dist * wave.frequency + wave.phase) * wave.amplitude; 
-            }
-        }
+        const float dist = saturate(distance(pos, rotatedVertex + wave.source) * wave.density);
+        result += sin(dist * wave.frequency + wave.phase) * wave.amplitude; 
     }
     return result; 
 }

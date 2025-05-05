@@ -10,7 +10,7 @@ namespace Uriel.Behaviours
 {
     public class XRayHarbor : MonoBehaviour
     {
-        
+        [SerializeField] private Harbor harbor;
         [SerializeField] private FilterMode filterMode = FilterMode.Bilinear;
         [SerializeField] private ComputeShader computeShader;
         [SerializeField] private Material targetMaterial;
@@ -31,7 +31,7 @@ namespace Uriel.Behaviours
         [SerializeField] private Transform target;
         [SerializeField] private Transform source;
 
-        private HarborBehaviour processor;
+        private WaveBuffer waveBuffer;
         
         private RenderTexture texture;
         private int kernelIndex = 0;
@@ -41,15 +41,11 @@ namespace Uriel.Behaviours
 
         private void Start()
         {
-            processor = GetComponent<HarborBehaviour>();
-            processor.OnBufferCreated += OnBufferCreated;
+            waveBuffer = gameObject.AddComponent<WaveBuffer>();
+            waveBuffer.Init(harbor);
+            waveBuffer.LinkComputeKernel(computeShader);
         }
 
-        private void OnBufferCreated(ComputeBuffer buffer)
-        {
-            computeShader.SetInt(ShaderProps.WaveCount, processor.WaveCount);
-            computeShader.SetBuffer(kernelIndex, ShaderProps.WaveBuffer, buffer);
-        }
 
         private void SetResolution(Vector2Int res)
         {
@@ -97,7 +93,7 @@ namespace Uriel.Behaviours
             {
                 return;
             }
-            processor.UpdateWaveBuffer();
+  
             if (currentResolution != resolution && !isCapturing)
             {
                 SetResolution(resolution);

@@ -21,68 +21,27 @@ float _Speed;
 float _Time;
 float _Acceleration;
 
-[numthreads(64, 1, 1)]
+[numthreads(512, 1, 1)]
 void Init(uint3 id : SV_DispatchThreadID)
 {
  
 }
 
-[numthreads(64, 1, 1)]
+[numthreads(512, 1, 1)]
 void Process(uint3 id : SV_DispatchThreadID)
 {
     Particle p = _Particles[id.x];
     const float3 sample_point = p.position * _Scale;
     float3 gradient = float3(0,0,0);
-    uint size;
     const Wave wave = _WaveBuffer[0];
     p.charge = 0.0;
-    switch (wave.type)
+    
+    const PlatonicSequence sequence = getSequence(wave.type, wave.harmonic);
+    
+    for (int i = 0; i < SEQUENCE_BUFFER_SIZE; ++i)
     {
-        case Solid::Tetrahedron:
-            size = TETRAHEDRON_SIZE;
-            break;
-        case Solid::Octahedron:
-            size = OCTAHEDRON_SIZE;
-            break;
-        case Solid::Cube:
-            size = CUBE_SIZE;
-            break;
-        case Solid::Icosahedron:
-            size = ICOSAHEDRON_SIZE;
-            break;
-        case Solid::Dodecahedron:
-            size = DODECAHEDRON_SIZE;
-            break;
-        default:
-            size = 0;
-            break;
-    }
-    for (uint i = 0; i < size; i++)
-    {
-        float3 vertex;
-        switch (wave.type)
-        {
-            case Solid::Tetrahedron:
-                vertex = TETRAHEDRON[i];
-                break;
-            case Solid::Octahedron:
-                vertex = OCTAHEDRON[i];
-                break;
-            case Solid::Cube:
-                vertex = CUBE[i];
-                break;
-            case Solid::Icosahedron:
-                vertex = ICOSAHEDRON[i];
-                break;
-            case Solid::Dodecahedron:
-                vertex = DODECAHEDRON[i];
-                break;
-            default:
-                vertex = float3(0,0,0);
-                break;
-        }
-
-
+        const uint seq_index = sequence.indices[i];
+        const float3 vertex = PLATONIC_VERTICES[seq_index];
         
         for (int x = -SAMPLE_STEPS; x <= SAMPLE_STEPS; x++)
         {
@@ -95,17 +54,14 @@ void Process(uint3 id : SV_DispatchThreadID)
                     const float d = sin(dist * wave.frequency) * wave.amplitude;
                     gradient += offset * d;
                     p.charge += d;
-                  
                 }
             }
         }
-        
-        p.position -= p.velocity * (_DeltaTime  * max(1, length(sample_point))) * wave.ripples * 0.001;
-        p.velocity += gradient * wave.ripples * 0.1 * _DeltaTime;
     }
     
-  
-    
+    p.position -= p.velocity * (_DeltaTime  * max(1, length(sample_point))) * wave.ripples * 0.001;
+    p.velocity += gradient * wave.ripples * 0.1 * _DeltaTime;
+
     _Particles[id.x] = p;
 }
 

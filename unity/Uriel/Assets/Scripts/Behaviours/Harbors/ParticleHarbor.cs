@@ -58,18 +58,18 @@ namespace Uriel.Behaviours
             compute.SetFloat(ShaderProps.Speed, speed);
             compute.SetFloat(ShaderProps.Time, Time.time);
             compute.SetFloat(ShaderProps.Acceleration, acceleration);
-            compute.Dispatch(processKernel, Mathf.CeilToInt(CubedCapacity / 64f), 1, 1);
+            compute.Dispatch(processKernel, Mathf.CeilToInt(CubedCapacity / 512f), 1, 1);
 
             if (Input.GetKeyDown(KeyCode.R))
             {
                 particleRenderer.Randomize(radius, particleSize);
-                compute.Dispatch(initKernel, Mathf.CeilToInt(CubedCapacity / 64f), 1, 1);
+                compute.Dispatch(initKernel, Mathf.CeilToInt(CubedCapacity / 512f), 1, 1);
             }
 
             if (Input.GetKeyDown(KeyCode.C))
             {
                 particleRenderer.ArrangeInACube(capacity, radius, particleSize);
-                compute.Dispatch(initKernel, Mathf.CeilToInt(CubedCapacity / 64f), 1, 1);
+                compute.Dispatch(initKernel, Mathf.CeilToInt(CubedCapacity / 512f), 1, 1);
             }
         }
     }

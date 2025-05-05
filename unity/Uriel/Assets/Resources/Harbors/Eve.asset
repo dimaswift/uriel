@@ -15,11 +15,11 @@ MonoBehaviour:
   waves:
   - source: {x: -10.54, y: -0.16, z: 0.05}
     rotation: {x: 3.4, y: -96.2}
-    ripples: 5
-    harmonic: 79
+    ripples: 132
+    harmonic: 1
     type: 4
-    frequency: -8.31
-    amplitude: -0.01
-    density: 4.44
-    phase: -1.51
+    frequency: 0.38
+    amplitude: 0.03
+    density: 3.99
+    phase: 199.44
     depth: 1.8

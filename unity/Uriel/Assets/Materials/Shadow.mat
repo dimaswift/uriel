@@ -120,7 +120,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _GradientMultiplier: 2.36
-    - _GradientThreshold: 0.19
+    - _GradientThreshold: 0.006
     - _Grayscale: 0
     - _Max: 2.4
     - _Metallic: 0

@@ -104,6 +104,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AddPrecomputedVelocity: 0
+    - _Alpha: 0.082
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _Blend: 0
@@ -129,7 +130,7 @@ Material:
     - _Max: 2.4
     - _Metallic: 0
     - _Min: 2.4487
-    - _Multiplier: 0.25
+    - _Multiplier: 3.17
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
@@ -147,7 +148,7 @@ Material:
     - _Steps: 190.5
     - _Strength: 0.011
     - _Surface: 0
-    - _Threshold: 1.4
+    - _Threshold: 0.37
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
