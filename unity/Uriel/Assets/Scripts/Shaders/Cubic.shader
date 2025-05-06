@@ -47,7 +47,7 @@ Shader "Uriel/Cubic"
             
             sampler2D _Gradient;  
             float _Multiplier;
-            float _Threshold;
+            float _PowerThreshold;
             float _WaveFrequency;
             float _WaveAmplitude;
             float _WaveDensity;
@@ -84,7 +84,7 @@ Shader "Uriel/Cubic"
                         }
                     }
                 }
-                const float3 diffuse_color = hsv2rgb(value * (_Threshold * 1000), 1, 1) * _Multiplier;
+                const float3 diffuse_color = hsv2rgb(value * (_PowerThreshold * 1000), 1, 1) * _Multiplier;
                 return float4(diffuse_color.x,diffuse_color.x,diffuse_color.x, 1);  
             }  
             

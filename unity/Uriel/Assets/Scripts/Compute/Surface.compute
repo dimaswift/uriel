@@ -1,0 +1,50 @@
+#pragma kernel CSMain
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+
+uint _Width, _Height;
+float _Scale;
+float3 _Offset;
+int3 _Steps;
+RWTexture2D<float4> _Texture;
+
+uint _WaveCount;
+StructuredBuffer<Wave> _WaveBuffer;
+
+float _PowerThreshold;
+float _PowerMultiplier;
+float _SpeedThreshold;
+float _SpeedMultiplier;
+
+
+
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    const float xPos = float(id.x) / _Width;  
+    const float yPos = float(id.y) / _Height;
+    const float3 uv = float3(xPos - 0.5, yPos - 0.5, 0) * _Scale + _Offset;
+    float v = 0.0;
+    for (int y = -_Steps.y; y <= _Steps.y; y++)
+    {
+        for (int x = -_Steps.x; x <= _Steps.x; x++)
+        {
+            for (int z = -_Steps.z; z <= _Steps.z; z++)
+            {
+                for (uint i = 0; i < _WaveCount; ++i)
+                {
+                    const Wave wave = _WaveBuffer[i];
+                    const float3 offset = float3(x, y, z) * wave.depth;
+                    float dist = saturate(distance(uv * wave.density, offset)) * wave.phase;
+                    
+                    v += sin(dist * wave.frequency) * wave.amplitude; 
+                } 
+            }
+        }
+    }
+    float g = smoothstep(_SpeedThreshold, _SpeedMultiplier, sin(v));
+    float r = smoothstep(_PowerThreshold, _PowerMultiplier, sin(v));
+    _Texture[id.xy] = float4(g, g, g, 1.0);
+    
+}

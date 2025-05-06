@@ -14,6 +14,8 @@ namespace Uriel.Domain
         public static readonly int Gradient = Shader.PropertyToID("_Gradient");
         public static readonly int GradientMultiplier = Shader.PropertyToID("_GradientMultiplier");
         public static readonly int GradientThreshold = Shader.PropertyToID("_GradientThreshold");
+        public static readonly int Threshold = Shader.PropertyToID("_Threshold");
+        public static readonly int Multiplier = Shader.PropertyToID("_Multiplier");
         public static readonly int Frequency = Shader.PropertyToID("_Frequency");
         public static readonly int Amplitude = Shader.PropertyToID("_Amplitude");
         public static readonly int Min = Shader.PropertyToID("_Min");
@@ -39,6 +41,8 @@ namespace Uriel.Domain
         public static readonly int SampleRadius = Shader.PropertyToID("_SampleRadius");
         public static readonly int DeltaTime = Shader.PropertyToID("_DeltaTime");
         public static readonly int Acceleration = Shader.PropertyToID("_Acceleration");
+        public static readonly int Texture = Shader.PropertyToID("_Texture");
+        
     }
 }
 

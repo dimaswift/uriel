@@ -43,7 +43,7 @@ Shader "Uriel/LitSurfaceBuffer"
             float3 _LightSource;
             sampler2D _Gradient;  
             float _Multiplier;
-            float _Threshold;
+            float _PowerThreshold;
             float4 _Light;
             float _SpecularThreshold;
             float _SpecularMultiplier;
@@ -68,7 +68,7 @@ Shader "Uriel/LitSurfaceBuffer"
                 {
                     value += sampleShape(id.world_pos, id.world_normal, _WaveBuffer[i]);
                 }
-                const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;
+                const float3 diffuse_color = tex2D(_Gradient, float2(value * (_PowerThreshold), 0)) * _Multiplier;
                 const float3 normal_dir = normalize(id.world_normal);
                 const float3 ambient = ShadeSH9(float4(normal_dir, 1));  
                 const float3 light_dir = normalize(_LightSource);

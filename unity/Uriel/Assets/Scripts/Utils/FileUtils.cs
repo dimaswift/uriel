@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Uriel.Utils
 {
@@ -63,6 +64,7 @@ namespace Uriel.Utils
                 byte[] pngBytes = tex2D.EncodeToPNG();  
                 File.WriteAllBytes(filePath, pngBytes);
                 Debug.Log($"Saved texture to: {filePath}");
+                Object.Destroy(tex2D);
             }  
             catch (Exception e)  
             {  
