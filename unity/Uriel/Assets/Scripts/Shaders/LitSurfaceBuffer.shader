@@ -49,8 +49,8 @@ Shader "Uriel/LitSurfaceBuffer"
             float _SpecularMultiplier;
             float _Shininess;
 
-            uint _WaveCount;
-            StructuredBuffer<Wave> _WaveBuffer;
+            uint _PhotonCount;
+            StructuredBuffer<Photon> _PhotonBuffer;
             
             v2f vert(const appdata_t input)  
             {  
@@ -64,9 +64,9 @@ Shader "Uriel/LitSurfaceBuffer"
             fixed4 frag(const v2f id) : SV_Target  
             {
                 float value = 0.0;
-                for (int i = 0; i < _WaveCount; ++i)
+                for (int i = 0; i < _PhotonCount; ++i)
                 {
-                    value += sampleShape(id.world_pos, id.world_normal, _WaveBuffer[i]);
+                    value += sampleField(id.world_pos, id.world_normal, _PhotonBuffer[i]);
                 }
                 const float3 diffuse_color = tex2D(_Gradient, float2(value * (_PowerThreshold), 0)) * _Multiplier;
                 const float3 normal_dir = normalize(id.world_normal);

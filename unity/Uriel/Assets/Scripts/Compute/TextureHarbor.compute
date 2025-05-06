@@ -3,11 +3,11 @@
 #include "Assets/Scripts/Lib/Uriel.cginc"
 
 RWTexture2D<float4> _Texture;
-StructuredBuffer<Wave> _WaveBuffer;
+StructuredBuffer<Photon> _PhotonBuffer;
 StructuredBuffer<float3> _VertexBuffer;
 StructuredBuffer<float3> _NormalBuffer;
 int _VertexCount;
-int _WaveCount;
+int _PhotonCount;
 int _Resolution;
 float _Amplitude;
 float _Scale;
@@ -26,13 +26,13 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     
     for (int i = 0; i < _VertexCount; i++)
     {
-        const float3 vertex = mul(_Matrix, _VertexBuffer[i]);
+        const float3 vertex = _VertexBuffer[i];
         const float3 normal = _NormalBuffer[i];
-        for (int j = 0; j < _WaveCount; j++)
+        for (int j = 0; j < _PhotonCount; j++)
         {
-            const Wave wave = _WaveBuffer[j];
-            const float dist = saturate(distance(uv, vertex + normal * wave.depth) * wave.density);
-            value += sin(dist * wave.frequency + wave.phase) * wave.amplitude; 
+            const Photon photon = _PhotonBuffer[j];
+            const float dist = saturate(distance(uv, vertex + normal * photon.depth) * photon.density);
+            value += sin(dist * photon.frequency + photon.phase) * photon.amplitude; 
         }
     }
     

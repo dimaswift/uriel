@@ -12,14 +12,14 @@ Shader "Uriel/LitSurfaceSingle"
         _Shininess("Shininess", Range(0.0, 10.0)) = 1.0
 
         [Enum(Tetrahedron,0, Octahedron,1, Cube,2, Icosahedron,3, Dodecahedron,4)] _Shape("Displacement Shape", Int) = 1  
-        _WaveFrequency("Wave Frequency", Float) = 5.0
-        _WaveAmplitude("Wave Amplitude", Range(-1.0, 1.0)) = 0.1
-        _WaveDensity("Wave Density", Range(0.0, 2.0)) = 0.5
-        _WavePhase("Wave Phase", Range(-10.0, 10.0)) = 0.0
-        _WaveHarmonic("Wave Harmonic", Range(0, 50)) = 0
-        _WaveRipples("Wave Ripples", Range(0, 50)) = 1
-        _WaveSource("Wave Source", Vector) = (0,0,0)
-        _WaveDepth("Wave Depth", Float) = 1.0
+        _Frequency("Frequency", Float) = 5.0
+        _Amplitude("Amplitude", Range(-1.0, 1.0)) = 0.1
+        _Density("Density", Range(0.0, 2.0)) = 0.5
+        _Phase("Phase", Range(-10.0, 10.0)) = 0.0
+        _Iterations("Iterations", Range(0, 50)) = 0
+        _Ripples("Ripples", Range(0, 50)) = 1
+        _Source("Source", Vector) = (0,0,0)
+        _Depth("Depth", Float) = 1.0
     }  
     SubShader  
     {  
@@ -60,20 +60,20 @@ Shader "Uriel/LitSurfaceSingle"
             float _SpecularMultiplier;
             float _Shininess;
             
-            float _WaveFrequency;
-            float _WaveAmplitude;
-            float _WavePhase;
-            float _WaveDensity;
-            uint _WaveHarmonic;
-            uint _WaveRipples;
-            float3 _WaveSource;
-            float2 _WaveRotation;
+            float _Frequency;
+            float _Amplitude;
+            float _Phase;
+            float _Density;
+            uint _Iterations;
+            uint _Ripples;
+            float3 _Source;
+            float2 _Rotation;
             uint _Shape;
-            float _WaveDepth;
+            float _Depth;
             
-            Wave getWave()
+            Photon getPhoton()
             {
-                return createWave(_Shape,_WaveSource, _WaveRotation, _WaveRipples, max(1, _WaveHarmonic), _WaveFrequency, _WaveAmplitude, _WaveDensity, _WavePhase, _WaveDepth);
+                return createPhoton(_Shape,_Source, _Rotation, max(1, _Iterations), _Frequency, _Amplitude, _Density, _Phase, _Depth);
             }
             
             v2f vert(const appdata_t input)  
@@ -88,7 +88,7 @@ Shader "Uriel/LitSurfaceSingle"
             fixed4 frag(const v2f id) : SV_Target  
             {
                 
-                float value = sampleShape(id.world_pos, id.world_normal, getWave());
+                float value = sampleField(id.world_pos, id.world_normal, getPhoton());
                 const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;
                 const float3 normal_dir = normalize(id.world_normal);
                 const float3 ambient = ShadeSH9(float4(normal_dir, 1));  

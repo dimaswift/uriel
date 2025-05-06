@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,8 +13,6 @@ using Uriel.Utils;
 [Serializable]
 public class LaserSettings
 {
-    
-    
     [Header("Engraving Area")]
     [Tooltip("Width of engraving area in millimeters")]
     public float areaWidth = 300f;
@@ -44,11 +41,9 @@ public class GCodeGenerator : MonoBehaviour
     [SerializeField] private Engraving config;
     private Vector3 lastPosition;
     private StringBuilder gCodeBuffer = new StringBuilder();
-    private bool laserActive = false;
     private int currentSValue = 0;
     private bool isInitialized = false;
-    
-    
+
     // Events
     public delegate void GCodeGeneratedHandler(string gcode);
     public event GCodeGeneratedHandler OnGCodeGenerated;
@@ -77,7 +72,7 @@ public class GCodeGenerator : MonoBehaviour
         AppendGCode("M4 S0");
         currentSValue = 0;
 
-        gameObject.AddComponent<WaveBuffer>().Init(config.harbor).LinkComputeKernel(fieldShader);
+        gameObject.AddComponent<PhotonBuffer>().Init(config.sky).LinkComputeKernel(fieldShader);
         
         GeneratePreviewTexture();
     }
@@ -247,11 +242,11 @@ public class GCodeGenerator : MonoBehaviour
     {
         for (float i = config.zStart; i < config.zEnd; i+=config.zStep)
         {
-            Wave w = config.harbor.waves[0];
+            Photon w = config.sky.photons[0];
             Vector3 s = w.source;
             s.z = i;
             w.source = s;
-            config.harbor.waves[0] = w;
+            config.sky.photons[0] = w;
             GenerateCodeFromTexture();
             yield return new WaitForSeconds(0.1f);
         }

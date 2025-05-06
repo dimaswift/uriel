@@ -5,10 +5,10 @@ Shader "Uriel/Cubic"
         _Gradient ("Gradient", 2D) = "white" {}
         _Threshold ("Threshold", Range(0.0, 10000.0)) = 0.5
         _Multiplier ("Multiplier", Range(0.0, 10.0)) = 1
-        _WaveFrequency("Wave Frequency", Float) = 5.0
-        _WaveAmplitude("Wave Amplitude", Range(-0.1, 0.1)) = 0.1
-        _WaveDensity("Wave Density", Float) = 0.5
-        _WaveDepth("Wave Depth", Float) = 1.0
+        _Frequency("Frequency", Float) = 5.0
+        _Amplitude("Amplitude", Range(-0.1, 0.1)) = 0.1
+        _Density("Density", Float) = 0.5
+        _Depth("Depth", Float) = 1.0
         _X("X", Int) = 1
         _Y("Y", Int) = 1
         _Z("Z", Int) = 1
@@ -48,10 +48,10 @@ Shader "Uriel/Cubic"
             sampler2D _Gradient;  
             float _Multiplier;
             float _PowerThreshold;
-            float _WaveFrequency;
-            float _WaveAmplitude;
-            float _WaveDensity;
-            float _WaveDepth;
+            float _Frequency;
+            float _Amplitude;
+            float _Density;
+            float _Depth;
             float _Saturation;
             int _X, _Y, _Z;
 
@@ -74,13 +74,13 @@ Shader "Uriel/Cubic"
                     {
                         for (int z = -_Z; z <= _Z; z++)
                         {
-                            const float3 offset2 = float3(x, y, z) * _WaveDepth;
-                            float dist = distance(id.world_pos * _WaveDensity, offset2);
+                            const float3 offset2 = float3(x, y, z) * _Depth;
+                            float dist = distance(id.world_pos * _Density, offset2);
                             for (int s = 0; s < min(1,ceil(_Saturation)); ++s)
                             {
                                 dist = saturate(dist) * _Saturation;
                             }
-                            value += sin(dist * _WaveFrequency) * 0.000001 * _WaveAmplitude; 
+                            value += sin(dist * _Frequency) * 0.000001 * _Amplitude; 
                         }
                     }
                 }

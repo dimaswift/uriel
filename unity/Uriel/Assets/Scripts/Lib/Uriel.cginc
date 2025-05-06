@@ -1,23 +1,16 @@
 #ifndef URIEL
 #define URIEL
 
-#define PI 3.14159265359
-#define PHI 1.618033988749895
-#define TETRAHEDRON_SIZE 4
-#define OCTAHEDRON_SIZE 6
-#define CUBE_SIZE 8
-#define ICOSAHEDRON_SIZE 12
-#define DODECAHEDRON_SIZE 20
-
-#define BUFFER_SIZE DODECAHEDRON_SIZE
 #include "PlatonicSolids.cginc"
 
-struct Wave 
+#define PI 3.14159265359
+#define PHI 1.618033988749895
+
+struct Photon 
 {
     float3 source;
     float2 rotation;
-    uint ripples;
-    uint harmonic;
+    uint iterations;
     uint type;
     float frequency;
     float amplitude;
@@ -39,13 +32,12 @@ float3x3 createRotationMatrix(float latitudeDegrees, float longitudeDegrees);
 
 float3 rotatePointByLatLong(const float3 p, float latitude_degrees, const float longitude_degrees);
 
-Wave createWave(uint type, float3 source, float2 coordinates, uint ripples, uint harmonic, float frequency,   
+Photon createPhoton(uint type, float3 source, float2 coordinates, uint iterations, float frequency,   
                 float amplitude, float density, float phase, float depth)  
 {  
-    Wave w;  
+    Photon w;  
     w.source = source;  
-    w.ripples = ripples;   
-    w.harmonic = harmonic;  
+    w.iterations = iterations;  
     w.frequency = frequency;  
     w.amplitude = amplitude;  
     w.density = density;  
@@ -56,51 +48,41 @@ Wave createWave(uint type, float3 source, float2 coordinates, uint ripples, uint
     return w;  
 }  
 
-float sampleShape(const float3 pos, const float3 normal, const Wave wave)
+float sampleField(const float3 pos, const float3 normal, int depth, const float3 vertex, const Photon photon)
 {
-    float result = 0.0;
-    for (uint i = 0; i < 4; i++)
-    {
-        const float3 vertex = getPlatonicVertex(wave.type, wave.harmonic, i);
-        const float3 rotatedVertex = rotatePointByLatLong(vertex, wave.rotation.x, wave.rotation.y);
-        const float dist = saturate(distance(pos, rotatedVertex + wave.source) * wave.density);
-        result += sin(dist * wave.frequency + wave.phase) * wave.amplitude; 
-    }
-    return result; 
+    const float3 rotatedVertex = rotatePointByLatLong(vertex, photon.rotation.x, photon.rotation.y);
+    const float dist = saturate(distance(pos + normal * photon.depth * depth, rotatedVertex + photon.source) * photon.density);
+    return  sin(dist * photon.frequency + photon.phase) * photon.amplitude; 
 }
 
-float sampleField(float3 pos, uint count, StructuredBuffer<Wave> buffer)
+float sampleField(const float3 pos, const float3 normal, const Photon photon)
 {
-    float result = 0.0;
+    float density = 0.0;
+    const uint size = getPlatonicSize(photon.type);
+    for (uint j = 1; j <= photon.iterations; ++j)
+    {
+        for (uint i = 0; i < size; i++)
+        {
+            const float3 vertex = getPlatonicVertex(photon.type, i);
+            density += sampleField(pos, normal, j, vertex, photon);
+        }
+    }
+    return density; 
+}
+
+float sampleField(float3 pos, const float3 normal, uint count, StructuredBuffer<Photon> buffer)
+{
+    float density = 0.0;
     for (uint i = 0; i < count; i++)
     {
-        const Wave wave = buffer[i]; 
-        const float dist = saturate(distance(pos, wave.source) * wave.density);
-        for (int k = 0; k < 3; k++)
-        {
-            result += sin(dist * i);
-        }
-       
-        for (uint j = 0; j < wave.ripples; j++)
-        {
-            const float d = dist * (wave.frequency / wave.ripples);
-            result += sin(d * (float(j) / wave.ripples)) * wave.amplitude;
-            for (uint h = 0; h < wave.harmonic; h++)
-            {
-                result += saturate(sin(d * (float(h) / wave.harmonic))) * wave.amplitude;
-            }
-            for (uint h1 = 0; h1 < wave.harmonic; h1++)
-            {
-                result += cos(sqrt(d) * wave.frequency * 0.5) * wave.amplitude;
-            }
-        }
-     
+        const Photon photon = buffer[i]; 
+        density += sampleField(pos, normal, photon);
     }
-    return result; 
+    return density; 
 }
 
 float rayMarchField(float3 origin, float3 target, uint steps, uint depth, float frequency,
-    float min, float max, float amplitude, uint waveCount, StructuredBuffer<Wave> buffer)
+    float min, float max, float amplitude, uint photonCount, StructuredBuffer<Photon> buffer)
 {
     const float3 dir = target - origin;
     const float rayLength = length(dir);  
@@ -111,11 +93,11 @@ float rayMarchField(float3 origin, float3 target, uint steps, uint depth, float 
     {  
         const float t = i * stepSize;  
         const float3 p = origin + rayDir * t;
-        float v = sampleField(p, waveCount, buffer);
+        float v = sampleField(p, rayDir, photonCount, buffer);
         for (uint j = 0; j < depth; j++)
         {
             const float3 p_next = origin + rayDir * ((t + j) * frequency);
-            const float v_next = sampleField(p_next, waveCount, buffer);
+            const float v_next = sampleField(p_next, rayDir, photonCount, buffer);
             total += smoothstep(min, max, v - v_next) * amplitude;
             v = v_next;
         }

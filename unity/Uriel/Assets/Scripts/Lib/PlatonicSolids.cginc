@@ -1,68 +1,45 @@
 #ifndef PLATONIC_SOLIDS_INCLUDED
 #define PLATONIC_SOLIDS_INCLUDED
 
-// Platonic Solids Enum
 struct Solid {  
     static const uint TETRAHEDRON = 0;  
     static const uint OCTAHEDRON = 1;  
     static const uint CUBE = 2;  
     static const uint ICOSAHEDRON = 3;
     static const uint DODECAHEDRON = 4;
+    static const uint MATRIX = 5;
 };
 
-// Buffer size constants
-#define SEQUENCE_COUNT 7
-#define SEQUENCE_BUFFER_SIZE 120
-#define TOTAL_VERTICES 50
-
-// Unified sequence struct for all platonic solids
-struct PlatonicSequence
-{
-    uint indices[SEQUENCE_BUFFER_SIZE]; // Perfect cycle length of 120 (LCM of all solid sizes)
-};
-
-// Perfect cycles information (120 is the LCM of 4,6,8,12,20):
-// TETRAHEDRON: 30 complete cycles in buffer (4 vertices)
-// OCTAHEDRON: 20 complete cycles in buffer (6 vertices)
-// CUBE: 15 complete cycles in buffer (8 vertices)
-// ICOSAHEDRON: 10 complete cycles in buffer (12 vertices)
-// DODECAHEDRON: 6 complete cycles in buffer (20 vertices)
-
+#define TOTAL_VERTICES 77
+#define SOLIDS 6
 #define TETRAHEDRON_SIZE 4
 #define OCTAHEDRON_SIZE 6
 #define CUBE_SIZE 8
 #define ICOSAHEDRON_SIZE 12
 #define DODECAHEDRON_SIZE 20
+#define MATRIX_SIZE 27
 
-// Solid sizes array
-static const uint SOLID_SIZES[5] = {
+static const uint SOLID_SIZES[SOLIDS] = {
     4,  // TETRAHEDRON
     6,  // OCTAHEDRON
     8,  // CUBE
     12,  // ICOSAHEDRON
     20,  // DODECAHEDRON
+    27,  // MATRIX
 };
 
 // Vertex offsets for each solid in the unified vertex buffer
-static const uint VERTEX_OFFSETS[5] = {
-    0,  // TETRAHEDRON vertices start offset
-    4,  // OCTAHEDRON vertices start offset
-    10,  // CUBE vertices start offset
-    18,  // ICOSAHEDRON vertices start offset
-    30,  // DODECAHEDRON vertices start offset
-};
-
-// Sequence offset for each solid in the combined sequence buffer
-static const uint SEQUENCE_OFFSETS[5] = {
-    0,  // TETRAHEDRON sequences start offset
-    30,  // OCTAHEDRON sequences start offset
-    60,  // CUBE sequences start offset
-    90,  // ICOSAHEDRON sequences start offset
-    120,  // DODECAHEDRON sequences start offset
+static const uint VERTEX_OFFSETS[SOLIDS] = {
+    0, // TETRAHEDRON
+    4, // OCTAHEDRON
+    10,// CUBE
+    18,// ICOSAHEDRON
+    30,// DODECAHEDRON
+    50 // MATRIX
 };
 
 // Unified buffer containing vertices for all platonic solids
-const float3 PLATONIC_VERTICES[50] = {
+static float3 PLATONIC_VERTICES[TOTAL_VERTICES] = {
     // TETRAHEDRON vertices (offset 0)
     float3(0.35355339, 0.35355339, 0.35355339),  // 0
     float3(0.35355339, -0.35355339, -0.35355339),  // 1
@@ -117,208 +94,46 @@ const float3 PLATONIC_VERTICES[50] = {
     float3(0.356822, 0.934172, 0.000000),  // 46
     float3(-0.356822, 0.934172, 0.000000),  // 47
     float3(0.356822, -0.934172, 0.000000),  // 48
-    float3(-0.356822, -0.934172, 0.000000)  // 49
+    float3(-0.356822, -0.934172, 0.000000),  // 49
+    // MATRIX vertices (offset 50)
+    float3(-1, -1, -1),
+    float3(-1, -1, 0),
+    float3(-1, -1, 1),
+    float3(-1, 0, -1),
+    float3(-1, 0, 0),
+    float3(-1, 0, 1),
+    float3(-1, 1, -1),
+    float3(-1, 1, 0),
+    float3(-1, 1, 1),
+    float3(0, -1, -1),
+    float3(0, -1, 0),
+    float3(0, -1, 1),
+    float3(0, 0, -1),
+    float3(0, 0, 0),
+    float3(0, 0, 1),
+    float3(0, 1, -1),
+    float3(0, 1, 0),
+    float3(0, 1, 1),
+    float3(1, -1, -1),
+    float3(1, -1, 0),
+    float3(1, -1, 1),
+    float3(1, 0, -1),
+    float3(1, 0, 0),
+    float3(1, 0, 1),
+    float3(1, 1, -1),
+    float3(1, 1, 0),
+    float3(1, 1, 1)
 };
 
-// Combined platonic sequence buffer with perfect 120-element ping-pong patterns
-
-
-// Combined platonic sequence buffer with perfect 120-element ping-pong patterns
-static const PlatonicSequence PLATONIC_SEQUENCES[30] = {
-    // TETRAHEDRON sequences (index 0 to 5)
-    // Sequence 0 (30 complete cycles)
-    {
-        {0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1}
-    },
-
-    // Sequence 1 (30 complete cycles)
-    {
-        {3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2}
-    },
-
-    // Sequence 2 (30 complete cycles)
-    {
-        {0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3}
-    },
-
-    // Sequence 3 (30 complete cycles)
-    {
-        {0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1, 0, 1, 3, 2, 3, 1}
-    },
-
-    // Sequence 4 (30 complete cycles)
-    {
-        {1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0, 1, 0, 2, 3, 2, 0}
-    },
-
-    // Sequence 5 (30 complete cycles)
-    {
-        {2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1, 2, 1, 3, 0, 3, 1}
-    },
-
-    // OCTAHEDRON sequences (index 6 to 11)
-    // Sequence 0 (20 complete cycles)
-    {
-        {0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1}
-    },
-
-    // Sequence 1 (20 complete cycles)
-    {
-        {5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4}
-    },
-
-    // Sequence 2 (20 complete cycles)
-    {
-        {0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5}
-    },
-
-    // Sequence 3 (20 complete cycles)
-    {
-        {0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1, 0, 1, 2, 5, 4, 3, 4, 5, 2, 1}
-    },
-
-    // Sequence 4 (20 complete cycles)
-    {
-        {2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1, 2, 1, 0, 3, 4, 5, 4, 3, 0, 1}
-    },
-
-    // Sequence 5 (20 complete cycles)
-    {
-        {3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2, 3, 2, 4, 1, 5, 0, 5, 1, 4, 2}
-    },
-
-    // CUBE sequences (index 12 to 17)
-    // Sequence 0 (15 complete cycles)
-    {
-        {0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7}
-    },
-
-    // Sequence 1 (15 complete cycles)
-    {
-        {7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0}
-    },
-
-    // Sequence 2 (15 complete cycles)
-    {
-        {0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4}
-    },
-
-    // Sequence 3 (15 complete cycles)
-    {
-        {0, 1, 2, 3, 7, 6, 5, 4, 5, 6, 7, 3, 2, 1, 0, 1, 2, 3, 7, 6, 5, 4, 5, 6, 7, 3, 2, 1, 0, 1, 2, 3, 7, 6, 5, 4, 5, 6, 7, 3, 2, 1, 0, 1, 2, 3, 7, 6, 5, 4, 5, 6, 7, 3, 2, 1, 0, 1, 2, 3, 7, 6, 5, 4, 5, 6, 7, 3, 2, 1, 0, 1, 2, 3, 7, 6, 5, 4, 5, 6, 7, 3, 2, 1, 0, 1, 2, 3, 7, 6, 5, 4, 5, 6, 7, 3, 2, 1, 0, 1, 2, 3, 7, 6, 5, 4, 5, 6, 7, 3, 2, 1, 0, 1, 2, 3, 7, 6, 5, 4}
-    },
-
-    // Sequence 4 (15 complete cycles)
-    {
-        {3, 2, 1, 0, 4, 5, 6, 7, 6, 5, 4, 0, 1, 2, 3, 2, 1, 0, 4, 5, 6, 7, 6, 5, 4, 0, 1, 2, 3, 2, 1, 0, 4, 5, 6, 7, 6, 5, 4, 0, 1, 2, 3, 2, 1, 0, 4, 5, 6, 7, 6, 5, 4, 0, 1, 2, 3, 2, 1, 0, 4, 5, 6, 7, 6, 5, 4, 0, 1, 2, 3, 2, 1, 0, 4, 5, 6, 7, 6, 5, 4, 0, 1, 2, 3, 2, 1, 0, 4, 5, 6, 7, 6, 5, 4, 0, 1, 2, 3, 2, 1, 0, 4, 5, 6, 7, 6, 5, 4, 0, 1, 2, 3, 2, 1, 0, 4, 5, 6, 7}
-    },
-
-    // Sequence 5 (15 complete cycles)
-    {
-        {4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0, 7, 1, 6, 2, 5, 3, 4, 3, 5, 2, 6, 1, 7, 0}
-    },
-
-    // ICOSAHEDRON sequences (index 18 to 23)
-    // Sequence 0 (10 complete cycles)
-    {
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
-    },
-
-    // Sequence 1 (10 complete cycles)
-    {
-        {11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2}
-    },
-
-    // Sequence 2 (10 complete cycles)
-    {
-        {0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6, 5, 7, 4, 8, 3, 9, 2, 10, 1, 11, 0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6, 5, 7, 4, 8, 3, 9, 2, 10, 1, 11, 0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6, 5, 7, 4, 8, 3, 9, 2, 10, 1, 11, 0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6, 5, 7, 4, 8, 3, 9, 2, 10, 1, 11, 0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6, 5, 7, 4, 8, 3, 9, 2, 10, 1, 11, 0, 11, 1, 10, 2, 9, 3, 8, 4, 7}
-    },
-
-    // Sequence 3 (10 complete cycles)
-    {
-        {0, 1, 2, 3, 4, 5, 11, 10, 9, 8, 7, 6, 7, 8, 9, 10, 11, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 11, 10, 9, 8, 7, 6, 7, 8, 9, 10, 11, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 11, 10, 9, 8, 7, 6, 7, 8, 9, 10, 11, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 11, 10, 9, 8, 7, 6, 7, 8, 9, 10, 11, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 11, 10, 9, 8, 7, 6, 7, 8, 9, 10, 11, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 11, 10, 9, 8}
-    },
-
-    // Sequence 4 (10 complete cycles)
-    {
-        {5, 4, 3, 2, 1, 0, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0, 6, 7, 8, 9}
-    },
-
-    // Sequence 5 (10 complete cycles)
-    {
-        {6, 5, 7, 4, 8, 3, 9, 2, 10, 1, 11, 0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6, 5, 7, 4, 8, 3, 9, 2, 10, 1, 11, 0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6, 5, 7, 4, 8, 3, 9, 2, 10, 1, 11, 0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6, 5, 7, 4, 8, 3, 9, 2, 10, 1, 11, 0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6, 5, 7, 4, 8, 3, 9, 2, 10, 1, 11, 0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6, 5, 7, 4, 8, 3, 9, 2, 10, 1}
-    },
-
-    // DODECAHEDRON sequences (index 24 to 29)
-    // Sequence 0 (6 complete cycles)
-    {
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5}
-    },
-
-    // Sequence 1 (6 complete cycles)
-    {
-        {19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 18, 17, 16, 15, 14}
-    },
-
-    // Sequence 2 (6 complete cycles)
-    {
-        {0, 19, 1, 18, 2, 17, 3, 16, 4, 15, 5, 14, 6, 13, 7, 12, 8, 11, 9, 10, 9, 11, 8, 12, 7, 13, 6, 14, 5, 15, 4, 16, 3, 17, 2, 18, 1, 19, 0, 19, 1, 18, 2, 17, 3, 16, 4, 15, 5, 14, 6, 13, 7, 12, 8, 11, 9, 10, 9, 11, 8, 12, 7, 13, 6, 14, 5, 15, 4, 16, 3, 17, 2, 18, 1, 19, 0, 19, 1, 18, 2, 17, 3, 16, 4, 15, 5, 14, 6, 13, 7, 12, 8, 11, 9, 10, 9, 11, 8, 12, 7, 13, 6, 14, 5, 15, 4, 16, 3, 17, 2, 18, 1, 19, 0, 19, 1, 18, 2, 17}
-    },
-
-    // Sequence 3 (6 complete cycles)
-    {
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5}
-    },
-
-    // Sequence 4 (6 complete cycles)
-    {
-        {9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4}
-    },
-
-    // Sequence 5 (6 complete cycles)
-    {
-        {10, 9, 11, 8, 12, 7, 13, 6, 14, 5, 15, 4, 16, 3, 17, 2, 18, 1, 19, 0, 19, 1, 18, 2, 17, 3, 16, 4, 15, 5, 14, 6, 13, 7, 12, 8, 11, 9, 10, 9, 11, 8, 12, 7, 13, 6, 14, 5, 15, 4, 16, 3, 17, 2, 18, 1, 19, 0, 19, 1, 18, 2, 17, 3, 16, 4, 15, 5, 14, 6, 13, 7, 12, 8, 11, 9, 10, 9, 11, 8, 12, 7, 13, 6, 14, 5, 15, 4, 16, 3, 17, 2, 18, 1, 19, 0, 19, 1, 18, 2, 17, 3, 16, 4, 15, 5, 14, 6, 13, 7, 12, 8, 11, 9, 10, 9, 11, 8, 12, 7}
-    }
-
-};
-
-PlatonicSequence getSequence(uint solidType, uint sequenceIndex)
+uint getPlatonicSize(uint solidType)
 {
-    const uint sequenceOffset = SEQUENCE_OFFSETS[solidType];
-    const uint seqIdx = sequenceIndex % SEQUENCE_COUNT;
-    const uint bufferIndex = sequenceOffset + seqIdx;
-    return PLATONIC_SEQUENCES[bufferIndex];
+    return SOLID_SIZES[solidType];
 }
 
-// Utility function to get a vertex from any solid with sequence pattern
-float3 getPlatonicVertex(uint solidType, uint sequenceIndex, uint vertexIndex)
+float3 getPlatonicVertex(uint solidType, uint vertexIndex)
 {
     const uint vertexOffset = VERTEX_OFFSETS[solidType];
-    const uint sequenceOffset = SEQUENCE_OFFSETS[solidType];
-
-    // Get sequence index with wraparound
-    const uint seqIdx = sequenceIndex % SEQUENCE_COUNT;
-    const uint bufferIndex = sequenceOffset + seqIdx;
-
-    // Get vertex index from the ping-pong sequence (modulo for perfect looping)
-    const uint idx = vertexIndex % SEQUENCE_BUFFER_SIZE;
-    const uint vertIdx = PLATONIC_SEQUENCES[bufferIndex].indices[idx];
-
-    // Return the vertex from the unified buffer
-    return PLATONIC_VERTICES[vertexOffset + vertIdx];
-}
-
-
-
-// Utility function for smooth sinusoidal animation using sequence patterns
-float3 getPlatonicVertexAnimated(uint solidType, uint sequenceIndex, float time, float speed)
-{
-    // Calculate smooth vertex index based on time
-    const float animIndex = fmod(time * speed, (float)SEQUENCE_BUFFER_SIZE);
-    const uint vertexIndex = (uint)animIndex;
-
-    // Get the vertex
-    return getPlatonicVertex(solidType, sequenceIndex, vertexIndex);
+    return PLATONIC_VERTICES[vertexOffset + vertexIndex];
 }
 
 #endif // PLATONIC_SOLIDS_INCLUDED

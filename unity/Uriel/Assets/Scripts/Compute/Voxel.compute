@@ -5,10 +5,10 @@
 RWStructuredBuffer<float4x4> _Particles;
 
 uint _Resolution;
-uint _WaveCount;
-StructuredBuffer<Wave> _WaveBuffer;
+uint _PhotonCount;
+StructuredBuffer<Photon> _PhotonBuffer;
 
-[numthreads(1024, 1, 1)]
+[numthreads(64, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     const uint index = id.x;
@@ -18,7 +18,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     uint z = index / (_Resolution * _Resolution);
     float size = 1.0 / _Resolution;
     float3 pos = (float3(x, y, z) - float3(_Resolution * 0.5, _Resolution * 0.5, _Resolution * 0.5)) * size;
-    float v0 = sampleField(pos, _WaveCount, _WaveBuffer);
+    float v0 = sampleField(pos, normalize(pos), _PhotonCount, _PhotonBuffer);
     float v1 = 0.0;
     float v2 = 0.0;
    

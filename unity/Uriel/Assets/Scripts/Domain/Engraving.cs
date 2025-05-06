@@ -12,7 +12,7 @@ namespace Uriel.Domain
         [Range(0.001f, 1f)] public float precision = 0.06f;
         public float width = 50;
         public float height = 50;
-        public Harbor harbor;
+        public Sky sky;
         public Vector3Int steps;
         public float scale = 1f;
         public float speedThreshold = 1f;

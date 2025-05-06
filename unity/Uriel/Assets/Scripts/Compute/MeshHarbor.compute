@@ -5,8 +5,8 @@
 StructuredBuffer<float3> _InputVertexBuffer;
 RWStructuredBuffer<float3> _OutputVertexBuffer;
 RWStructuredBuffer<float3> _NormalBuffer;
-StructuredBuffer<Wave> _WaveBuffer;
-int _WaveCount;
+StructuredBuffer<Photon> _PhotonBuffer;
+int _PhotonCount;
 float _Scale;
 float _Frequency;
 float _Amplitude;
@@ -20,10 +20,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     const float3 vertex = _InputVertexBuffer[id.x];
     const float3 normal = _NormalBuffer[id.x];
     float value = 0.0;
-    for (int i = 0; i < _WaveCount; i++)
+    for (int i = 0; i < _PhotonCount; i++)
     {
-        const Wave wave = _WaveBuffer[i];
-        const float f = sampleShape(vertex, normal, wave) * _Frequency + (_Phase + _Speed * _Time);
+        const Photon photon = _PhotonBuffer[i];
+        const float f = sampleField(vertex, normal, photon) * _Frequency + (_Phase + _Speed * _Time);
         value += sin(f) * _Amplitude * 0.001;
     }
     _OutputVertexBuffer[id.x] = vertex + float3(normal) * sin(value);

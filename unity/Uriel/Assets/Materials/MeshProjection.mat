@@ -129,25 +129,25 @@ Material:
     - _Max: 2.4
     - _Metallic: 0
     - _Min: 2.4487
-    - _Multiplier: 1.28
+    - _Multiplier: 2.44
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _Radius: 1.6
     - _ReceiveShadows: 1
-    - _Shininess: 0
+    - _Shininess: 18.4
     - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _SpecularMultiplier: 0
-    - _SpecularThreshold: 0
+    - _SpecularMultiplier: 0.217
+    - _SpecularThreshold: 0.201
     - _Speed: 0.719
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Steps: 190.5
     - _Strength: 0.011
     - _Surface: 0
-    - _Threshold: 0
+    - _Threshold: 0.08
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:

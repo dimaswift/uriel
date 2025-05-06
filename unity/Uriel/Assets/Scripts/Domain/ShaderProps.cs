@@ -4,8 +4,8 @@ namespace Uriel.Domain
 {
     public static class ShaderProps
     {
-        public static readonly int WaveCount = Shader.PropertyToID("_WaveCount");
-        public static readonly int WaveBuffer = Shader.PropertyToID("_WaveBuffer");
+        public static readonly int PhotonCount = Shader.PropertyToID("_PhotonCount");
+        public static readonly int PhotonBuffer = Shader.PropertyToID("_PhotonBuffer");
         public static readonly int Particles = Shader.PropertyToID("_Particles");
         public static readonly int ParticlesCount = Shader.PropertyToID("_ParticlesCount");
         public static readonly int Resolution = Shader.PropertyToID("_Resolution");
@@ -55,6 +55,8 @@ namespace Uriel.Domain
         public static readonly int Interference = Shader.PropertyToID("_Interference");
         public static readonly int Attraction = Shader.PropertyToID("_Attraction");
         public static readonly int Repulsion = Shader.PropertyToID("_Repulsion");
+        public static readonly int CurrentDimension = Shader.PropertyToID("_CurrentDimension");
+        public static readonly int Dimensions = Shader.PropertyToID("_Dimensions");
     }
 }
 

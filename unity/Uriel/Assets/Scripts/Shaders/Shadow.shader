@@ -52,8 +52,8 @@ Shader "Uriel/Shadow"
             int _Depth;
             
             float3 _Source;
-            uint _GeneCount;
-            StructuredBuffer<Wave> _GeneBuffer; 
+            uint _PhotonCount;
+            StructuredBuffer<Photon> _PhotonBuffer; 
             
             v2f vert(appdata_t input, uint instanceID: SV_InstanceID)  
             {  
@@ -75,7 +75,7 @@ Shader "Uriel/Shadow"
             fixed4 frag(v2f id) : SV_Target  
             {
                 float total = rayMarchField(_Source, id.worldPos, _Steps, _Depth,
-        _Frequency, _Min, _Max,  _Strength, _GeneCount, _GeneBuffer);
+        _Frequency, _Min, _Max,  _Strength, _PhotonCount, _PhotonBuffer);
                 float3 diffuseColor;
                 if(_Grayscale == 0)
                 {

@@ -51,8 +51,8 @@ Shader "Uriel/Particle"
             float _Shininess;
             int _VertexCount;
             float _Alpha;
-            uint _WaveCount;
-            StructuredBuffer<Wave> _WaveBuffer;
+            uint _PhotonCount;
+            StructuredBuffer<Photon> _PhotonBuffer;
           
      
             v2f vert(appdata_t i, uint instanceID: SV_InstanceID)  

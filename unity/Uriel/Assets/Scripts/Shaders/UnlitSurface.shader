@@ -29,25 +29,27 @@ Shader "Uriel/UnlitSurface"
             {
                 float4 vertex : SV_POSITION;  
                 float3 world_pos : TEXCOORD0;
+                float3 world_normal : TEXCOORD1;
             };  
             
             sampler2D _Gradient;  
             float _Multiplier;
             float _PowerThreshold;
-            uint _WaveCount;
-            StructuredBuffer<Wave> _WaveBuffer; 
+            uint _PhotonCount;
+            StructuredBuffer<Photon> _PhotonBuffer; 
             
             v2f vert(const appdata_t input)  
             {  
                 v2f o;
                 o.vertex = UnityObjectToClipPos(input.vertex);
                 o.world_pos = mul(unity_ObjectToWorld, input.vertex);
+                o.world_normal = UnityObjectToWorldNormal(input.normal);
                 return o;   
             }
             
             fixed4 frag(const v2f id) : SV_Target  
             {
-                const float value = sampleField(id.world_pos, _WaveCount, _WaveBuffer);
+                const float value = sampleField(id.world_pos, id.world_normal, _PhotonCount, _PhotonBuffer);
                 const float3 finalColor  = tex2D(_Gradient, float2(value * _PowerThreshold, 0)) * _Multiplier;
                 return float4(finalColor, 1);  
             }  

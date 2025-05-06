@@ -10,7 +10,7 @@ namespace Uriel.Behaviours
     public class DensityFieldContourTracer : MonoBehaviour
     {
         [SerializeField] private Vector3Int steps = new Vector3Int(1, 1, 1);
-        [SerializeField] private Harbor harbor;
+        [SerializeField] private Sky sky;
         [Header("Density Field Settings")]
         [SerializeField] private float threshold = 0.5f;
         [SerializeField] private Vector3 boundMin = new Vector3(-10f, 0f, -10f);
@@ -21,11 +21,6 @@ namespace Uriel.Behaviours
         [SerializeField] private bool smoothPath = true;
         [SerializeField] private int smoothingIterations = 2;
         [SerializeField] private float pathSimplificationTolerance = 0.01f;
-        
-        [Header("Debugging")]
-        [SerializeField] private bool visualizeGrid = true;
-        [SerializeField] private bool visualizeContours = true;
-        [SerializeField] private Color contourColor = Color.green;
         
         // References to other components
         [SerializeField] private GCodeGenerator gCodeGenerator;
@@ -54,13 +49,13 @@ namespace Uriel.Behaviours
                 {
                     for (int z = -steps.z; z <= steps.z; z++)
                     {
-                        for (int i = 0; i < harbor.waves.Count; i++)
+                        for (int i = 0; i < sky.photons.Count; i++)
                         {
-                            Wave wave = harbor.waves[i];
-                            Vector3 offset = new Vector3(x, y, z) * wave.depth;
-                            float dist = Mathf.Clamp01(Vector3.Distance(position * wave.density, offset)) * wave.phase;
+                            Photon photon = sky.photons[i];
+                            Vector3 offset = new Vector3(x, y, z) * photon.depth;
+                            float dist = Mathf.Clamp01(Vector3.Distance(position * photon.density, offset)) * photon.phase;
 
-                            density += Mathf.Sin(dist * wave.frequency) * wave.amplitude;
+                            density += Mathf.Sin(dist * photon.frequency) * photon.amplitude;
                         }
                     }
                 }
