@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -46,6 +47,7 @@ public class GCodeGenerator : MonoBehaviour
     private bool laserActive = false;
     private int currentSValue = 0;
     private bool isInitialized = false;
+    
     
     // Events
     public delegate void GCodeGeneratedHandler(string gcode);
@@ -152,7 +154,7 @@ public class GCodeGenerator : MonoBehaviour
                 Vector3 laserPos = WorldToLaserCoordinates(new Vector3(x, 0, y) * config.precision);
                 
                 // Use G value for both power and speed modulation
-                float gValue = Math.Max(0.0f, pixel.g); // Ensure minimum value of 0.1
+                float gValue = 1.0f - Math.Max(0.0f, pixel.g); // Ensure minimum value of 0.1
                 
                 // Calculate power based on G value
                 int laserPower = Mathf.RoundToInt(MathUtils.Map(gValue, 0.0f, 1f, config.minPower, config.maxPower));
@@ -224,11 +226,36 @@ public class GCodeGenerator : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.S))
         {
+            
             GenerateCodeFromTexture();
+            
             SaveGCodeToFile();
         }
 
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+
+            StartCoroutine(GenerateDepthGCode());
+
+          
+        }
+
         FillPreviewTexture();
+    }
+
+    private IEnumerator GenerateDepthGCode()
+    {
+        for (float i = config.zStart; i < config.zEnd; i+=config.zStep)
+        {
+            Wave w = config.harbor.waves[0];
+            Vector3 s = w.source;
+            s.z = i;
+            w.source = s;
+            config.harbor.waves[0] = w;
+            GenerateCodeFromTexture();
+            yield return new WaitForSeconds(0.1f);
+        }
+        SaveGCodeToFile();
     }
     
     // Convert Unity world position to laser engraver coordinates

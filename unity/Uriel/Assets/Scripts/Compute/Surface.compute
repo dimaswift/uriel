@@ -17,34 +17,63 @@ float _PowerMultiplier;
 float _SpeedThreshold;
 float _SpeedMultiplier;
 
-
+static float3 DODECAHEDRON[DODECAHEDRON_SIZE] =  {
+    float3(0.577350, 0.577350, 0.577350),  // 30
+    float3(0.577350, 0.577350, -0.577350),  // 31
+    float3(0.577350, -0.577350, 0.577350),  // 32
+    float3(0.577350, -0.577350, -0.577350),  // 33
+    float3(-0.577350, 0.577350, 0.577350),  // 34
+    float3(-0.577350, 0.577350, -0.577350),  // 35
+    float3(-0.577350, -0.577350, 0.577350),  // 36
+    float3(-0.577350, -0.577350, -0.577350),  // 37
+    float3(0.000000, 0.356822, 0.934172),  // 38
+    float3(0.000000, -0.356822, 0.934172),  // 39
+    float3(0.000000, 0.356822, -0.934172),  // 40
+    float3(0.000000, -0.356822, -0.934172),  // 41
+    float3(0.934172, 0.000000, 0.356822),  // 42
+    float3(-0.934172, 0.000000, 0.356822),  // 43
+    float3(0.934172, 0.000000, -0.356822),  // 44
+    float3(-0.934172, 0.000000, -0.356822),  // 45
+    float3(0.356822, 0.934172, 0.000000),  // 46
+    float3(-0.356822, 0.934172, 0.000000),  // 47
+    float3(0.356822, -0.934172, 0.000000),  // 48
+    float3(-0.356822, -0.934172, 0.000000)};
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
     const float xPos = float(id.x) / _Width;  
     const float yPos = float(id.y) / _Height;
-    const float3 uv = float3(xPos - 0.5, yPos - 0.5, 0) * _Scale + _Offset;
+    const float3 uv = float3(xPos - 0.5, yPos - 0.5, 0) + _Offset;
     float v = 0.0;
-    for (int y = -_Steps.y; y <= _Steps.y; y++)
+    // for (int y = -_Steps.y; y <= _Steps.y; y++)
+    // {
+    //     for (int x = -_Steps.x; x <= _Steps.x; x++)
+    //     {
+    //         for (int z = -_Steps.z; z <= _Steps.z; z++)
+    //         {
+    //             for (uint i = 0; i < _WaveCount; ++i)
+    //             {
+    //                 const Wave wave = _WaveBuffer[i];
+    //                 const float3 offset = rotatePointByLatLong(float3(x,y,z), wave.rotation.x, wave.rotation.y) * wave.depth;
+    //                 float dist = saturate(distance(uv, offset + wave.source) *  wave.density) * wave.phase;
+    //                 v += sin(dist * wave.frequency) * wave.amplitude; 
+    //             } 
+    //         }
+    //     }
+    // }
+
+    for (uint i = 0; i < _WaveCount; ++i)
     {
-        for (int x = -_Steps.x; x <= _Steps.x; x++)
+        const Wave wave = _WaveBuffer[i];
+        for (int j = 0; j < 20; ++j)
         {
-            for (int z = -_Steps.z; z <= _Steps.z; z++)
-            {
-                for (uint i = 0; i < _WaveCount; ++i)
-                {
-                    const Wave wave = _WaveBuffer[i];
-                    const float3 offset = float3(x, y, z) * wave.depth;
-                    float dist = saturate(distance(uv * wave.density, offset)) * wave.phase;
-                    
-                    v += sin(dist * wave.frequency) * wave.amplitude; 
-                } 
-            }
+            const float3 offset = rotatePointByLatLong(DODECAHEDRON[j], wave.rotation.x, wave.rotation.y) * wave.depth;
+            float dist = distance(uv, offset + wave.source *  wave.density) * wave.phase;
+            v += sin(dist * wave.frequency) * wave.amplitude; 
         }
-    }
+    } 
     float g = smoothstep(_SpeedThreshold, _SpeedMultiplier, sin(v));
-    float r = smoothstep(_PowerThreshold, _PowerMultiplier, sin(v));
     _Texture[id.xy] = float4(g, g, g, 1.0);
     
 }

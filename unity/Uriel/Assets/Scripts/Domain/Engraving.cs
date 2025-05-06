@@ -19,5 +19,8 @@ namespace Uriel.Domain
         public float speedMultiplier = 1f;
         public float powerThreshold = 1f;
         public float powerMultiplier = 1f;
+        public float zStart;
+        public float zEnd;
+        public float zStep;
     }
 }

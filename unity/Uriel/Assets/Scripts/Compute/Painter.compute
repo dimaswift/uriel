@@ -1,0 +1,177 @@
+#pragma kernel CalculateField
+#pragma kernel SimulateParticles
+#pragma kernel ClearCanvas
+#pragma kernel ProcessBrush
+#pragma kernel FadeCanvas
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+struct Brush
+{
+    uint amount;
+    float3 position;
+    uint particleIndex;
+};
+
+
+uint _Resolution;
+float _Scale;
+float _DeltaTime;
+float _CanvasFadeSpeed;
+float3 _Offset;
+int3 _Steps;
+int _ScanRadius;
+float _Acceleration;
+float _Speed;
+float _Attraction;
+float _Repulsion;
+float _Lifetime;
+float _PhaseSpeed;
+
+RWTexture2D<float4> _Interference;
+RWTexture2D<float4> _Field;
+RWTexture2D<float4> _Canvas;
+
+uint _WaveCount;
+StructuredBuffer<Wave> _WaveBuffer;
+
+float3 _Threshold;
+float3 _Multiplier;
+
+RWStructuredBuffer<Particle> _Particles;
+uint _ParticlesCount;
+
+RWStructuredBuffer<Brush> _Brush;
+uint _BrushSize;
+
+[numthreads(8, 8, 1)]
+void ClearCanvas(uint3 id : SV_DispatchThreadID)
+{
+    _Canvas[id.xy] = float4(0,0,0,0);
+}
+
+[numthreads(8, 8, 1)]
+void FadeCanvas(uint3 id : SV_DispatchThreadID)
+{
+    float4 col = _Canvas[id.xy];
+    col.a = lerp(col.a, 0, _DeltaTime * _CanvasFadeSpeed);
+    _Canvas[id.xy] = col;
+}
+
+[numthreads(8, 8, 1)]
+void CalculateField(uint3 id : SV_DispatchThreadID)
+{
+    const float xPos = float(id.x) / _Resolution;  
+    const float yPos = float(id.y) / _Resolution;
+    const float3 uv = float3(xPos - 0.5, yPos - 0.5, 0) * _Scale + _Offset;
+    float v = 0.0;
+    
+    for (int y = -_Steps.y; y <= _Steps.y; y++)
+    {
+        for (int x = -_Steps.x; x <= _Steps.x; x++)
+        {
+            for (int z = -_Steps.z; z <= _Steps.z; z++)
+            {
+                for (uint i = 0; i < _WaveCount; ++i)
+                {
+                    const Wave wave = _WaveBuffer[i];
+                    const float3 offset = float3(x, y, z) * wave.depth;
+                    float dist = distance(uv * wave.density, offset) * wave.phase;
+                    
+                    v += sin(dist * wave.frequency) * wave.amplitude; 
+                } 
+            }
+        }
+    }
+    float3 col = hsv2rgb(v * _Threshold.x,_Multiplier.y,_Multiplier.z) * _Multiplier.x;
+    _Field[id.xy] = float4(col, _Threshold.y);
+    _Interference[id.xy] = v > 0 ? float4(v, 0, 0, _Threshold.z) : float4(0, 0, abs(v), _Threshold.z);
+}
+
+[numthreads(8, 1, 1)]
+void SimulateParticles(uint3 id : SV_DispatchThreadID)
+{
+    Particle p = _Particles[id.x];
+
+    if (p.size <= 0)
+    {
+        return;
+    }
+    int2 pos = int2(clamp(round(p.position.x), 0, _Resolution - 1),clamp(round(p.position.y), 0, _Resolution - 1));
+    float2 gradient = float2(0, 0);
+    int checks = 0;
+    float accumulatedCharge = 0.0;
+    for (int x = -_ScanRadius; x <= _ScanRadius; ++x)
+    {
+        for (int y = -_ScanRadius; y <= _ScanRadius; ++y)
+        {
+            int2 checkPoint = int2(pos.x + x, pos.y + y);
+            checkPoint.x = clamp(checkPoint.x, 0, _Resolution);
+            checkPoint.y = clamp(checkPoint.y, 0, _Resolution);
+            float4 interference = _Interference[checkPoint];
+            gradient -= float2(x, y) * interference.r * _Attraction;
+            gradient += float2(x, y) * interference.b * _Repulsion;
+            checks++;
+            accumulatedCharge += interference.r;
+            accumulatedCharge -= interference.b;
+        }
+    }
+
+    p.velocity += (-float3(gradient, 0) / checks) * _DeltaTime * _Acceleration;
+    p.position += _DeltaTime * p.velocity * _Speed;
+
+    if (p.position.x < 0 || p.position.x >= float(_Resolution))
+    {
+        p.size = 0;
+    } 
+
+    if (p.position.y < 0 || p.position.y >= float(_Resolution))
+    {
+        p.size = 0;
+    }
+    
+    p.charge += _DeltaTime * _PhaseSpeed * accumulatedCharge;
+    p.size -= _DeltaTime / _Lifetime;
+    
+    float4 col = _Canvas[pos];
+    float3 rgb = lerp(float3(1.0, 0, 0), float3(0, 0, 1.0), p.charge);
+    col.rgb = rgb;
+    col.a = 1;
+    _Particles[id.x] = p;
+    _Canvas[pos] = col;
+}
+
+[numthreads(1, 1, 1)]
+void ProcessBrush(uint3 id : SV_DispatchThreadID)
+{
+    Brush b = _Brush[0];
+
+    if (b.amount == 0) return;
+
+    while (b.amount > 0)
+    {
+        const int s = _BrushSize;
+        
+        for (int x = 0; x < s; ++x)
+        {
+            for (int y = 0; y < s; ++y)
+            {
+                Particle p;
+                p.position = b.position - float3(x,y,0) + float3(float(s) * 0.5, float(s) * 0.5, 0);
+                p.charge = 0;
+                p.mass = 0;
+                p.size = 1;
+                p.velocity = float3(0,0,0);
+                if (b.particleIndex >= _ParticlesCount)
+                {
+                    b.particleIndex = 0;
+                }
+                _Particles[b.particleIndex] = p;
+                b.particleIndex++;
+            }
+        }
+        b.amount--;
+    }
+    
+    _Brush[0] = b;
+}

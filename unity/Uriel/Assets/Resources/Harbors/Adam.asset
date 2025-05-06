@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Adam
   m_EditorClassIdentifier: 
   waves:
-  - source: {x: 0, y: 0, z: 0}
+  - source: {x: 0, y: 0, z: -0.35}
     rotation: {x: 0, y: 0}
     ripples: 0
     harmonic: 0
     type: 0
-    frequency: 2.24
-    amplitude: 0.56
-    density: 4.03
-    phase: -4.38
-    depth: -0.44
+    frequency: -0.62
+    amplitude: -2.22
+    density: 57.6
+    phase: 15.9
+    depth: -0.53

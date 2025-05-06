@@ -18,8 +18,8 @@ MonoBehaviour:
     ripples: 205
     harmonic: 1
     type: 4
-    frequency: 0.44
-    amplitude: 0.11
-    density: 0.73
-    phase: -32.9
+    frequency: 0.14
+    amplitude: -14
+    density: 80
+    phase: 16
     depth: -0.55

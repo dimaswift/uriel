@@ -31,7 +31,6 @@ namespace Uriel.Domain
         public static readonly int Width = Shader.PropertyToID("_Width");
         public static readonly int Height = Shader.PropertyToID("_Height");
         public static readonly int Focus = Shader.PropertyToID("_Focus");
-        public static readonly int Speed = Shader.PropertyToID("_Speed");
         public static readonly int Time = Shader.PropertyToID("_Time");
         public static readonly int Phase = Shader.PropertyToID("_Phase");
         public static readonly int Scale = Shader.PropertyToID("_Scale");
@@ -40,9 +39,22 @@ namespace Uriel.Domain
         public static readonly int Reference = Shader.PropertyToID("_Reference");
         public static readonly int SampleRadius = Shader.PropertyToID("_SampleRadius");
         public static readonly int DeltaTime = Shader.PropertyToID("_DeltaTime");
-        public static readonly int Acceleration = Shader.PropertyToID("_Acceleration");
         public static readonly int Texture = Shader.PropertyToID("_Texture");
-        
+        public static readonly int Matrix = Shader.PropertyToID("_Matrix");
+        public static readonly int Field = Shader.PropertyToID("_Field");
+        public static readonly int Canvas = Shader.PropertyToID("_Canvas");
+        public static readonly int ScanRadius = Shader.PropertyToID("_ScanRadius");
+        public static readonly int Acceleration = Shader.PropertyToID("_Acceleration");
+        public static readonly int Speed = Shader.PropertyToID("_Speed");
+        public static readonly int Gravity = Shader.PropertyToID("_Gravity");
+        public static readonly int Lifetime = Shader.PropertyToID("_Lifetime");
+        public static readonly int PhaseSpeed = Shader.PropertyToID("_PhaseSpeed");
+        public static readonly int Brush = Shader.PropertyToID("_Brush");
+        public static readonly int CanvasFadeSpeed = Shader.PropertyToID("_CanvasFadeSpeed");
+        public static readonly int BrushSize = Shader.PropertyToID("_BrushSize");
+        public static readonly int Interference = Shader.PropertyToID("_Interference");
+        public static readonly int Attraction = Shader.PropertyToID("_Attraction");
+        public static readonly int Repulsion = Shader.PropertyToID("_Repulsion");
     }
 }
 
