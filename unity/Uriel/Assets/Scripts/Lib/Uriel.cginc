@@ -48,23 +48,24 @@ Photon createPhoton(uint type, float3 source, float2 coordinates, uint iteration
     return w;  
 }  
 
-float sampleField(const float3 pos, const float3 normal, int depth, const float3 vertex, const Photon photon)
+float sampleField(const float3 pos, const float3 normal, int depth, const float3 vertex, const Photon photon, const uint size)
 {
     const float3 rotatedVertex = rotatePointByLatLong(vertex, photon.rotation.x, photon.rotation.y);
-    const float dist = saturate(distance(pos + normal * photon.depth * depth, rotatedVertex + photon.source) * photon.density);
-    return  sin(dist * photon.frequency + photon.phase) * photon.amplitude; 
+    const float dist = saturate(distance(pos + normal * photon.depth * depth, rotatedVertex + photon.source) * photon.density / PI);
+    return sin(dist * photon.frequency + photon.phase ) * (photon.amplitude + (1.0 / size)); 
 }
 
 float sampleField(const float3 pos, const float3 normal, const Photon photon)
 {
     float density = 0.0;
     const uint size = getPlatonicSize(photon.type);
+    
     for (uint j = 1; j <= photon.iterations; ++j)
     {
         for (uint i = 0; i < size; i++)
         {
             const float3 vertex = getPlatonicVertex(photon.type, i);
-            density += sampleField(pos, normal, j, vertex, photon);
+            density += sampleField(pos, normal, j, vertex, photon, size);
         }
     }
     return density; 
@@ -85,22 +86,16 @@ float rayMarchField(float3 origin, float3 target, uint steps, uint depth, float 
     float min, float max, float amplitude, uint photonCount, StructuredBuffer<Photon> buffer)
 {
     const float3 dir = target - origin;
-    const float rayLength = length(dir);  
+    const float rayLength = length(dir);
     const float stepSize = rayLength / steps;
-    const float3 rayDir = normalize(dir);  
+    const float3 rayDir = normalize(dir);
     float total = 0.0;
     for (uint i = 0; i < steps; i++)  
     {  
         const float t = i * stepSize;  
-        const float3 p = origin + rayDir * t;
-        float v = sampleField(p, rayDir, photonCount, buffer);
-        for (uint j = 0; j < depth; j++)
-        {
-            const float3 p_next = origin + rayDir * ((t + j) * frequency);
-            const float v_next = sampleField(p_next, rayDir, photonCount, buffer);
-            total += smoothstep(min, max, v - v_next) * amplitude;
-            v = v_next;
-        }
+        const float3 p_next = origin + (rayDir * t) * frequency / rayLength ;
+        const float v_next = sampleField(p_next, rayDir, photonCount, buffer);
+        total += smoothstep(min, max, v_next) * amplitude;
     }
     return total;
 }

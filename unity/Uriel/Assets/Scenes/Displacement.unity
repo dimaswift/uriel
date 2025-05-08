@@ -260,7 +260,7 @@ Camera:
   near clip plane: 0.01
   far clip plane: 1000
   field of view: 70.3
-  orthographic: 1
+  orthographic: 0
   orthographic size: 2.499999
   m_Depth: -1
   m_CullingMask:
@@ -286,7 +286,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1.991}
+  m_LocalPosition: {x: 0, y: 0, z: -1.78}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -609,7 +609,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1085814702}
-  m_Mesh: {fileID: 6461297695846733525, guid: 21689cb9ebbdcea4491ce2bd5aaef1d9, type: 3}
+  m_Mesh: {fileID: 6461297695846733525, guid: fc34b78473eaeff43b594934a26306ed, type: 3}
 --- !u!1 &1646746220
 GameObject:
   m_ObjectHideFlags: 0
@@ -644,11 +644,11 @@ MonoBehaviour:
   target: {fileID: 1085814704}
   sky: {fileID: 11400000, guid: 6892d4c125ec4864d8c8c637fdbabfbb, type: 2}
   compute: {fileID: 7200000, guid: 28494770ba86f214ea1838e474ef0889, type: 3}
-  frequency: 427
-  amplitude: 117
-  scale: -0.54
-  phase: 0
-  speed: 1.24
+  frequency: 4.11
+  amplitude: 66.7
+  scale: 1.23
+  phase: -29
+  speed: 3.97
 --- !u!4 &1646746222
 Transform:
   m_ObjectHideFlags: 0

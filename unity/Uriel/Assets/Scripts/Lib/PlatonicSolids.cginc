@@ -10,22 +10,24 @@ struct Solid {
     static const uint MATRIX = 5;
 };
 
-#define TOTAL_VERTICES 77
+
 #define SOLIDS 6
 #define TETRAHEDRON_SIZE 4
 #define OCTAHEDRON_SIZE 6
 #define CUBE_SIZE 8
 #define ICOSAHEDRON_SIZE 12
 #define DODECAHEDRON_SIZE 20
-#define MATRIX_SIZE 27
+#define MATRIX_SIZE 29
+
+#define TOTAL_VERTICES TETRAHEDRON_SIZE + OCTAHEDRON_SIZE + CUBE_SIZE + ICOSAHEDRON_SIZE + DODECAHEDRON_SIZE + MATRIX_SIZE
 
 static const uint SOLID_SIZES[SOLIDS] = {
-    4,  // TETRAHEDRON
-    6,  // OCTAHEDRON
-    8,  // CUBE
-    12,  // ICOSAHEDRON
-    20,  // DODECAHEDRON
-    27,  // MATRIX
+    TETRAHEDRON_SIZE,  // TETRAHEDRON
+    OCTAHEDRON_SIZE,  // OCTAHEDRON
+    CUBE_SIZE,  // CUBE
+    ICOSAHEDRON_SIZE,  // ICOSAHEDRON
+    DODECAHEDRON_SIZE,  // DODECAHEDRON
+    MATRIX_SIZE,  // MATRIX
 };
 
 // Vertex offsets for each solid in the unified vertex buffer
@@ -122,7 +124,9 @@ static float3 PLATONIC_VERTICES[TOTAL_VERTICES] = {
     float3(1, 0, 1),
     float3(1, 1, -1),
     float3(1, 1, 0),
-    float3(1, 1, 1)
+    float3(1, 1, 1),
+    float3(0, 2, 0),
+    float3(0, 2, 0),
 };
 
 uint getPlatonicSize(uint solidType)

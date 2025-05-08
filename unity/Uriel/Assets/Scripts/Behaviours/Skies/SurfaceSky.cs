@@ -6,12 +6,12 @@ namespace Uriel.Behaviours
     [RequireComponent(typeof(MeshRenderer))]
     public class SurfaceSky : MonoBehaviour
     {
+        [SerializeField] private Sky sky;
         private Material mat;
         
         private void Awake()
         {
-            mat = GetComponent<MeshRenderer>().material;
-            gameObject.AddComponent<PhotonBuffer>().LinkMaterial(mat);
+            gameObject.AddComponent<PhotonBuffer>().Init(sky).LinkMaterial(GetComponent<MeshRenderer>().material);
         }
     }
 }

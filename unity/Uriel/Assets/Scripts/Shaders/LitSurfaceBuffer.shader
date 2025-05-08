@@ -4,12 +4,18 @@ Shader "Uriel/LitSurfaceBuffer"
     {  
         _LightSource ("LightSource", Vector) = (0,1,1)
         _Gradient ("Gradient", 2D) = "white" {}
-        _Threshold ("Threshold", Range(0.0, 10.0)) = 0.5
-        _Multiplier ("Multiplier", Range(0.0, 10.0)) = 1
+        _Threshold ("Threshold", Range(0.0, 2.0)) = 0.5
+        _Multiplier ("Multiplier", Range(0.0, 5.0)) = 1
         _Light ("Light", Color) = (1,1,1,1)
         _SpecularThreshold("Specular Threshold", Range(0.0, 5.0)) = 0.25
         _SpecularMultiplier("Specular Multiplier", Range(0.0, 5.0)) = 0.5
         _Shininess("Shininess", Range(0.0, 500.0)) = 1.0
+        _Depth("Depth", Range(0.0, 1.0)) = 1.0
+        _Steps("Steps", Range(1.0, 50.0)) = 1.0
+        _Min("Min", Range(-3.0, 3.0)) = 1.0
+        _Max("Max", Range(-3.0, 3.0)) = 1.0
+        _Frequency("Frequency", Range(0, 0.5)) = 0.5
+        _Mode("Mode", Range(0, 2)) = 0
     }  
     SubShader  
     {  
@@ -43,13 +49,19 @@ Shader "Uriel/LitSurfaceBuffer"
             float3 _LightSource;
             sampler2D _Gradient;  
             float _Multiplier;
-            float _PowerThreshold;
+            float _Threshold;
             float4 _Light;
             float _SpecularThreshold;
             float _SpecularMultiplier;
             float _Shininess;
-
+            float _Depth;
+            float _Min;
+            float _Max;
+            int _Steps;
+            float _Frequency;
+            
             uint _PhotonCount;
+            uint _Mode;
             StructuredBuffer<Photon> _PhotonBuffer;
             
             v2f vert(const appdata_t input)  
@@ -63,23 +75,32 @@ Shader "Uriel/LitSurfaceBuffer"
             
             fixed4 frag(const v2f id) : SV_Target  
             {
+                const float3 dir = id.world_pos;
+                const float rayLength = length(dir);
+                const float stepSize = rayLength / _Steps;
+                const float3 rayDir = normalize(dir);
                 float value = 0.0;
-                for (int i = 0; i < _PhotonCount; ++i)
+                for (int i = 0; i < _Steps; ++i)
                 {
-                    value += sampleField(id.world_pos, id.world_normal, _PhotonBuffer[i]);
+                    const float t = i * stepSize;  
+                    const float3 target = id.world_pos + (rayDir * t) * _Depth / rayLength;
+                    const float density = sampleField(target, rayDir, _PhotonCount, _PhotonBuffer);
+                        switch (_Mode)
+                        {
+                            case 0:
+                                value += sin(smoothstep(_Min, _Max, density * _Frequency) * _Multiplier);
+                                break;
+                            case 1:
+                                value += sin(density * _Frequency * 0.1) * _Multiplier;
+                                break;
+                            default:
+                                value += step(pow(1.0 + _Multiplier * 0.01, density), _Max) * _Frequency * 2;
+                                break;
+                        }
+                    
                 }
-                const float3 diffuse_color = tex2D(_Gradient, float2(value * (_PowerThreshold), 0)) * _Multiplier;
-                const float3 normal_dir = normalize(id.world_normal);
-                const float3 ambient = ShadeSH9(float4(normal_dir, 1));  
-                const float3 light_dir = normalize(_LightSource);
-                const float3 view_dir = normalize(UnityWorldSpaceViewDir(id.world_pos));
-                const float3 halfway_dir = normalize(light_dir + view_dir);  
-                const float l = saturate(dot(normal_dir, light_dir));
-                const float3 diffuse_lighting = l  * _Light.rgb;
-                const float h = saturate(dot(normal_dir, halfway_dir));  
-                const float specular_value = _SpecularThreshold * _SpecularMultiplier;  
-                const float3 specular_lighting = pow(h, _Shininess) * specular_value * _Light.rgb;  
-                const float3 final_color = (diffuse_lighting + ambient) * diffuse_color + specular_lighting;  
+                const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold * 0.01), 0));
+                //const float3 diffuse_color = hsv2rgb(sin(value * _Threshold * 0.01) + _SpecularThreshold, _Shininess, _SpecularMultiplier);
                 return float4(diffuse_color, 1);  
             }  
             

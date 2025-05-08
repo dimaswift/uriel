@@ -71,7 +71,7 @@ Shader "Uriel/LitSurfaceMesh"
                     const Photon photon = _PhotonBuffer[i];
                     for (int k = 0; k < _VertexCount; k++)
                     { 
-                        value += sampleField(id.world_pos, _NormalBuffer[k], 1, _VertexBuffer[k], photon);
+                        value += sampleField(id.world_pos, _NormalBuffer[k], 1, _VertexBuffer[k], photon, _VertexCount);
                     }
                 }
                 const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;

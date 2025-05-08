@@ -7,11 +7,12 @@ Shader "Uriel/Shadow"
         _GradientLUT ("Gradient LUT", 2D) = "white" {}
         _GradientThreshold ("Gradient Threshold", Range(0.0, 1.0)) = 0.5
         _GradientMultiplier ("Gradient Multiplier", Range(0.0, 10.0)) = 1
-        _Frequency ("Frequency", Range(0.0, 10.0)) = 1
+        _Frequency ("Frequency", Range(0.0, 1.1)) = 0.05
         _Strength ("Strengh", Range(0.0, 1.0)) = 0.5
         _Min ("Min", Range(2.4, 2.6)) = 2.5
         _Max ("Max", Range(2.4, 2.6)) = 2.5
         _Grayscale ("Grayscale", Range(0, 1)) = 1
+        _Focus ("Focus", Float) = 1
     }  
     SubShader  
     {  
@@ -50,6 +51,7 @@ Shader "Uriel/Shadow"
             float _Max;
             int _Grayscale;
             int _Depth;
+            float _Focus;
             
             float3 _Source;
             uint _PhotonCount;
@@ -58,14 +60,9 @@ Shader "Uriel/Shadow"
             v2f vert(appdata_t input, uint instanceID: SV_InstanceID)  
             {  
                 v2f o;  
-                float size = 1.0;
+
                 o.world_normal = UnityObjectToWorldNormal(input.normal);
-                float4x4 m = float4x4(  
-                    size,0,0,0,   
-                    0,size,0,0,  
-                    0,0,size,0,  
-                    0,0,0,0);
-                float4 pos = mul(m, input.vertex);  
+                float4 pos = input.vertex;  
                 o.vertex = UnityObjectToClipPos(pos);  
                 float4 worldPosRaw = mul(unity_ObjectToWorld, input.vertex);  
                 o.worldPos = worldPosRaw.xyz;

@@ -9,7 +9,7 @@ Shader "Uriel/LitDisplacement"
         _Light ("Light", Color) = (1,1,1,1)
         _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
         _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
-        _Shininess("Shininess", Range(0.0, 10.0)) = 1.0
+        _Shininess("Shininess", Range(0.0, 360.0)) = 1.0
     }  
     SubShader  
     {  

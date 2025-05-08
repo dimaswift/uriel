@@ -510,7 +510,7 @@ MonoBehaviour:
   targetMaterial: {fileID: 2100000, guid: 18ddccef41639594a91fdd72a3c89064, type: 2}
   gradient: {fileID: 2800000, guid: 6443fb42340ce394a89fdc772cbe0726, type: 3}
   steps: 120
-  resolution: {x: 256, y: 256}
+  resolution: {x: 256, y: 512}
   captureResolution: {x: 2310, y: 3860}
   depth: 5
   grayscale: 0

@@ -77,7 +77,7 @@ Shader "Uriel/Voxel"
                 o.world_pos = pos;
                 o.color = finalColor;
                 return o;  
-            }  
+            }   
 
             fixed4 frag(v2f i) : SV_Target  
             {

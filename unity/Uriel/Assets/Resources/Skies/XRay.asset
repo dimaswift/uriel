@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: XRay
   m_EditorClassIdentifier: 
   photons:
-  - source: {x: 0, y: 0, z: 4.39}
-    rotation: {x: -67.5, y: 0}
+  - source: {x: 0, y: 0.33, z: -1.54}
+    rotation: {x: -202.2, y: 0}
     iterations: 1
     type: 5
-    frequency: 9.2
-    amplitude: -2.41
-    density: 0.74
-    phase: 14.25
-    depth: 2.79
+    frequency: 15.8
+    amplitude: 0.5
+    density: 0.37
+    phase: 20
+    depth: -7.51

@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   photons:
   - source: {x: 0, y: 0, z: 0}
-    rotation: {x: -31.7, y: -24.98}
+    rotation: {x: 0, y: 0}
     iterations: 1
-    type: 2
-    frequency: 0.69
-    amplitude: 5.87
-    density: 0.62
-    phase: 23
-    depth: -0.15
+    type: 0
+    frequency: 8.53
+    amplitude: 0.62
+    density: 2.15
+    phase: 28.73
+    depth: -2.38
