@@ -147,7 +147,7 @@ Material:
     - _Steps: 190.5
     - _Strength: 0.011
     - _Surface: 0
-    - _Threshold: 0.08
+    - _Threshold: 0.96
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:

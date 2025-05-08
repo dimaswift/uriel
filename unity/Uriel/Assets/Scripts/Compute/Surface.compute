@@ -29,7 +29,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     for (uint i = 0; i < _PhotonCount; ++i)
     {
         const Photon photon = _PhotonBuffer[i];
-        v += sampleField(uv, float3(0,0,1), photon);
+        v += sampleField(uv, photon);
     } 
     float g = smoothstep(_SpeedThreshold, _SpeedMultiplier, sin(v));
     _Texture[id.xy] = float4(g, g, g, 1.0);

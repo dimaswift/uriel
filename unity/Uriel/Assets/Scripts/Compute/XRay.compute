@@ -14,7 +14,7 @@ float _Min;
 float _Max;
 float2 _Size;
 bool _Grayscale;
-uint _Depth;
+float _Depth;
 uint _Width;
 uint _Height;
 float3 _Target;        
@@ -40,8 +40,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     const float3 gridPoint = (_Target + right * uv.x * _Size.x  / (_Focus * 0.01) + up * uv.y * _Size.y  / (_Focus * 0.01));
     
     const float3 emitterPoint = _Source;  
-    float total = rayMarchField(emitterPoint, gridPoint, _Steps, _Depth,
-        _Frequency, _Min, _Max, _Amplitude, _PhotonCount, _PhotonBuffer);
+    float total = rayMarchField(emitterPoint, normalize(gridPoint - emitterPoint), length(emitterPoint - gridPoint), _Steps, _Min, _Max, _Depth, _Frequency, _Amplitude, _PhotonCount, _PhotonBuffer);
     float4 diffuseColor = _Gradient[uint2(total * _GradientThreshold, 0)] * _GradientMultiplier;
     if (_Grayscale)
     {

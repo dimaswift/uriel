@@ -17,7 +17,7 @@ struct Solid {
 #define CUBE_SIZE 8
 #define ICOSAHEDRON_SIZE 12
 #define DODECAHEDRON_SIZE 20
-#define MATRIX_SIZE 29
+#define MATRIX_SIZE 27
 
 #define TOTAL_VERTICES TETRAHEDRON_SIZE + OCTAHEDRON_SIZE + CUBE_SIZE + ICOSAHEDRON_SIZE + DODECAHEDRON_SIZE + MATRIX_SIZE
 
@@ -124,9 +124,7 @@ static float3 PLATONIC_VERTICES[TOTAL_VERTICES] = {
     float3(1, 0, 1),
     float3(1, 1, -1),
     float3(1, 1, 0),
-    float3(1, 1, 1),
-    float3(0, 2, 0),
-    float3(0, 2, 0),
+    float3(1, 1, 1)
 };
 
 uint getPlatonicSize(uint solidType)

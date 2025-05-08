@@ -65,7 +65,7 @@ Shader "Uriel/LitDisplacement"
             fixed4 frag(const v2f id) : SV_Target  
             {
                 
-                float value = sampleField(id.world_pos, id.world_normal, _PhotonCount, _PhotonBuffer);
+                float value = sampleField(id.world_pos, _PhotonCount, _PhotonBuffer);
                 const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;
                 const float3 normal_dir = normalize(id.world_normal);
                 const float3 ambient = ShadeSH9(float4(normal_dir, 1));  

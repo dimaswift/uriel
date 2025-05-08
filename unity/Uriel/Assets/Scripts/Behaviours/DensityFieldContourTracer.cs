@@ -52,7 +52,7 @@ namespace Uriel.Behaviours
                         for (int i = 0; i < sky.photons.Count; i++)
                         {
                             Photon photon = sky.photons[i];
-                            Vector3 offset = new Vector3(x, y, z) * photon.depth;
+                            Vector3 offset = new Vector3(x, y, z) * photon.density;
                             float dist = Mathf.Clamp01(Vector3.Distance(position * photon.density, offset)) * photon.phase;
 
                             density += Mathf.Sin(dist * photon.frequency) * photon.amplitude;

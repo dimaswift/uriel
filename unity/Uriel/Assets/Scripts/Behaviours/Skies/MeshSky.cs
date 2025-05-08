@@ -19,6 +19,9 @@ namespace Uriel.Behaviours
         [SerializeField] private float scale = 1;
         [SerializeField] private float phase = 1;
         [SerializeField] private float speed = 1;
+        [SerializeField] private float min = 0.5f;
+        [SerializeField] private float max = 1;
+        [SerializeField] private int steps = 1;
         
         private ComputeBuffer inputVertexBuffer;
         private ComputeBuffer outputVertexBuffer;
@@ -81,6 +84,10 @@ namespace Uriel.Behaviours
             compute.SetFloat(ShaderProps.Time, Time.time);
             compute.SetFloat(ShaderProps.Phase, phase);
             compute.SetFloat(ShaderProps.Scale, scale);
+            compute.SetFloat(ShaderProps.Min, min);
+            compute.SetFloat(ShaderProps.Max, max);
+            compute.SetInt(ShaderProps.Steps, steps);
+            
             compute.Dispatch(0, Mathf.CeilToInt(inputVertexBuffer.count / 64f), 1, 1);
             outputVertexBuffer.GetData(vertices);
             currentMesh.SetVertices(vertices);

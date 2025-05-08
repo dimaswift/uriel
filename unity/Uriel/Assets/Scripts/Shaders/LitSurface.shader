@@ -17,9 +17,8 @@ Shader "Uriel/LitSurfaceSingle"
         _Density("Density", Range(0.0, 2.0)) = 0.5
         _Phase("Phase", Range(-10.0, 10.0)) = 0.0
         _Iterations("Iterations", Range(0, 50)) = 0
-        _Ripples("Ripples", Range(0, 50)) = 1
-        _Source("Source", Vector) = (0,0,0)
-        _Depth("Depth", Float) = 1.0
+        _Radius("Radius", Float) = 1.0
+        
     }  
     SubShader  
     {  
@@ -70,10 +69,11 @@ Shader "Uriel/LitSurfaceSingle"
             float2 _Rotation;
             uint _Shape;
             float _Depth;
+            float _Radius;
             
-            Photon getPhoton()
+            Photon getPhoton(float4x4 t)
             {
-                return createPhoton(_Shape,_Source, _Rotation, max(1, _Iterations), _Frequency, _Amplitude, _Density, _Phase, _Depth);
+                return createPhoton(_Shape, t, _Iterations, _Frequency, _Amplitude, _Density, _Phase, _Radius);
             }
             
             v2f vert(const appdata_t input)  
@@ -88,7 +88,7 @@ Shader "Uriel/LitSurfaceSingle"
             fixed4 frag(const v2f id) : SV_Target  
             {
                 
-                float value = sampleField(id.world_pos, id.world_normal, getPhoton());
+                float value = sampleField(id.world_pos, getPhoton(unity_ObjectToWorld));
                 const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;
                 const float3 normal_dir = normalize(id.world_normal);
                 const float3 ambient = ShadeSH9(float4(normal_dir, 1));  

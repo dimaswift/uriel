@@ -13,6 +13,9 @@ float _Amplitude;
 float _Phase;
 float _Time;
 float _Speed;
+int _Steps;
+float _Min;
+float _Max;
 
 [numthreads(64,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
@@ -20,11 +23,14 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     const float3 vertex = _InputVertexBuffer[id.x];
     const float3 normal = _NormalBuffer[id.x];
     float value = 0.0;
-    for (int i = 0; i < _PhotonCount; i++)
+    float l = length(vertex);
+    const float step_size = l / _Steps;
+    const float3 dir = normalize(vertex);
+    for (int i = 0; i < _Steps; ++i)
     {
-        const Photon photon = _PhotonBuffer[i];
-        const float f = sampleField(vertex, normal, photon) * _Frequency + (_Phase + _Speed * _Time);
-        value += sin(f) * _Amplitude * 0.001;
+        const float3 target = vertex + dir * i * step_size  * _Scale;
+        const float density = sampleField(target, _PhotonCount, _PhotonBuffer);
+        value += sin(density * (_Frequency + (_Time * _Speed + _Phase))) * _Amplitude;
     }
     _OutputVertexBuffer[id.x] = vertex + float3(normal) * sin(value);
 }

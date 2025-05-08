@@ -13,30 +13,27 @@ MonoBehaviour:
   m_Name: Heart
   m_EditorClassIdentifier: 
   photons:
-  - source: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0}
-    iterations: 1
-    type: 2
-    frequency: 9.88
-    amplitude: 0
-    density: 2.63
-    phase: 45
-    depth: 0.92
-  - source: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0}
-    iterations: 6
-    type: 3
-    frequency: 6.65
-    amplitude: 0.13
-    density: 2.02
-    phase: 1.59
-    depth: 1.36
-  - source: {x: 0, y: 0, z: -1.4}
-    rotation: {x: 0, y: 0}
-    iterations: 5
-    type: 5
-    frequency: -4.83
+  - transform:
+      e00: 1.2725003
+      e01: 0
+      e02: 0
+      e03: 0.058
+      e10: 0
+      e11: 1.0128
+      e12: 0
+      e13: 0.42
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    iterations: 3
+    type: 4
+    frequency: 335.2
     amplitude: -0.42
-    density: 1.64
-    phase: 1.36
-    depth: 2.13
+    phase: -2.4
+    radius: 6.36
+    density: 17.2

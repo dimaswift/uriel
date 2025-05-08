@@ -509,18 +509,18 @@ MonoBehaviour:
   computeShader: {fileID: 7200000, guid: b2a6189538ecb4149bab131ff3c7f0d2, type: 3}
   targetMaterial: {fileID: 2100000, guid: 18ddccef41639594a91fdd72a3c89064, type: 2}
   gradient: {fileID: 2800000, guid: 6443fb42340ce394a89fdc772cbe0726, type: 3}
-  steps: 120
+  steps: 75
   resolution: {x: 256, y: 512}
   captureResolution: {x: 2310, y: 3860}
-  depth: 5
+  depth: 0.21
   grayscale: 0
-  gradientMultiplier: 2.41
-  gradientThreshold: 6.33
-  frequency: 1.17
-  amplitude: 1.7
-  min: 2.15
-  max: 4.61
-  focus: 12.18
+  gradientMultiplier: 2.9
+  gradientThreshold: 7.34
+  frequency: 0.46
+  amplitude: 2.43
+  min: 0.63
+  max: 1.8
+  focus: 0.85
   target: {fileID: 1395742868}
   source: {fileID: 740638501}
 --- !u!4 &715354082
@@ -565,7 +565,7 @@ Transform:
   m_GameObject: {fileID: 740638500}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.128, z: -1.683}
+  m_LocalPosition: {x: 0, y: 0, z: -0.551}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

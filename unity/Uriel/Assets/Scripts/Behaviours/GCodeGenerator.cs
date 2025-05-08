@@ -243,9 +243,9 @@ public class GCodeGenerator : MonoBehaviour
         for (float i = config.zStart; i < config.zEnd; i+=config.zStep)
         {
             Photon w = config.sky.photons[0];
-            Vector3 s = w.source;
-            s.z = i;
-            w.source = s;
+            Matrix4x4 s = w.transform;
+            s[0,3] = i;
+            w.transform = s;
             config.sky.photons[0] = w;
             GenerateCodeFromTexture();
             yield return new WaitForSeconds(0.1f);

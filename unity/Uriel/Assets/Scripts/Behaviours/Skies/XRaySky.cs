@@ -18,7 +18,7 @@ namespace Uriel.Behaviours
         [SerializeField] private uint steps = 64;
         [SerializeField] private Vector2Int resolution = new(128, 128);
         [SerializeField] private Vector2Int captureResolution = new(2048, 2048);
-        [SerializeField] private uint depth = 5;
+        [SerializeField] private float depth = 5;
         [SerializeField] private bool grayscale;
         [SerializeField] private float gradientMultiplier = 2f;
         [SerializeField] private float gradientThreshold = 0.2f;
@@ -106,7 +106,7 @@ namespace Uriel.Behaviours
             computeShader.SetFloat(ShaderProps.Min, min);
             computeShader.SetFloat(ShaderProps.Frequency, frequency);
             computeShader.SetInt(ShaderProps.Steps, (int)steps);
-            computeShader.SetInt(ShaderProps.Depth, (int)depth);
+            computeShader.SetFloat(ShaderProps.Depth, depth);
             computeShader.SetTexture(kernelIndex, ShaderProps.Gradient, gradient);
             computeShader.SetBool(ShaderProps.Grayscale, grayscale);
             computeShader.SetFloat(ShaderProps.GradientMultiplier, gradientMultiplier);

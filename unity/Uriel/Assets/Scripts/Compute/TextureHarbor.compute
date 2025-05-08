@@ -31,7 +31,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         for (int j = 0; j < _PhotonCount; j++)
         {
             const Photon photon = _PhotonBuffer[j];
-            const float dist = saturate(distance(uv, vertex + normal * photon.depth) * photon.density);
+            const float dist = saturate(distance(uv, vertex) * photon.density);
             value += sin(dist * photon.frequency + photon.phase) * photon.amplitude; 
         }
     }

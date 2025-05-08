@@ -7,15 +7,14 @@ namespace Uriel.Domain
     [System.Serializable]
     public struct Photon
     {
-        public Vector3 source;
-        public Vector2 rotation;
+        public Matrix4x4 transform;
         public uint iterations;
         public Solid type;
         public float frequency;
         public float amplitude;
-        public float density;
         public float phase;
-        public float depth;
+        public float radius;
+        public float density;
     }
 
     public enum Solid

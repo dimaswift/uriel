@@ -34,7 +34,7 @@ Shader "Uriel/UnlitSurface"
             
             sampler2D _Gradient;  
             float _Multiplier;
-            float _PowerThreshold;
+            float _Threshold;
             uint _PhotonCount;
             StructuredBuffer<Photon> _PhotonBuffer; 
             
@@ -49,8 +49,8 @@ Shader "Uriel/UnlitSurface"
             
             fixed4 frag(const v2f id) : SV_Target  
             {
-                const float value = sampleField(id.world_pos, id.world_normal, _PhotonCount, _PhotonBuffer);
-                const float3 finalColor  = tex2D(_Gradient, float2(value * _PowerThreshold, 0)) * _Multiplier;
+                const float value = sampleField(id.world_pos, _PhotonCount, _PhotonBuffer);
+                const float3 finalColor  = tex2D(_Gradient, float2(value * _Threshold, 0)) * _Multiplier;
                 return float4(finalColor, 1);  
             }  
             

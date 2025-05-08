@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: LitSurfaceBuffer
-  m_Shader: {fileID: 4800000, guid: 2385d59435854a868c78f1b863c7039b, type: 3}
+  m_Shader: {fileID: 4800000, guid: b96cbfe5de954bf8bd09956413cf2b52, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -62,7 +62,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Gradient:
-        m_Texture: {fileID: 2800000, guid: e11ffa00b579cfc489886886ef8276f4, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8319c9a98ccfb5448873b5669ffd33e7, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _GradientLUT:
@@ -188,7 +188,7 @@ Material:
     - _Scale: 0.72
     - _Shape: 4
     - _Shell: 34.9
-    - _Shininess: 0
+    - _Shininess: 48.5
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -201,7 +201,7 @@ Material:
     - _StepSize: 0.0435
     - _Steps: 50
     - _Surface: 0
-    - _Threshold: 0.81
+    - _Threshold: 3
     - _ThresholdThin: 0.01
     - _UseLight: 0
     - _WaveAmplitude: 0.0248

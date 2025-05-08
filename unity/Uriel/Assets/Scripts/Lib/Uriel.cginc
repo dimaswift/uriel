@@ -8,15 +8,14 @@
 
 struct Photon 
 {
-    float3 source;
-    float2 rotation;
+    float4x4 transform;
     uint iterations;
     uint type;
     float frequency;
     float amplitude;
-    float density;
     float phase;
-    float depth;
+    float radius;
+    float density;
 };
 
 struct Particle 
@@ -32,30 +31,31 @@ float3x3 createRotationMatrix(float latitudeDegrees, float longitudeDegrees);
 
 float3 rotatePointByLatLong(const float3 p, float latitude_degrees, const float longitude_degrees);
 
-Photon createPhoton(uint type, float3 source, float2 coordinates, uint iterations, float frequency,   
-                float amplitude, float density, float phase, float depth)  
+Photon createPhoton(uint type, float4x4 transform, uint iterations, float frequency,   
+                float amplitude, float density, float phase, float radius)  
 {  
     Photon w;  
-    w.source = source;  
     w.iterations = iterations;  
     w.frequency = frequency;  
-    w.amplitude = amplitude;  
-    w.density = density;  
+    w.amplitude = amplitude;
     w.phase = phase;
+    w.density = density;  
+    w.radius  = radius;
     w.type = type;
-    w.rotation = coordinates;
-    w.depth = depth;
+    w.transform = transform;
     return w;  
 }  
 
-float sampleField(const float3 pos, const float3 normal, int depth, const float3 vertex, const Photon photon, const uint size)
+float sampleField(const float3 pos, const float3 vertex, const Photon photon, const uint size)
 {
-    const float3 rotatedVertex = rotatePointByLatLong(vertex, photon.rotation.x, photon.rotation.y);
-    const float dist = saturate(distance(pos + normal * photon.depth * depth, rotatedVertex + photon.source) * photon.density / PI);
-    return sin(dist * photon.frequency + photon.phase ) * (photon.amplitude + (1.0 / size)); 
+    const float3 offset = float3(photon.transform[0][3], photon.transform[1][3], photon.transform[2][3]);
+    const float3 transformed = mul(vertex, photon.transform).xyz + offset;
+    const float dist = saturate(distance(pos, transformed) * (1.0 / max(1, photon.radius * PI)));
+    return sin(dist * photon.frequency + photon.phase * photon.transform[3][3]) * photon.amplitude * (1.0 / size); 
 }
 
-float sampleField(const float3 pos, const float3 normal, const Photon photon)
+
+float sampleField(const float3 pos, const Photon photon)
 {
     float density = 0.0;
     const uint size = getPlatonicSize(photon.type);
@@ -65,39 +65,51 @@ float sampleField(const float3 pos, const float3 normal, const Photon photon)
         for (uint i = 0; i < size; i++)
         {
             const float3 vertex = getPlatonicVertex(photon.type, i);
-            density += sampleField(pos, normal, j, vertex, photon, size);
+            density += sampleField(pos, vertex * (1 + (j * photon.density)), photon, size);
         }
     }
     return density; 
 }
 
-float sampleField(float3 pos, const float3 normal, uint count, StructuredBuffer<Photon> buffer)
+float sampleField(float3 pos, uint count, StructuredBuffer<Photon> buffer)
 {
     float density = 0.0;
     for (uint i = 0; i < count; i++)
     {
         const Photon photon = buffer[i]; 
-        density += sampleField(pos, normal, photon);
+        density += sampleField(pos, photon);
     }
     return density; 
 }
 
-float rayMarchField(float3 origin, float3 target, uint steps, uint depth, float frequency,
-    float min, float max, float amplitude, uint photonCount, StructuredBuffer<Photon> buffer)
+float rayMarchFieldCycle(float3 origin, float length, uint steps, float depth, float frequency,
+    uint photonCount, StructuredBuffer<Photon> buffer)
 {
-    const float3 dir = target - origin;
-    const float rayLength = length(dir);
-    const float stepSize = rayLength / steps;
-    const float3 rayDir = normalize(dir);
-    float total = 0.0;
-    for (uint i = 0; i < steps; i++)  
-    {  
-        const float t = i * stepSize;  
-        const float3 p_next = origin + (rayDir * t) * frequency / rayLength ;
-        const float v_next = sampleField(p_next, rayDir, photonCount, buffer);
-        total += smoothstep(min, max, v_next) * amplitude;
+    const float step_size = length / steps;
+    const float3 dir = normalize(origin);
+    float total_density = 0.0;
+    for (uint i = 0; i < steps; ++i)
+    {
+        const float3 target = origin + dir * i * step_size * depth;
+        const float density = sampleField(target, photonCount, buffer);
+        total_density += sin(density * frequency * 0.01);
     }
-    return total;
+    return total_density;
+}
+
+float rayMarchField(float3 origin, float3 dir, float length, uint steps, float min, float max,
+    float depth, float frequency, float amplitude,
+    uint photonCount, StructuredBuffer<Photon> buffer)
+{
+    const float step_size = length / steps;
+    float total_density = 0.0;
+    for (uint i = 0; i < steps; ++i)
+    {
+        const float3 target = origin + dir * i * step_size  * depth;
+        const float density = sampleField(target, photonCount, buffer);
+        total_density += sin(smoothstep(min, max, density * frequency)  * amplitude);
+    }
+    return total_density;
 }
 
 float3x3 createRotationMatrix(float latitudeDegrees, float longitudeDegrees)  

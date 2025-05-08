@@ -71,7 +71,7 @@ Shader "Uriel/Shadow"
             
             fixed4 frag(v2f id) : SV_Target  
             {
-                float total = rayMarchField(_Source, id.worldPos, _Steps, _Depth,
+                float total = rayMarchField(_Source, id.worldPos, length(id.worldPos - _Source), _Steps, _Depth,
         _Frequency, _Min, _Max,  _Strength, _PhotonCount, _PhotonBuffer);
                 float3 diffuseColor;
                 if(_Grayscale == 0)
