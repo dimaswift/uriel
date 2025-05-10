@@ -9,7 +9,7 @@ Shader "Uriel/LitDisplacement"
         _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
         _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
         _Shininess("Shininess", Range(0.0, 360.0)) = 1.0
-        _Roughness ("Roughness", Range(0.0, 1.0)) = 0
+        _Depth ("Depth", Range(0, 0.3)) = 0
     }  
     SubShader  
     {  
@@ -41,28 +41,42 @@ Shader "Uriel/LitDisplacement"
                 float3 world_pos : TEXCOORD1;
             };
             
-            float _Roughness;
-            
-            float3 rayMarchAdjustedNormal(float3 pos, float3 normal)
+            float _Depth;
+         
+            float3 sampleDisplacedField(float3 pos, float3 normal, float epsilon)
             {
-                float3 n = normalize(normal);
-                float3 t = normalize(cross(n, float3(0.0, 1.0, 0.0)));
-                float3 b = cross(n, t);
-                float epsilon = 0.0001 * (1.01 - _Roughness);
-                float valueCenter = sampleField(pos);
-                float valueT = sampleField(pos + t * epsilon);
-                float valueB = sampleField(pos + b * epsilon);
-                float3 displacedCenter = pos + n * valueCenter;
-                float3 displacedT = (pos + t * epsilon) + n * valueT;
-                float3 displacedB = (pos + b * epsilon) + n * valueB;
-                float3 displacedNormal = normalize(cross(displacedT - displacedCenter, displacedB - displacedCenter));
-                return displacedNormal;
+                const float density = sampleField(pos);
+                return pos + normal * density * epsilon;
+            }
+                        
+            float3 constructFieldTriangleNormal(float3 center, float3 normal)
+            {
+                const float3 tangent = normalize(cross(normal, float3(0, 1, 0)));
+                const float3 bitangent = cross(normal, tangent);
+                const float eps = 0.0001;
+                const float3 v0_offset = tangent + bitangent;
+                const float3 v0 = center + v0_offset * eps;
+                const float twoPiOver3 = 2.09439510239;
+                const float3 v1_offset = tangent * cos(twoPiOver3) + bitangent * sin(twoPiOver3);
+                const float3 v2_offset = tangent * cos(twoPiOver3 * twoPiOver3) + bitangent * sin(2.0 * twoPiOver3);
+                const float3 v1 = center + v1_offset * eps;
+                const float3 v2 = center + v2_offset * eps;
+                const float3 p0 = sampleDisplacedField(v0, normal, _Depth);
+                const float3 p1 = sampleDisplacedField(v1, normal, _Depth);
+                const float3 p2 = sampleDisplacedField(v2, normal, _Depth);
+
+                const float3 triNormal = normalize(cross(p1 - p0, p2 - p0));
+
+                return triNormal;
             }
             
             v2f vert(const appdata_t input)  
             {  
                 v2f o;
                 float4 v = input.vertex;
+
+                
+                
                 o.world_pos = mul(unity_ObjectToWorld, v);
                 o.vertex = UnityObjectToClipPos(v);
                 return o;   
@@ -71,7 +85,7 @@ Shader "Uriel/LitDisplacement"
             fixed4 frag(const v2f id) : SV_Target  
             {
                 float3 color = sampleGradient(sampleField(id.world_pos));
-                float3 n = rayMarchAdjustedNormal(id.world_pos, id.vertex);
+                float3 n = constructFieldTriangleNormal(id.world_pos, id.world_pos);
                 color = applyCustomLighting(color, id.world_pos, n);
                 return float4(color, 1);  
             }  
