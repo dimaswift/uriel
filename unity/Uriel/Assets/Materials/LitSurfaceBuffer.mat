@@ -62,7 +62,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Gradient:
-        m_Texture: {fileID: 2800000, guid: 8319c9a98ccfb5448873b5669ffd33e7, type: 3}
+        m_Texture: {fileID: 2800000, guid: 6443fb42340ce394a89fdc772cbe0726, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _GradientLUT:
@@ -115,7 +115,7 @@ Material:
     - _Alpha: 1
     - _AlphaClip: 0
     - _AlphaToMask: 0
-    - _Amplitude: 0.34
+    - _Amplitude: 0.334
     - _AmplitudeInversed: -1.3
     - _AmplitudeSquared: -0.38
     - _Blend: 0
@@ -128,7 +128,7 @@ Material:
     - _Cull: 2
     - _Cutoff: 0.5
     - _Density: 0.5
-    - _Depth: 0.079
+    - _Depth: 0.11
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _Displacement: 0.04
@@ -138,7 +138,7 @@ Material:
     - _End: 50
     - _EnvironmentReflections: 1
     - _Falloff: 0
-    - _Frequency: 0.02
+    - _Frequency: -48.3
     - _Frequency2: 348.78
     - _FrequencyInversed: 4.89
     - _FrequencySquared: -2.48
@@ -149,19 +149,19 @@ Material:
     - _GradientThreshold: 1
     - _Harmonics: 1
     - _Iterations: 0
-    - _Max: -1.56
+    - _Max: -1.58
     - _MaxColor: 0.086
     - _Metallic: 0
-    - _Min: 1.4
+    - _Min: 0.82
     - _MinColor: 0
     - _Mode: 0
-    - _Multiplier: 3.84
+    - _Multiplier: 2.61
     - _NormalDelta: 0.0128
     - _NormalStrength: 1.267
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _Period: 0
-    - _Phase: -1.1
+    - _Phase: 0.021
     - _Phase_1: 20.2
     - _Phase_2: 9.28
     - _Phase_3: 7.27
@@ -183,25 +183,26 @@ Material:
     - _Res: 64
     - _Resolution: 8
     - _Ripples: 1
+    - _Roughness: 0.904
     - _SampleDelta: 0.01
     - _Saturation: 5.89
-    - _Scale: 0.72
+    - _Scale: 0.41
     - _Shape: 4
     - _Shell: 34.9
-    - _Shininess: 48.5
+    - _Shininess: 34.6
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _SpecularMultiplier: 10
-    - _SpecularThreshold: 5.22
-    - _Speed: 0.392
+    - _SpecularMultiplier: 1.68
+    - _SpecularThreshold: 0.65
+    - _Speed: 1.97
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Start: 50
     - _StepSize: 0.0435
-    - _Steps: 50
+    - _Steps: 1
     - _Surface: 0
-    - _Threshold: 3
+    - _Threshold: 2.35
     - _ThresholdThin: 0.01
     - _UseLight: 0
     - _WaveAmplitude: 0.0248
@@ -232,7 +233,7 @@ Material:
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Light: {r: 1, g: 1, b: 1, a: 1}
     - _LightColor: {r: 1, g: 1, b: 1, a: 1}
-    - _LightSource: {r: 0.03, g: 15.45, b: -1.14, a: 1}
+    - _LightSource: {r: 2.765, g: 1.251, b: -0.609, a: 0}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _Source: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}

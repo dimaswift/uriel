@@ -9,9 +9,6 @@ float3 _Offset;
 int3 _Steps;
 RWTexture2D<float4> _Texture;
 
-uint _PhotonCount;
-StructuredBuffer<Photon> _PhotonBuffer;
-
 float _PowerThreshold;
 float _PowerMultiplier;
 float _SpeedThreshold;

@@ -52,10 +52,7 @@ Shader "Uriel/Voxel"
             float _SpecularMultiplier;
             float _Shininess;
             float _CutoffExtra;
-            
-            uint _PhotonCount;
-            StructuredBuffer<Photon> _PhotonBuffer;
-            
+
             v2f vert(appdata_t i, uint instanceID: SV_InstanceID)  
             {  
                 v2f o;
@@ -73,7 +70,7 @@ Shader "Uriel/Voxel"
                     1,1,1,1);
                 const float4 pos = mul(m, i.vertex);  
                 o.vertex = UnityObjectToClipPos(pos);
-                const float3 finalColor = hsv2rgb(sampleField(pos * _GradientThreshold, _PhotonCount, _PhotonBuffer), 1.0, 1.0);  
+                const float3 finalColor = hsv2rgb(sampleField(pos * _GradientThreshold), 1.0, 1.0);  
                 o.world_pos = pos;
                 o.color = finalColor;
                 return o;  

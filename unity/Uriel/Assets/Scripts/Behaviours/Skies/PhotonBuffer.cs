@@ -1,9 +1,9 @@
-﻿using UnityEditor;
-
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
+using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 
+using System;
 using UnityEngine;
 using Uriel.Domain;
 
@@ -12,22 +12,18 @@ namespace Uriel.Behaviours
     [ExecuteInEditMode]
     public class PhotonBuffer : MonoBehaviour
     {
-        [SerializeField] private bool useTransform;
-        [SerializeField] private Sky sky;
-
-        public bool UseTransform
-        {
-            get => useTransform;
-            set => useTransform = value;
-        }
+        public Lumen Lumen => lumen;
         
+        [SerializeField] private Transform source;
+        [SerializeField] private Lumen lumen;
+
 #if UNITY_EDITOR
         // Register for callbacks when the script is enabled
         private void OnEnable()
         {
             // Subscribe to domain reload events
             AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
-
+            AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
             // Subscribe to scene reload/change events
             EditorApplication.playModeStateChanged += PlayModeStateChanged;
             EditorSceneManager.sceneOpened += SceneOpened;
@@ -35,22 +31,39 @@ namespace Uriel.Behaviours
             EditorSceneManager.sceneClosed += SceneClosed;
         }
 
+        private void OnValidate()
+        {
+            if(lumen == null) return;
+            var rend = GetComponent<MeshRenderer>();
+            if (rend)
+            {
+                lumen.EnsureBufferExists();
+                LinkMaterial(rend.sharedMaterial);
+            }
+        }
+
         private void OnDisable()
         {
             // Unsubscribe to prevent memory leaks
             AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
-
+            AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
+            
             EditorApplication.playModeStateChanged -= PlayModeStateChanged;
             EditorSceneManager.sceneOpened -= SceneOpened;
             EditorSceneManager.sceneSaved -= SceneSaved;
             EditorSceneManager.sceneClosed -= SceneClosed;
 
-            DisposeBuffer();
+            DisposeBuffer(); 
         }
 
         private void OnBeforeAssemblyReload()
         {
-            DisposeBuffer();
+            DisposeBuffer(); 
+        }
+
+        private void OnAfterAssemblyReload()
+        {
+            if(lumen) lumen.EnsureBufferExists();
         }
 
         private void PlayModeStateChanged(PlayModeStateChange state)
@@ -80,44 +93,42 @@ namespace Uriel.Behaviours
 
         private void DisposeBuffer()
         {
-            if (sky != null) sky.DisposeBuffer();
+            if (lumen != null) lumen.DisposeBuffer();
         }
-        
-        public PhotonBuffer Init(Sky sky)
-        {
-            if (sky == null)
-                return this;
-            this.sky = sky;
-            sky.EnsureBufferExists();
-            return this;
-        }
-        
+
         public PhotonBuffer LinkComputeKernel(ComputeShader shader, int id = 0)
         {
-            if (sky == null) return this;
-            sky.LinkComputeKernel(shader, id);
+            if (lumen == null) return this;
+            lumen.LinkComputeKernel(shader, id);
             return this;
         }
 
         public PhotonBuffer LinkMaterial(Material mat)
         {
-            if (sky == null) return this;
-            sky.LinkMaterial(mat);
+            if (lumen == null) return this;
+            lumen.LinkMaterial(mat);
             return this;
         }
 
         private void Update()
         {
-            if (sky == null)
+            if (lumen == null)
             {
                 return;
             }
 
-            if (useTransform)
+            if (source)
             {
-                sky.UpdateTransform(transform.localToWorldMatrix);
+                lumen.UpdateTransform(source.localToWorldMatrix);
             }
-            sky.Update();
+            
+            #if UNITY_EDITOR
+            
+            OnValidate();
+            
+            #endif
+            
+            lumen.Update();
         }
     }
 }

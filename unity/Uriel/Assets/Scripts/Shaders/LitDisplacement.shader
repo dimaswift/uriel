@@ -2,14 +2,14 @@ Shader "Uriel/LitDisplacement"
 {  
     Properties  
     {  
-        _LightSource ("LightSource", Vector) = (0,1,1)
         _Gradient ("Gradient", 2D) = "white" {}
         _Threshold ("Threshold", Range(0.0, 10.0)) = 0.5
         _Multiplier ("Multiplier", Range(0.0, 10.0)) = 1
-        _Light ("Light", Color) = (1,1,1,1)
+        _LightColor ("Light Color", Color) = (1,1,1,1)
         _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
         _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
         _Shininess("Shininess", Range(0.0, 360.0)) = 1.0
+        _Roughness ("Roughness", Range(0.0, 1.0)) = 0
     }  
     SubShader  
     {  
@@ -21,11 +21,12 @@ Shader "Uriel/LitDisplacement"
             CGPROGRAM  
             #pragma vertex vert  
             #pragma fragment frag
-          
+
+            #include "Assets/Scripts/Lib/CustomLight.cginc"
             #include "AutoLight.cginc"  
             #include "UnityCG.cginc"
+            #include "Assets/Scripts/Lib/Gradient.cginc"
             #include "Assets/Scripts/Lib/Uriel.cginc"
-           
             
             struct appdata_t  
             {  
@@ -37,48 +38,42 @@ Shader "Uriel/LitDisplacement"
             struct v2f  
             {  
                 float4 vertex : SV_POSITION;  
-                float3 world_normal : TEXCOORD0;
                 float3 world_pos : TEXCOORD1;
             };
             
-            float3 _LightSource;
-            sampler2D _Gradient;  
-            float _Multiplier;
-            float _Threshold;
-            float4 _Light;
-            float _SpecularThreshold;
-            float _SpecularMultiplier;
-            float _Shininess;
-            uint _PhotonCount;
-            StructuredBuffer<Photon> _PhotonBuffer;
- 
+            float _Roughness;
+            
+            float3 rayMarchAdjustedNormal(float3 pos, float3 normal)
+            {
+                float3 n = normalize(normal);
+                float3 t = normalize(cross(n, float3(0.0, 1.0, 0.0)));
+                float3 b = cross(n, t);
+                float epsilon = 0.0001 * (1.01 - _Roughness);
+                float valueCenter = sampleField(pos);
+                float valueT = sampleField(pos + t * epsilon);
+                float valueB = sampleField(pos + b * epsilon);
+                float3 displacedCenter = pos + n * valueCenter;
+                float3 displacedT = (pos + t * epsilon) + n * valueT;
+                float3 displacedB = (pos + b * epsilon) + n * valueB;
+                float3 displacedNormal = normalize(cross(displacedT - displacedCenter, displacedB - displacedCenter));
+                return displacedNormal;
+            }
+            
             v2f vert(const appdata_t input)  
             {  
                 v2f o;
                 float4 v = input.vertex;
-                o.world_normal = UnityObjectToWorldNormal(input.normal);
                 o.world_pos = mul(unity_ObjectToWorld, v);
-                o.vertex = UnityObjectToClipPos(v); 
+                o.vertex = UnityObjectToClipPos(v);
                 return o;   
             }
             
             fixed4 frag(const v2f id) : SV_Target  
             {
-                
-                float value = sampleField(id.world_pos, _PhotonCount, _PhotonBuffer);
-                const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;
-                const float3 normal_dir = normalize(id.world_normal);
-                const float3 ambient = ShadeSH9(float4(normal_dir, 1));  
-                const float3 light_dir = normalize(_LightSource);
-                const float3 view_dir = normalize(UnityWorldSpaceViewDir(id.world_pos));
-                const float3 halfway_dir = normalize(light_dir + view_dir);  
-                const float l = saturate(dot(normal_dir, light_dir));
-                const float3 diffuse_lighting = l  * _Light.rgb;
-                const float h = saturate(dot(normal_dir, halfway_dir));  
-                const float specular_value = saturate(value * _SpecularThreshold) * _SpecularMultiplier;  
-                const float3 specular_lighting = pow(h, _Shininess) * specular_value * _Light.rgb;  
-                const float3 final_color = (diffuse_lighting + ambient) * diffuse_color + specular_lighting;  
-                return float4(final_color, 1);  
+                float3 color = sampleGradient(sampleField(id.world_pos));
+                float3 n = rayMarchAdjustedNormal(id.world_pos, id.vertex);
+                color = applyCustomLighting(color, id.world_pos, n);
+                return float4(color, 1);  
             }  
             
             ENDCG  

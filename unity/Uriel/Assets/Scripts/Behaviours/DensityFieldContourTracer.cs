@@ -10,7 +10,7 @@ namespace Uriel.Behaviours
     public class DensityFieldContourTracer : MonoBehaviour
     {
         [SerializeField] private Vector3Int steps = new Vector3Int(1, 1, 1);
-        [SerializeField] private Sky sky;
+        [SerializeField] private Lumen lumen;
         [Header("Density Field Settings")]
         [SerializeField] private float threshold = 0.5f;
         [SerializeField] private Vector3 boundMin = new Vector3(-10f, 0f, -10f);
@@ -49,9 +49,9 @@ namespace Uriel.Behaviours
                 {
                     for (int z = -steps.z; z <= steps.z; z++)
                     {
-                        for (int i = 0; i < sky.photons.Count; i++)
+                        for (int i = 0; i < lumen.photons.Count; i++)
                         {
-                            Photon photon = sky.photons[i];
+                            Photon photon = lumen.photons[i];
                             Vector3 offset = new Vector3(x, y, z) * photon.density;
                             float dist = Mathf.Clamp01(Vector3.Distance(position * photon.density, offset)) * photon.phase;
 

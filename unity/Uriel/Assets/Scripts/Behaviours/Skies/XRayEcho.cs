@@ -8,9 +8,10 @@ using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
-    public class XRaySky : MonoBehaviour
+    [RequireComponent(typeof(PhotonBuffer))]
+    public class XRayEcho : MonoBehaviour
     {
-        [SerializeField] private Sky sky;
+        [SerializeField] private Lumen lumen;
         [SerializeField] private FilterMode filterMode = FilterMode.Bilinear;
         [SerializeField] private ComputeShader computeShader;
         [SerializeField] private Material targetMaterial;
@@ -31,7 +32,7 @@ namespace Uriel.Behaviours
         [SerializeField] private Transform target;
         [SerializeField] private Transform source;
 
-        private PhotonBuffer photonBuffer;
+       
         
         private RenderTexture texture;
         private int kernelIndex = 0;
@@ -41,9 +42,7 @@ namespace Uriel.Behaviours
 
         private void Start()
         {
-            photonBuffer = gameObject.AddComponent<PhotonBuffer>();
-            photonBuffer.Init(sky);
-            photonBuffer.LinkComputeKernel(computeShader);
+            gameObject.GetComponent<PhotonBuffer>().LinkComputeKernel(computeShader);
         }
 
 

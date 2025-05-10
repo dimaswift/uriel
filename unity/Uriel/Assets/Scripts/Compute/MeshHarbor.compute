@@ -5,8 +5,7 @@
 StructuredBuffer<float3> _InputVertexBuffer;
 RWStructuredBuffer<float3> _OutputVertexBuffer;
 RWStructuredBuffer<float3> _NormalBuffer;
-StructuredBuffer<Photon> _PhotonBuffer;
-int _PhotonCount;
+
 float _Scale;
 float _Frequency;
 float _Amplitude;
@@ -29,7 +28,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     for (int i = 0; i < _Steps; ++i)
     {
         const float3 target = vertex + dir * i * step_size  * _Scale;
-        const float density = sampleField(target, _PhotonCount, _PhotonBuffer);
+        const float density = sampleField(target);
         value += sin(density * (_Frequency + (_Time * _Speed + _Phase))) * _Amplitude;
     }
     _OutputVertexBuffer[id.x] = vertex + float3(normal) * sin(value);

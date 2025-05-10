@@ -1,10 +1,11 @@
-#ifndef URIEL
-#define URIEL
+#ifndef URIEL_INCLUDED
+#define URIEL_INCLUDED
 
 #include "PlatonicSolids.cginc"
 
 #define PI 3.14159265359
 #define PHI 1.618033988749895
+
 
 struct Photon 
 {
@@ -26,6 +27,9 @@ struct Particle
     float size;
     float mass;
 };
+
+uint _PhotonCount;
+StructuredBuffer<Photon> _PhotonBuffer;
 
 float3x3 createRotationMatrix(float latitudeDegrees, float longitudeDegrees);
 
@@ -71,19 +75,18 @@ float sampleField(const float3 pos, const Photon photon)
     return density; 
 }
 
-float sampleField(float3 pos, uint count, StructuredBuffer<Photon> buffer)
+float sampleField(float3 pos)
 {
     float density = 0.0;
-    for (uint i = 0; i < count; i++)
+    for (uint i = 0; i < _PhotonCount; i++)
     {
-        const Photon photon = buffer[i]; 
+        const Photon photon = _PhotonBuffer[i]; 
         density += sampleField(pos, photon);
     }
     return density; 
 }
 
-float rayMarchFieldCycle(float3 origin, float length, uint steps, float depth, float frequency,
-    uint photonCount, StructuredBuffer<Photon> buffer)
+float rayMarchFieldCycle(float3 origin, float length, uint steps, float depth, float frequency)
 {
     const float step_size = length / steps;
     const float3 dir = normalize(origin);
@@ -91,22 +94,21 @@ float rayMarchFieldCycle(float3 origin, float length, uint steps, float depth, f
     for (uint i = 0; i < steps; ++i)
     {
         const float3 target = origin + dir * i * step_size * depth;
-        const float density = sampleField(target, photonCount, buffer);
+        const float density = sampleField(target);
         total_density += sin(density * frequency * 0.01);
     }
     return total_density;
 }
 
 float rayMarchField(float3 origin, float3 dir, float length, uint steps, float min, float max,
-    float depth, float frequency, float amplitude,
-    uint photonCount, StructuredBuffer<Photon> buffer)
+    float depth, float frequency, float amplitude)
 {
     const float step_size = length / steps;
     float total_density = 0.0;
     for (uint i = 0; i < steps; ++i)
     {
         const float3 target = origin + dir * i * step_size  * depth;
-        const float density = sampleField(target, photonCount, buffer);
+        const float density = sampleField(target);
         total_density += sin(smoothstep(min, max, density * frequency)  * amplitude);
     }
     return total_density;

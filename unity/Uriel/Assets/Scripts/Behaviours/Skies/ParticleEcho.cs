@@ -3,7 +3,8 @@ using Uriel.Domain;
 
 namespace Uriel.Behaviours
 {
-    public class ParticleSky : MonoBehaviour
+    [RequireComponent(typeof(PhotonBuffer), typeof(ParticleRenderer))]
+    public class ParticleEcho : MonoBehaviour
     {
         [SerializeField] private float scale = 1;
         [SerializeField] private float radius = 5;
@@ -15,7 +16,7 @@ namespace Uriel.Behaviours
         [SerializeField] private int capacity = 64;
         [SerializeField] private Solid type;
         [SerializeField] private float particleSize = 1f;
-        [SerializeField] private Sky sky;
+        [SerializeField] private Lumen lumen;
         [SerializeField] private ComputeShader compute;
         [SerializeField] private Matrix4x4 reference;
         private PhotonBuffer photonBuffer;
@@ -31,16 +32,14 @@ namespace Uriel.Behaviours
             initKernel = compute.FindKernel("Init");
             processKernel = compute.FindKernel("Process");
             
-            photonBuffer = gameObject.AddComponent<PhotonBuffer>();
-            particleRenderer = gameObject.AddComponent<ParticleRenderer>();
+            photonBuffer = gameObject.GetComponent<PhotonBuffer>();
+            particleRenderer = gameObject.GetComponent<ParticleRenderer>();
 
             particleRenderer.Init(mesh, mat, CubedCapacity)
                 .LinkComputeKernel(compute, initKernel)
                 .LinkComputeKernel(compute, processKernel);
             
-            photonBuffer.Init(sky)
-                .LinkComputeKernel(compute, initKernel)
-                .LinkComputeKernel(compute, processKernel);
+            photonBuffer.LinkComputeKernel(compute, initKernel).LinkComputeKernel(compute, processKernel);
             
             particleRenderer.Randomize(radius, particleSize);
         }

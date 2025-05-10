@@ -28,9 +28,6 @@ RWTexture3D<float4> _ParticleVelocities;
 
 RWTexture2D<float4> _Screen;
 
-RWStructuredBuffer<Photon> _PhotonBuffer;
-uint _PhotonCount;
-
 float3 _Threshold;
 float3 _Multiplier;
 

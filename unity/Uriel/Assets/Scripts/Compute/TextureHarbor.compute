@@ -3,11 +3,9 @@
 #include "Assets/Scripts/Lib/Uriel.cginc"
 
 RWTexture2D<float4> _Texture;
-StructuredBuffer<Photon> _PhotonBuffer;
 StructuredBuffer<float3> _VertexBuffer;
 StructuredBuffer<float3> _NormalBuffer;
 int _VertexCount;
-int _PhotonCount;
 int _Resolution;
 float _Amplitude;
 float _Scale;

@@ -17,11 +17,11 @@ Shader "Uriel/UnlitSurface"
             #pragma fragment frag
             #include "UnityCG.cginc"
             #include "Assets/Scripts/Lib/Uriel.cginc"
-       
+            #include "Assets/Scripts/Lib/Gradient.cginc"
+            
             struct appdata_t  
             {  
                 float4 vertex : POSITION;
-                float3 normal : NORMAL;  
                 float4 color : COLOR;
             };  
 
@@ -29,28 +29,21 @@ Shader "Uriel/UnlitSurface"
             {
                 float4 vertex : SV_POSITION;  
                 float3 world_pos : TEXCOORD0;
-                float3 world_normal : TEXCOORD1;
             };  
             
-            sampler2D _Gradient;  
-            float _Multiplier;
-            float _Threshold;
-            uint _PhotonCount;
-            StructuredBuffer<Photon> _PhotonBuffer; 
-            
+
             v2f vert(const appdata_t input)  
             {  
                 v2f o;
                 o.vertex = UnityObjectToClipPos(input.vertex);
                 o.world_pos = mul(unity_ObjectToWorld, input.vertex);
-                o.world_normal = UnityObjectToWorldNormal(input.normal);
                 return o;   
             }
             
             fixed4 frag(const v2f id) : SV_Target  
             {
-                const float value = sampleField(id.world_pos, _PhotonCount, _PhotonBuffer);
-                const float3 finalColor  = tex2D(_Gradient, float2(value * _Threshold, 0)) * _Multiplier;
+                const float value = sampleField(id.world_pos);
+                const float3 finalColor = sampleGradient(value);
                 return float4(finalColor, 1);  
             }  
             

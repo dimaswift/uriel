@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace Uriel.Domain
 {
-    [CreateAssetMenu(menuName = "Uriel/Sky")]
-    public class Sky : ScriptableObject
+    [CreateAssetMenu(menuName = "Uriel/Lumen")]
+    public class Lumen : ScriptableObject
     {
         public List<Photon> photons = new();
 

@@ -14,7 +14,7 @@ namespace Uriel.Behaviours
         [SerializeField] private float amplitude = 1.0f;
         [SerializeField] private Mesh mesh;
         [SerializeField] private ComputeShader compute;
-        [SerializeField] private Sky sky;
+        [SerializeField] private Lumen lumen;
         [SerializeField] private int resolution = 128;
         [SerializeField] private MeshRenderer side;
 
@@ -29,12 +29,12 @@ namespace Uriel.Behaviours
 
             vertexBuffer = new ComputeBuffer(vertices.Length, Marshal.SizeOf(typeof(Vector3)));
             normalBuffer = new ComputeBuffer(normals.Length, Marshal.SizeOf(typeof(Vector3)));
-            photonBuffer = new ComputeBuffer(sky.photons.Count, Marshal.SizeOf(typeof(Photon)));
+            photonBuffer = new ComputeBuffer(lumen.photons.Count, Marshal.SizeOf(typeof(Photon)));
             vertexBuffer.SetData(vertices);
             normalBuffer.SetData(normals);
-            photonBuffer.SetData(sky.photons);
+            photonBuffer.SetData(lumen.photons);
 
-            compute.SetInt(ShaderProps.PhotonCount, sky.photons.Count);
+            compute.SetInt(ShaderProps.PhotonCount, lumen.photons.Count);
             compute.SetBuffer(0, ShaderProps.PhotonBuffer, photonBuffer);
             compute.SetBuffer(0, "_VertexBuffer", vertexBuffer);
             compute.SetBuffer(0, "_NormalBuffer", normalBuffer);
@@ -59,7 +59,7 @@ namespace Uriel.Behaviours
 
         private void Update()
         {
-            photonBuffer.SetData(sky.photons);
+            photonBuffer.SetData(lumen.photons);
             compute.SetVector("_Offset", side.transform.position);
             compute.SetFloat(ShaderProps.Scale, scale);
             compute.SetFloat(ShaderProps.Amplitude, amplitude);

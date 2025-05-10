@@ -3,7 +3,7 @@ using Uriel.Domain;
 
 namespace Uriel.Behaviours
 {
-    public class VoxelSky : MonoBehaviour
+    public class VoxelEcho : MonoBehaviour
     {
         [SerializeField] private ComputeShader compute;
         [SerializeField] private Material material;

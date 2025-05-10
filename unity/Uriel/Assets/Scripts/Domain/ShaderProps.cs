@@ -57,6 +57,8 @@ namespace Uriel.Domain
         public static readonly int Repulsion = Shader.PropertyToID("_Repulsion");
         public static readonly int CurrentDimension = Shader.PropertyToID("_CurrentDimension");
         public static readonly int Dimensions = Shader.PropertyToID("_Dimensions");
+        public static readonly int LightSource = Shader.PropertyToID("_LightSource");
+        
     }
 }
 

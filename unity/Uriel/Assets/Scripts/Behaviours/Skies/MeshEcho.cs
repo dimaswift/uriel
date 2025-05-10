@@ -6,12 +6,12 @@ using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
-    public class MeshSky : MonoBehaviour
+    [RequireComponent(typeof(PhotonBuffer))]
+    public class MeshEcho : MonoBehaviour
     {
         [SerializeField] private string saveDirectory;
         [SerializeField] private bool calculateNormals;
         [SerializeField] private MeshRenderer target;
-        [SerializeField] private Sky sky;
         [SerializeField] private ComputeShader compute;
   
         [SerializeField] private float frequency = 1;
@@ -40,8 +40,7 @@ namespace Uriel.Behaviours
         {
             currentMesh = target.GetComponent<MeshFilter>().mesh;
             mat = target.material;
-            gameObject.AddComponent<PhotonBuffer>()
-                .Init(sky)
+            gameObject.GetComponent<PhotonBuffer>()
                 .LinkMaterial(mat)
                 .LinkComputeKernel(compute);
             GenerateBuffers();

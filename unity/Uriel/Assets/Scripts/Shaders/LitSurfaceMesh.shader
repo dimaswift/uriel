@@ -2,14 +2,22 @@ Shader "Uriel/LitSurfaceMesh"
 {  
     Properties  
     {  
-        _LightSource ("LightSource", Vector) = (0,1,1)
         _Gradient ("Gradient", 2D) = "white" {}
         _Threshold ("Threshold", Range(0.0, 10.0)) = 0.5
         _Multiplier ("Multiplier", Range(0.0, 10.0)) = 1
-        _Light ("Light", Color) = (1,1,1,1)
+        
+        _LightSource ("LightSource", Vector) = (0,1,1)
+        _LightColor ("Light Color", Color) = (1,1,1,1)
         _SpecularThreshold("Specular Threshold", Range(0.0, 5.0)) = 0.25
         _SpecularMultiplier("Specular Multiplier", Range(0.0, 5.0)) = 0.5
         _Shininess("Shininess", Range(0.0, 500.0)) = 1.0
+        
+        _Depth("Depth", Range(-3.14, 3.14)) = 1.0
+        _Steps("Steps", Range(1.0, 100.0)) = 1.0
+        _Min("Min", Range(-3.0, 3.0)) = 1.0
+        _Max("Max", Range(-3.0, 3.0)) = 1.0
+        _Frequency("Frequency", Range(0, 0.5)) = 0.5
+        _Amplitude("Amplitude", Range(0, 0.5)) = 0.5
     }  
     SubShader  
     {  
@@ -24,6 +32,8 @@ Shader "Uriel/LitSurfaceMesh"
           
             #include "AutoLight.cginc"  
             #include "UnityCG.cginc"
+            #include "Assets/Scripts/Lib/CustomLight.cginc"
+            #include "Assets/Scripts/Lib/Gradient.cginc"
             #include "Assets/Scripts/Lib/Uriel.cginc"
             
             struct appdata_t  
@@ -40,17 +50,15 @@ Shader "Uriel/LitSurfaceMesh"
                 float3 world_pos : TEXCOORD1;
             };
             
-            float3 _LightSource;
-            sampler2D _Gradient;  
-            float _Multiplier;
-            float _Threshold;
-            float4 _Light;
-            float _SpecularThreshold;
-            float _SpecularMultiplier;
-            float _Shininess;
             int _VertexCount;
-            uint _PhotonCount;
-            StructuredBuffer<Photon> _PhotonBuffer;
+
+            float _Depth;
+            float _Min;
+            float _Max;
+            int _Steps;
+            float _Frequency;
+            float _Amplitude;
+
             StructuredBuffer<float3> _VertexBuffer;
             StructuredBuffer<float3> _NormalBuffer;
             
@@ -65,28 +73,12 @@ Shader "Uriel/LitSurfaceMesh"
             
             fixed4 frag(const v2f id) : SV_Target  
             {
-                float value = 0.0;
-                for (int i = 0; i < _PhotonCount; i++)
-                { 
-                    const Photon photon = _PhotonBuffer[i];
-                    for (int k = 0; k < _VertexCount; k++)
-                    { 
-                        value += sampleField(id.world_pos, _VertexBuffer[k], photon, _VertexCount);
-                    }
-                }
-                const float3 diffuse_color = tex2D(_Gradient, float2(value * (_Threshold), 0)) * _Multiplier;
-                const float3 normal_dir = normalize(id.world_normal);
-                const float3 ambient = ShadeSH9(float4(normal_dir, 1));  
-                const float3 light_dir = normalize(_LightSource);
-                const float3 view_dir = normalize(UnityWorldSpaceViewDir(id.world_pos));
-                const float3 halfway_dir = normalize(light_dir + view_dir);  
-                const float l = saturate(dot(normal_dir, light_dir));
-                const float3 diffuse_lighting = l  * _Light.rgb;
-                const float h = saturate(dot(normal_dir, halfway_dir));  
-                const float specular_value = _SpecularThreshold * _SpecularMultiplier;  
-                const float3 specular_lighting = pow(h, _Shininess) * specular_value * _Light.rgb;  
-                const float3 final_color = (diffuse_lighting + ambient) * diffuse_color + specular_lighting;  
-                return float4(final_color, 1);  
+                const float3 origin =  id.world_pos;
+                const float ray_length = sqrt(length(origin));
+                const float value = rayMarchField(origin, normalize(origin), ray_length, _Steps, _Min, _Max, _Depth,
+                    _Frequency, _Amplitude);
+                const float3 diffuse_color = applyCustomLighting(sampleGradient(value), id.world_normal, id.world_normal);
+                return float4(diffuse_color, 1);  
             }  
             
             ENDCG  

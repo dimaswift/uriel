@@ -9,6 +9,7 @@ using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
+    [RequireComponent(typeof(PhotonBuffer))]
     public class Painter : MonoBehaviour
     {
         [SerializeField] private int dimensions = 5;
@@ -16,7 +17,7 @@ namespace Uriel.Behaviours
         [SerializeField] [Range(1, 32)] private uint paintRate = 1;
         [SerializeField] [Range(1, 32)] private uint scanRadius = 1;
         [SerializeField] private int particlesCount = 32;
-        [SerializeField] private Sky sky;
+        [SerializeField] private Lumen lumen;
         [SerializeField] private ComputeShader compute;
         [SerializeField] private uint resolution = 128;
         [SerializeField] private Vector3 threshold;
@@ -58,7 +59,7 @@ namespace Uriel.Behaviours
             processBrushKernel = compute.FindKernel("ProcessBrush");
             canvasFadeKernel = compute.FindKernel("FadeCanvas");
             
-            gameObject.AddComponent<PhotonBuffer>().Init(sky).LinkComputeKernel(compute);
+            gameObject.GetComponent<PhotonBuffer>().LinkComputeKernel(compute);
             
        
             canvas = CreateTexture();

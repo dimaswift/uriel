@@ -1,7 +1,13 @@
-Shader "Uriel/SurfaceGradient"  
+Shader "Uriel/LitSurfaceGradient"  
 {  
     Properties  
     {  
+        _LightSource ("LightSource", Vector) = (0,1,1)
+        _LightColor ("Light Color", Color) = (1,1,1,1)
+        _SpecularThreshold("Specular Threshold", Range(0.0, 5.0)) = 0.25
+        _SpecularMultiplier("Specular Multiplier", Range(0.0, 5.0)) = 0.5
+        _Shininess("Shininess", Range(0.0, 500.0)) = 1.0
+        
         _Gradient ("Gradient", 2D) = "white" {}
         _Threshold ("Threshold", Range(0.0, 2.0)) = 0.5
         _Multiplier ("Multiplier", Range(-3.14, 3.14)) = 1
@@ -11,7 +17,6 @@ Shader "Uriel/SurfaceGradient"
         _Max("Max", Range(-3.0, 3.0)) = 1.0
         _Frequency("Frequency", Range(0, 0.5)) = 0.5
         _Amplitude("Amplitude", Range(0, 0.5)) = 0.5
-        
     }  
     SubShader  
     {  
@@ -24,9 +29,10 @@ Shader "Uriel/SurfaceGradient"
             #pragma fragment frag
 
             #include "UnityCG.cginc"
-            #include "Assets/Scripts/Lib/Gradient.cginc"
             #include "Assets/Scripts/Lib/Uriel.cginc"
-           
+            #include "Assets/Scripts/Lib/CustomLight.cginc"
+            #include "Assets/Scripts/Lib/Gradient.cginc"
+            
             struct appdata_t  
             {  
                 float4 vertex : POSITION;
@@ -38,7 +44,7 @@ Shader "Uriel/SurfaceGradient"
             {  
                 float4 vertex : SV_POSITION;  
                 float3 world_normal : TEXCOORD0;
-                float3 world_pos : TEXCOORD1;
+                float3 world_pos : TEXCOORD1; 
             };
             
             float _Depth;
@@ -47,9 +53,9 @@ Shader "Uriel/SurfaceGradient"
             int _Steps;
             float _Frequency;
             float _Amplitude;
- 
-            v2f vert(const appdata_t input)   
-            {   
+            
+            v2f vert(const appdata_t input)  
+            {  
                 v2f o;
                 o.world_normal = UnityObjectToWorldNormal(input.normal);
                 o.world_pos = mul(unity_ObjectToWorld, input.vertex);
@@ -63,7 +69,7 @@ Shader "Uriel/SurfaceGradient"
                 const float ray_length = sqrt(length(origin));
                 const float value = rayMarchField(origin, normalize(origin), ray_length, _Steps, _Min, _Max, _Depth,
                     _Frequency, _Amplitude);
-                const float3 diffuse_color = sampleGradient(value);
+                const float3 diffuse_color = applyCustomLighting(sampleGradient(value), id.world_normal, id.world_normal);
                 return float4(diffuse_color, 1);  
             }  
             

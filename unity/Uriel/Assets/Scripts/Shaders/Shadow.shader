@@ -54,9 +54,7 @@ Shader "Uriel/Shadow"
             float _Focus;
             
             float3 _Source;
-            uint _PhotonCount;
-            StructuredBuffer<Photon> _PhotonBuffer; 
-            
+
             v2f vert(appdata_t input, uint instanceID: SV_InstanceID)  
             {  
                 v2f o;  
@@ -72,7 +70,7 @@ Shader "Uriel/Shadow"
             fixed4 frag(v2f id) : SV_Target  
             {
                 float total = rayMarchField(_Source, id.worldPos, length(id.worldPos - _Source), _Steps, _Depth,
-        _Frequency, _Min, _Max,  _Strength, _PhotonCount, _PhotonBuffer);
+        _Frequency, _Min, _Max,  _Strength);
                 float3 diffuseColor;
                 if(_Grayscale == 0)
                 {
