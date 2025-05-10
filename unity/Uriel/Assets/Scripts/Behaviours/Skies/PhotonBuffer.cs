@@ -17,6 +17,22 @@ namespace Uriel.Behaviours
         [SerializeField] private Transform source;
         [SerializeField] private Lumen lumen;
 
+        private void Init()
+        {
+            if (lumen == null) return;
+            var rend = GetComponent<MeshRenderer>();
+            if (rend)
+            {
+                lumen.EnsureBufferExists();
+                LinkMaterial(rend.sharedMaterial);
+            }
+        }
+        
+        private void Start()
+        {
+            Init();
+        }
+
 #if UNITY_EDITOR
         // Register for callbacks when the script is enabled
         private void OnEnable()
@@ -33,13 +49,7 @@ namespace Uriel.Behaviours
 
         private void OnValidate()
         {
-            if(lumen == null) return;
-            var rend = GetComponent<MeshRenderer>();
-            if (rend)
-            {
-                lumen.EnsureBufferExists();
-                LinkMaterial(rend.sharedMaterial);
-            }
+            Init();
         }
 
         private void OnDisable()

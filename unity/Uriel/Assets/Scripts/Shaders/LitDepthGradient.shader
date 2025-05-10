@@ -9,7 +9,7 @@ Shader "Uriel/LitDepthGradient"
         _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
         _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
         _Shininess("Shininess", Range(0.0, 360.0)) = 1.0
-        _Depth ("Depth", Range(0, 15)) = 0
+        _Depth ("Depth", Range(0, 1.5)) = 0
         _Min ("Min", Range(-3, 3)) = 0
         _Max ("Max", Range(-3, 3)) = 0
         _Displacement ("Displacement", Range(0, 1)) = 0
@@ -19,7 +19,7 @@ Shader "Uriel/LitDepthGradient"
         _Steps ("Steps", Range(1, 50)) = 1
         _Frequency ("Frequency", Range(-3, 3)) = 0
         _Amplitude ("Amplitude", Range(-3, 3)) = 0
-        _Scale ("Scale", Float) = 1
+        _Scale ("Scale", Range(0, 1)) = 1
         _Speed ("Speed", Float) = 1
         _Phase ("Phase", Float) = 1
     }  
@@ -68,29 +68,14 @@ Shader "Uriel/LitDepthGradient"
             float _Scale;
             float _Speed;
             float _Phase;
-            
 
-            float sample(float3 pos, float3 normal)
-            {
-                const float step_size = length(pos) / _Steps;
-                float total_density = 0.0;
-                for (uint i = 0; i < _Steps; ++i)
-                {
-                    const float3 target = pos + normal * i * step_size  * _Displacement;
-                    const float density = sampleField(target);
-                    total_density += smoothstep(_Min, _Max, density * _Frequency)  * _Amplitude;
-                }
-                return total_density;
-            }
-            
             float3 sampleDisplacedField(float3 pos, float3 normal, float epsilon)
             {
-                
                 const float density = sampleField(pos);
                 return pos + normal * density * epsilon;
             }
                         
-            float3 constructFieldTriangleNormal(float3 center, float3 normal, float displacement)
+            float3 constructFieldTriangleNormal(float3 center, float3 normal)
             {
                 const float3 tangent = normalize(cross(normal, float3(0, 1, 0)));
                 const float3 bitangent = cross(normal, tangent);
@@ -102,12 +87,10 @@ Shader "Uriel/LitDepthGradient"
                 const float3 v2_offset = tangent * cos(twoPiOver3 * twoPiOver3) + bitangent * sin(2.0 * twoPiOver3);
                 const float3 v1 = center + v1_offset * eps;
                 const float3 v2 = center + v2_offset * eps;
-                const float3 p0 = sampleDisplacedField(v0, normal, _Depth * displacement);
-                const float3 p1 = sampleDisplacedField(v1, normal, _Depth * displacement);
-                const float3 p2 = sampleDisplacedField(v2, normal, _Depth * displacement);
-
+                const float3 p0 = sampleDisplacedField(v0, normal, _Depth);
+                const float3 p1 = sampleDisplacedField(v1, normal, _Depth);
+                const float3 p2 = sampleDisplacedField(v2, normal, _Depth);
                 const float3 triNormal = normalize(cross(p1 - p0, p2 - p0));
-
                 return triNormal;
             }
             
@@ -116,15 +99,13 @@ Shader "Uriel/LitDepthGradient"
                 v2f o;
                 float3 v = input.vertex;
                 float3 dir = input.normal;
-             
                 for (int i = 0; i < _Steps; ++i)
                 {
-                    float3 prev = v;
                     const float density = sampleField(v);
                     v += dir * density * _Scale;
-                    dir = constructFieldTriangleNormal(v, dir, 1);
+                    dir = constructFieldTriangleNormal(v, dir);
                 }
-                   o.world_pos = mul(unity_ObjectToWorld, v);
+                o.world_pos = mul(unity_ObjectToWorld, v);
                 o.vertex = UnityObjectToClipPos(v);
                 o.normal = UnityObjectToWorldNormal(dir);
                 return o;   
