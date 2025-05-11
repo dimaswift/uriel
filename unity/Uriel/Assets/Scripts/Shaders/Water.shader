@@ -1,27 +1,21 @@
-Shader "Uriel/LitDepthGradient"  
+Shader "Uriel/Water"  
 {  
     Properties  
     {  
         _Gradient ("Gradient", 2D) = "white" {}
-        _Threshold ("Threshold", Range(0.0, 10.0)) = 0.5
-        _Multiplier ("Multiplier", Range(0.0, 10.0)) = 1
+        _Threshold ("Threshold", Range(0.0, 1.0)) = 10
+        _Multiplier ("Multiplier", Range(0.0, 10.0)) = 10
         _LightColor ("Light Color", Color) = (1,1,1,1)
         _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
         _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
         _Shininess("Shininess", Range(0.0, 360.0)) = 1.0
-        _Depth ("Depth", Range(-0.5, 0.5)) = 0
-        _Min ("Min", Range(-3, 3)) = 0
-        _Max ("Max", Range(-3, 3)) = 0
-        _Displacement ("Displacement", Range(0, 1)) = 0
-        _MinDisplacement ("Min Displacement", Range(-3, 3)) = 0
-        _MaxDisplacement ("Max Displacement", Range(-3, 3)) = 0
-        _Smoothness ("Smoothness", Range(-3, 3)) = 0
+        _Depth ("Depth", Range(-0.1, 0.1)) = 0.025
+        _Displacement ("Displacement", Range(0, 1)) = 1
+        _Smoothness ("Smoothness", Range(-1, 1)) = 0.17
         _Steps ("Steps", Range(1, 50)) = 1
         _Frequency ("Frequency", Range(-3, 3)) = 0
         _Amplitude ("Amplitude", Range(-3, 3)) = 0
-        _Scale ("Scale", Range(0, 1)) = 1
-        _Speed ("Speed", Float) = 1
-        _Phase ("Phase", Float) = 1
+        _Scale ("Scale", Range(0, 0.01)) = 0.005
     }  
     SubShader  
     {  
@@ -43,7 +37,6 @@ Shader "Uriel/LitDepthGradient"
             struct appdata_t  
             {  
                 float4 vertex : POSITION;
-                float3 normal : NORMAL;  
                 float4 color : COLOR;
             };  
 
@@ -51,26 +44,19 @@ Shader "Uriel/LitDepthGradient"
             {  
                 float4 vertex : SV_POSITION;  
                 float3 world_pos : TEXCOORD0;
-                float3 normal : TEXCOORD1;
             };
             
             float _Depth;
-            float _Min;
-            float _Max;
             float _Smoothness;
-            
             int _Steps;
             float _Frequency;
             float _Amplitude;
             float _Displacement;
-            float _MinDisplacement;
-            float _MaxDisplacement;
             float _Scale;
-            float _Speed;
-            float _Phase;
-
+            
             float3 sampleDisplacedField(float3 pos, float3 normal, float epsilon)
             {
+   
                 const float density = sampleField(pos);
                 return pos + normal * density * epsilon;
             }
@@ -96,39 +82,27 @@ Shader "Uriel/LitDepthGradient"
             
             float3 rayMarch(float3 origin, float3 dir) {
                 float3 pos = origin;
-                float accumulated = 0;
                 float marchPhase = 0.0;
-                float3 col = float3(0,0,0);
-                float3 original_dir = dir;
-                for (int j = 0; j < _PhotonCount; ++j)
-                {
-                    const Photon p = _PhotonBuffer[j];
-                    for (int i = 0; i < _Steps; i++) {
-  
-                        float density = sampleField(pos, p);
-                        pos += dir * _Scale * marchPhase;
+                float v = 0;
+                float3 current_dir = dir;
+                for (int i = 0; i < _Steps; i++) {
+                        
+                        pos += current_dir * sin(marchPhase) * _Scale;
                         marchPhase += _Smoothness;
-                        accumulated += smoothstep(_Min, _Max, density * _Amplitude);
-                        float3 n = constructFieldTriangleNormal(pos, original_dir);
-                        col += applyCustomLighting(sampleGradient(accumulated), pos, n) * _Frequency;
-                        dir += n * _Displacement;
+                        float3 n = constructFieldTriangleNormal(pos, dir);
+                        v += applyCustomLighting(_LightColor, pos, n).x * _Frequency;
+                        current_dir += n * _Displacement;
                     }
-                }
                 
-               
-              
- 
-                return col;
+                return sampleGradient(v);
             }
             
             v2f vert(const appdata_t input)  
             {  
                 v2f o;
                 float3 v = input.vertex;
-                float3 dir = input.normal;
                 o.world_pos = mul(unity_ObjectToWorld, v);
                 o.vertex = UnityObjectToClipPos(v);
-                o.normal = UnityObjectToWorldNormal(dir);
                 return o;   
             }
             

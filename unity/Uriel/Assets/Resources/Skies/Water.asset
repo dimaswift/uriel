@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
-  m_Name: Adam
+  m_Name: Water
   m_EditorClassIdentifier: 
   photons:
   - transform:
@@ -19,21 +19,21 @@ MonoBehaviour:
       e02: 0
       e03: 0
       e10: 0
-      e11: 1
-      e12: 0
+      e11: 0.862602
+      e12: -0.5058832
       e13: 0
       e20: 0
-      e21: 0
-      e22: 1
+      e21: 0.5058832
+      e22: 0.862602
       e23: 0
       e30: 0
       e31: 0
       e32: 0
       e33: 1
     iterations: 1
-    type: 5
-    frequency: 1547.4
-    amplitude: 3.09
-    phase: 34.6
-    radius: 4.4
-    density: -1.27
+    type: 4
+    frequency: 460.9
+    amplitude: 0.63
+    phase: 114.7
+    radius: 1.87
+    density: 1.46
