@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Hologram
-  m_Shader: {fileID: 4800000, guid: c608c4d5440f4fd6b9556f63d07acc35, type: 3}
+  m_Shader: {fileID: 4800000, guid: 619747b544fd4ebfb16e7f8fd3761c18, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -116,7 +116,7 @@ Material:
     - _Cull: 2
     - _Cutoff: 0.5
     - _Density: 0.5
-    - _Depth: -0.02
+    - _Depth: -0.927
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _Displacement: 1
@@ -137,6 +137,7 @@ Material:
     - _GradientMultiplier: 1.46
     - _GradientThreshold: 1
     - _Harmonics: 1
+    - _Hue: 0.026
     - _Iterations: 0
     - _Max: 0.1
     - _MaxColor: 0.086
@@ -146,7 +147,7 @@ Material:
     - _MinColor: 0
     - _MinDisplacement: -2.56
     - _Mode: 0
-    - _Multiplier: 0.13
+    - _Multiplier: 0.306
     - _NormalDelta: 0.0128
     - _NormalStrength: 1.267
     - _OcclusionStrength: 1
@@ -171,12 +172,13 @@ Material:
     - _Radius: 1
     - _RampThreshold: 2.2
     - _ReceiveShadows: 1
+    - _Refraction: 0.19
     - _Res: 64
     - _Resolution: 8
     - _Ripples: 1
     - _Roughness: 0.882
     - _SampleDelta: 0.01
-    - _Saturation: 5.89
+    - _Saturation: 2
     - _Scale: 1
     - _Shape: 4
     - _Shell: 34.9
@@ -192,11 +194,12 @@ Material:
     - _SrcBlendAlpha: 1
     - _Start: 50
     - _StepSize: 0.0435
-    - _Steps: 5.3
+    - _Steps: 2.5
     - _Surface: 0
     - _Threshold: 0.06
     - _ThresholdThin: 0.01
     - _UseLight: 0
+    - _Value: 1
     - _WaveAmplitude: 0.0248
     - _WaveDensity: 0.3
     - _WaveDepth: 0.82
@@ -225,7 +228,7 @@ Material:
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Light: {r: 1, g: 1, b: 1, a: 1}
     - _LightColor: {r: 1, g: 1, b: 1, a: 1}
-    - _LightSource: {r: 3.8, g: -11.27, b: -50.06, a: 0}
+    - _LightSource: {r: 3.8, g: -11.33, b: -50.06, a: 0}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _Source: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}

@@ -12,7 +12,6 @@ Shader "Uriel/Shadow"
         _Min ("Min", Range(2.4, 2.6)) = 2.5
         _Max ("Max", Range(2.4, 2.6)) = 2.5
         _Grayscale ("Grayscale", Range(0, 1)) = 1
-        _Focus ("Focus", Float) = 1
     }  
     SubShader  
     {  
@@ -51,7 +50,7 @@ Shader "Uriel/Shadow"
             float _Max;
             int _Grayscale;
             int _Depth;
-            float _Focus;
+    
             
             float3 _Source;
 

@@ -53,7 +53,7 @@ float sampleField(const float3 pos, const float3 vertex, const Photon photon, co
 {
     const float3 offset = float3(photon.transform[0][3], photon.transform[1][3], photon.transform[2][3]);
     const float3 transformed = mul(vertex, photon.transform).xyz + offset;
-    const float dist = saturate(distance(pos, transformed) * (1.0 / max(1, photon.radius * PI)));
+    const float dist = saturate(distance(pos, transformed) * (1.0 / max(0.01, photon.radius * PI)));
     return sin(dist * (photon.frequency) + (photon.phase) * photon.transform[3][3]) * photon.amplitude * (1.0 / size); 
 }
 
@@ -97,6 +97,38 @@ float rayMarchFieldCycle(float3 origin, float length, uint steps, float depth, f
         total_density += sin(density * frequency * 0.01);
     }
     return total_density;
+}
+
+float sampleMandelbrot(float3 pos, float2 plane_coord, uint iterations, uint orbitPlaneCount)
+{
+    float x = 0;
+    float y = 0;
+    int step = 0;
+    const int count = max(1, orbitPlaneCount);
+    float value = 0.0;
+    for (int i = 0; i < _PhotonCount; ++i)
+    {
+        const Photon photon = _PhotonBuffer[i];
+             
+        while (step < iterations)
+        {
+            const float x_temp = x * x - y * y + plane_coord.x;
+            y = 2 * x * y + plane_coord.y;
+            x = x_temp;
+            step++;
+            for (int plane = 0; plane < count; ++plane)
+            {
+                const float angle = ((2 * PI) / count) * plane;
+                const float3 axis = float3(1, 0, 0);
+                const float3 offsetDir = float3(0, cos(angle), sin(angle));
+                const float3 orbitPos = float3(x, 0, y);
+                const float3 rotatedPos = orbitPos.x * axis + orbitPos.y * offsetDir + orbitPos.z * cross(
+                    axis, offsetDir);
+                value += sampleField(pos, rotatedPos * photon.density, photon, count);
+            }
+        }
+    }
+    return value;
 }
 
 float rayMarchField(float3 origin, float3 dir, float length, uint steps, float min, float max,

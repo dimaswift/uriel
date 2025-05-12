@@ -485,6 +485,7 @@ GameObject:
   m_Component:
   - component: {fileID: 715354082}
   - component: {fileID: 715354081}
+  - component: {fileID: 715354083}
   m_Layer: 0
   m_Name: XRay
   m_TagString: Untagged
@@ -504,7 +505,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f85be2530a8f6484c943b80e5016ddd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sky: {fileID: 11400000, guid: 3c74eee69ef38564baee38f8cfe3cad6, type: 2}
   filterMode: 0
   computeShader: {fileID: 7200000, guid: b2a6189538ecb4149bab131ff3c7f0d2, type: 3}
   targetMaterial: {fileID: 2100000, guid: 18ddccef41639594a91fdd72a3c89064, type: 2}
@@ -514,13 +514,13 @@ MonoBehaviour:
   captureResolution: {x: 2310, y: 3860}
   depth: 0.21
   grayscale: 0
-  gradientMultiplier: 2.9
-  gradientThreshold: 7.34
-  frequency: 0.46
-  amplitude: 2.43
-  min: 0.63
-  max: 1.8
-  focus: 0.85
+  gradientMultiplier: 3.91
+  gradientThreshold: 8.17
+  frequency: 0.16
+  amplitude: 2.6
+  min: 1.64
+  max: 0.89
+  focus: 0.38
   target: {fileID: 1395742868}
   source: {fileID: 740638501}
 --- !u!4 &715354082
@@ -540,6 +540,20 @@ Transform:
   - {fileID: 1395742868}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &715354083
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 715354080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b1eb8d9efef4d3890af2df452785ee8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  source: {fileID: 740638501}
+  lumen: {fileID: 11400000, guid: 3c74eee69ef38564baee38f8cfe3cad6, type: 2}
 --- !u!1 &740638500
 GameObject:
   m_ObjectHideFlags: 0

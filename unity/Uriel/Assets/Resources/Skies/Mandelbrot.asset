@@ -10,30 +10,30 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
-  m_Name: XRay
+  m_Name: Mandelbrot
   m_EditorClassIdentifier: 
   photons:
   - transform:
-      e00: 4.818364
+      e00: 1
       e01: 0
       e02: 0
-      e03: 0
+      e03: 0.074
       e10: 0
-      e11: 4.818364
+      e11: 1
       e12: 0
       e13: 0
       e20: 0
       e21: 0
-      e22: 4.818364
-      e23: -1.6329187
+      e22: 1
+      e23: 0
       e30: 0
       e31: 0
       e32: 0
       e33: 1
-    iterations: 5
-    type: 4
-    frequency: 35.4
-    amplitude: 26
-    phase: 40.1
-    radius: 9.3
-    density: 2.18
+    iterations: 1
+    type: 5
+    frequency: 118
+    amplitude: 0.89
+    phase: 167.1
+    radius: 2.02
+    density: 6.98

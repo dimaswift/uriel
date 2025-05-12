@@ -9,17 +9,17 @@ Shader "Uriel/LitDepthGradient"
         _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
         _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
         _Shininess("Shininess", Range(0.0, 360.0)) = 1.0
-        _Depth ("Depth", Range(-0.5, 0.5)) = 0
+        _Depth ("Depth", Range(0, 3)) = 0
         _Min ("Min", Range(-3, 3)) = 0
-        _Max ("Max", Range(-0.1, 0.1)) = 0
+        _Max ("Max", Range(-3, 3)) = 0
         _Displacement ("Displacement", Range(0, 1)) = 0
         _MinDisplacement ("Min Displacement", Range(-3, 3)) = 0
         _MaxDisplacement ("Max Displacement", Range(-3, 3)) = 0
         _Smoothness ("Smoothness", Range(-3, 3)) = 0
-        _Steps ("Steps", Range(1, 100)) = 1
+        _Steps ("Steps", Range(1, 50)) = 1
         _Frequency ("Frequency", Range(-3, 3)) = 0
         _Amplitude ("Amplitude", Range(-3, 3)) = 0
-        _Scale ("Scale", Range(0, 1)) = 1
+        _Scale ("Scale", Float) = 1
         _Speed ("Speed", Float) = 1
         _Phase ("Phase", Float) = 1
     }  
@@ -68,13 +68,14 @@ Shader "Uriel/LitDepthGradient"
             float _Scale;
             float _Speed;
             float _Phase;
-
+            
             float3 sampleDisplacedField(float3 pos, float3 normal, float epsilon)
             {
+                
                 const float density = sampleField(pos);
                 return pos + normal * density * epsilon;
             }
-            
+                        
             float3 constructFieldTriangleNormal(float3 center, float3 normal)
             {
                 const float3 tangent = normalize(cross(normal, float3(0, 1, 0)));
@@ -87,32 +88,11 @@ Shader "Uriel/LitDepthGradient"
                 const float3 v2_offset = tangent * cos(twoPiOver3 * twoPiOver3) + bitangent * sin(2.0 * twoPiOver3);
                 const float3 v1 = center + v1_offset * eps;
                 const float3 v2 = center + v2_offset * eps;
-                const float3 p0 = sampleDisplacedField(v0, normal, _Depth * 0.1);
-                const float3 p1 = sampleDisplacedField(v1, normal, _Depth * 0.1);
-                const float3 p2 = sampleDisplacedField(v2, normal, _Depth * 0.1);
+                const float3 p0 = sampleDisplacedField(v0, normal, _Depth * _Scale);
+                const float3 p1 = sampleDisplacedField(v1, normal, _Depth * _Scale);
+                const float3 p2 = sampleDisplacedField(v2, normal, _Depth * _Scale);
                 const float3 triNormal = normalize(cross(p1 - p0, p2 - p0));
                 return triNormal;
-            }
-            
-            float3 rayMarch(float3 origin, float3 dir) {
-      
-                float3 col = float3(0,0,0);
-
-
-                for (int i = 0; i < _Steps; ++i)
-                {
-                    float3 pos = origin + dir * _Displacement * i;
-                    
-                    float density = sampleField(pos);
-                    if(density > _Max + _Min)
-                    {
-                        dir = constructFieldTriangleNormal(pos, dir);
-                        col += sampleGradient(density) * density * _Scale;
-                    }
-                    
-                }
- 
-                return col;
             }
             
             v2f vert(const appdata_t input)  
@@ -120,6 +100,13 @@ Shader "Uriel/LitDepthGradient"
                 v2f o;
                 float3 v = input.vertex;
                 float3 dir = input.normal;
+             
+                for (int i = 0; i < _Steps; ++i)
+                {
+                    const float density = sampleField(v);
+                    dir = constructFieldTriangleNormal(v, dir);
+                    v += dir * density * _Scale;
+                }
                 o.world_pos = mul(unity_ObjectToWorld, v);
                 o.vertex = UnityObjectToClipPos(v);
                 o.normal = UnityObjectToWorldNormal(dir);
@@ -128,11 +115,13 @@ Shader "Uriel/LitDepthGradient"
             
             fixed4 frag(const v2f id) : SV_Target  
             {
-                float3 color = rayMarch(id.world_pos, UnityWorldSpaceViewDir(id.world_pos));
+                float3 color = sampleGradient(sampleField(id.world_pos));
+                float3 n = id.normal;
+                color = applyCustomLighting(color, id.world_pos, n);
                 return float4(color, 1);  
             }  
             
             ENDCG  
         }  
     }  
-}  
+}

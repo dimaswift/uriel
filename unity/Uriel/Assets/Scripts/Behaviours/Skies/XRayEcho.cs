@@ -11,7 +11,6 @@ namespace Uriel.Behaviours
     [RequireComponent(typeof(PhotonBuffer))]
     public class XRayEcho : MonoBehaviour
     {
-        [SerializeField] private Lumen lumen;
         [SerializeField] private FilterMode filterMode = FilterMode.Bilinear;
         [SerializeField] private ComputeShader computeShader;
         [SerializeField] private Material targetMaterial;
@@ -31,8 +30,7 @@ namespace Uriel.Behaviours
 
         [SerializeField] private Transform target;
         [SerializeField] private Transform source;
-
-       
+        
         
         private RenderTexture texture;
         private int kernelIndex = 0;

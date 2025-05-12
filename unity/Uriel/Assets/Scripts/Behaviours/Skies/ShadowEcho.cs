@@ -7,7 +7,6 @@ namespace Uriel.Behaviours
     [RequireComponent(typeof(PhotonBuffer))]
     public class ShadowEcho : MonoBehaviour
     {
-        [SerializeField] private Lumen lumen;
         [SerializeField] private Transform source;
         
         private Material mat;
@@ -19,6 +18,10 @@ namespace Uriel.Behaviours
         
         private void Update()  
         {
+            if (mat == null)
+            {
+                mat = GetComponent<MeshRenderer>().sharedMaterial;
+            }
             if (source == null)
             {
                 return;

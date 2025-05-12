@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Water
-  m_Shader: {fileID: 4800000, guid: 0eadae2676a5401ab319a297a2ee5d0f, type: 3}
+  m_Name: Normal
+  m_Shader: {fileID: 4800000, guid: 0dc5e6912f0b40b59a8b35c8e1fe930e, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -115,7 +115,7 @@ Material:
     - _Alpha: 1
     - _AlphaClip: 0
     - _AlphaToMask: 0
-    - _Amplitude: 3
+    - _Amplitude: 0.5
     - _AmplitudeInversed: -1.3
     - _AmplitudeSquared: -0.38
     - _Angle: 0.46
@@ -129,7 +129,7 @@ Material:
     - _Cull: 2
     - _Cutoff: 0.5
     - _Density: 0.5
-    - _Depth: 0.024
+    - _Depth: 0.65
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _Displacement: 1
@@ -140,7 +140,7 @@ Material:
     - _End: 50
     - _EnvironmentReflections: 1
     - _Falloff: 0
-    - _Frequency: 0.07
+    - _Frequency: 0.197
     - _Frequency2: 348.78
     - _FrequencyInversed: 4.89
     - _FrequencySquared: -2.48
@@ -151,15 +151,15 @@ Material:
     - _GradientThreshold: 1
     - _Harmonics: 1
     - _Iterations: 0
-    - _Max: 0.09
+    - _Max: 0.69
     - _MaxColor: 0.086
     - _MaxDisplacement: -1.1
     - _Metallic: 0
-    - _Min: -0.35
+    - _Min: -0.52
     - _MinColor: 0
     - _MinDisplacement: -2.56
     - _Mode: 0
-    - _Multiplier: 2.19
+    - _Multiplier: 1.76
     - _NormalDelta: 0.0128
     - _NormalStrength: 1.267
     - _OcclusionStrength: 1
@@ -193,21 +193,21 @@ Material:
     - _Scale: 0.005
     - _Shape: 4
     - _Shell: 34.9
-    - _Shininess: 360
+    - _Shininess: 130
     - _Sign: 1
     - _Smoothness: 0.17
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _SpecularMultiplier: 2.93
-    - _SpecularThreshold: 10
+    - _SpecularMultiplier: 2.07
+    - _SpecularThreshold: 4.99
     - _Speed: 0.1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _Start: 50
     - _StepSize: 0.0435
-    - _Steps: 50
+    - _Steps: 7.1
     - _Surface: 0
-    - _Threshold: 0.328
+    - _Threshold: 0.247
     - _ThresholdThin: 0.01
     - _UseLight: 0
     - _WaveAmplitude: 0.0248
@@ -238,7 +238,7 @@ Material:
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Light: {r: 1, g: 1, b: 1, a: 1}
     - _LightColor: {r: 1, g: 1, b: 1, a: 1}
-    - _LightSource: {r: -1, g: 3.117, b: 5.38, a: 0}
+    - _LightSource: {r: 0, g: 1.933, b: 0.904, a: 0}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _Source: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
