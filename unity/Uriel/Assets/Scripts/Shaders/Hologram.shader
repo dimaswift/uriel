@@ -1,27 +1,16 @@
-Shader "Uriel/LitDepthGradient"  
+Shader "Uriel/Hologram"  
 {  
     Properties  
     {  
-        _Gradient ("Gradient", 2D) = "white" {}
-        _Threshold ("Threshold", Range(0.0, 10.0)) = 0.5
-        _Multiplier ("Multiplier", Range(0.0, 10.0)) = 1
-        _LightColor ("Light Color", Color) = (1,1,1,1)
-        _SpecularThreshold("Specular Threshold", Range(0.0, 10.0)) = 1.0
-        _SpecularMultiplier("Specular Multiplier", Range(0.0, 10.0)) = 1.0
-        _Shininess("Shininess", Range(0.0, 360.0)) = 1.0
-        _Depth ("Depth", Range(-0.5, 0.5)) = 0
-        _Min ("Min", Range(-3, 3)) = 0
-        _Max ("Max", Range(-0.1, 0.1)) = 0
+        
+        _Depth ("Depth", Range(-1, 1)) = 0
         _Displacement ("Displacement", Range(0, 1)) = 0
-        _MinDisplacement ("Min Displacement", Range(-3, 3)) = 0
-        _MaxDisplacement ("Max Displacement", Range(-3, 3)) = 0
-        _Smoothness ("Smoothness", Range(-3, 3)) = 0
         _Steps ("Steps", Range(1, 100)) = 1
-        _Frequency ("Frequency", Range(-3, 3)) = 0
-        _Amplitude ("Amplitude", Range(-3, 3)) = 0
-        _Scale ("Scale", Range(0, 1)) = 1
-        _Speed ("Speed", Float) = 1
-        _Phase ("Phase", Float) = 1
+        _Refraction ("Refraction", Range(-3, 3)) = 0
+        _Hue ("Hue", Range(0, 2)) = 1
+        _Value ("Value", Range(0, 2)) = 1
+        _Saturation ("Saturation", Range(0, 2)) = 1
+        _Multiplier ("Multiplier", Range(0, 2)) = 1
     }  
     SubShader  
     {  
@@ -33,11 +22,9 @@ Shader "Uriel/LitDepthGradient"
             CGPROGRAM  
             #pragma vertex vert  
             #pragma fragment frag
-
-            #include "Assets/Scripts/Lib/CustomLight.cginc"
+            
             #include "AutoLight.cginc"  
             #include "UnityCG.cginc"
-            #include "Assets/Scripts/Lib/Gradient.cginc"
             #include "Assets/Scripts/Lib/Uriel.cginc"
             
             struct appdata_t  
@@ -55,20 +42,14 @@ Shader "Uriel/LitDepthGradient"
             };
             
             float _Depth;
-            float _Min;
-            float _Max;
-            float _Smoothness;
-            
             int _Steps;
-            float _Frequency;
-            float _Amplitude;
+            float _Refraction;
             float _Displacement;
-            float _MinDisplacement;
-            float _MaxDisplacement;
-            float _Scale;
-            float _Speed;
-            float _Phase;
-
+            float _Hue;
+            float _Value;
+            float _Saturation;
+            float _Multiplier;
+            
             float3 sampleDisplacedField(float3 pos, float3 normal, float epsilon)
             {
                 const float density = sampleField(pos);
@@ -79,7 +60,7 @@ Shader "Uriel/LitDepthGradient"
             {
                 const float3 tangent = normalize(cross(normal, float3(0, 1, 0)));
                 const float3 bitangent = cross(normal, tangent);
-                const float eps = 0.0001;
+                const float eps = 0.1 * _Refraction;
                 const float3 v0_offset = tangent + bitangent;
                 const float3 v0 = center + v0_offset * eps;
                 const float twoPiOver3 = 2.09439510239;
@@ -95,31 +76,24 @@ Shader "Uriel/LitDepthGradient"
             }
             
             float3 rayMarch(float3 origin, float3 dir) {
-      
-                float3 col = float3(0,0,0);
-
-
+                
+                const float m = 1.0 / _Steps;
+                float3 col = float3(0,0,0); 
                 for (int i = 0; i < _Steps; ++i)
                 {
-                    float3 pos = origin + dir * _Displacement * i;
-                    
-                    float density = sampleField(pos);
-                    if(density > _Max + _Min)
-                    {
-                        dir = constructFieldTriangleNormal(pos, dir);
-                        col += sampleGradient(density) * density * _Scale;
-                    }
-                    
+                    const float3 pos = origin + dir * _Displacement * i;
+                    const float density = sampleField(pos);
+                    dir = constructFieldTriangleNormal(pos, dir);
+                    col += hsv2rgb(density * _Hue * 0.001, _Value, _Saturation) * m;
                 }
- 
-                return col;
+                return col * _Multiplier;
             }
             
             v2f vert(const appdata_t input)  
             {  
                 v2f o;
                 float3 v = input.vertex;
-                float3 dir = input.normal;
+                const float3 dir = input.normal;
                 o.world_pos = mul(unity_ObjectToWorld, v);
                 o.vertex = UnityObjectToClipPos(v);
                 o.normal = UnityObjectToWorldNormal(dir);
