@@ -72,7 +72,7 @@ public class GCodeGenerator : MonoBehaviour
         AppendGCode("M4 S0");
         currentSValue = 0;
 
-        photonBuffer = gameObject.GetComponent<PhotonBuffer>().LinkComputeKernel(fieldShader);
+        photonBuffer = gameObject.GetComponent<PhotonBuffer>().LinkComputeKernel(fieldShader) as PhotonBuffer;
         
         GeneratePreviewTexture();
     }
@@ -239,11 +239,11 @@ public class GCodeGenerator : MonoBehaviour
     {
         for (float i = config.zStart; i < config.zEnd; i+=config.zStep)
         {
-            Photon w = photonBuffer.Lumen.photons[0];
+            Photon w = photonBuffer.Buffer.photons[0];
             Matrix4x4 s = w.transform;
             s[0,3] = i;
             w.transform = s;
-            photonBuffer.Lumen.photons[0] = w;
+            photonBuffer.Buffer.photons[0] = w;
             GenerateCodeFromTexture();
             yield return new WaitForSeconds(0.1f);
         }

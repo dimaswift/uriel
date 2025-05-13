@@ -2,30 +2,41 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
-
-using System;
 using UnityEngine;
 using Uriel.Domain;
 
 namespace Uriel.Behaviours
 {
     [ExecuteInEditMode]
-    public class PhotonBuffer : MonoBehaviour
+    public abstract class SerializableBufferHandler<T> : MonoBehaviour where T : SerializableBufferBase
     {
-        public Lumen Lumen => lumen;
+        public T Buffer => buffer;
         
-        [SerializeField] private Transform source;
-        [SerializeField] private Lumen lumen;
+        [SerializeField] private T buffer;
 
-        private void Init()
+        protected virtual void Init()
         {
-            if (lumen == null) return;
+            if (buffer == null) return;
             var rend = GetComponent<MeshRenderer>();
             if (rend)
             {
-                lumen.EnsureBufferExists();
+                buffer.EnsureBufferExists();
                 LinkMaterial(rend.sharedMaterial);
             }
+        }
+
+        public SerializableBufferHandler<T> LinkComputeKernel(ComputeShader shader, int id = 0)
+        {
+            if (buffer == null) return this;
+            buffer.LinkComputeKernel(shader, id);
+            return this;
+        }
+
+        public SerializableBufferHandler<T> LinkMaterial(Material mat)
+        {
+            if (buffer == null) return this;
+            buffer.LinkMaterial(mat);
+            return this;
         }
         
         private void Start()
@@ -73,7 +84,7 @@ namespace Uriel.Behaviours
 
         private void OnAfterAssemblyReload()
         {
-            if(lumen) lumen.EnsureBufferExists();
+            if (buffer) buffer.EnsureBufferExists();
         }
 
         private void PlayModeStateChanged(PlayModeStateChange state)
@@ -103,42 +114,29 @@ namespace Uriel.Behaviours
 
         private void DisposeBuffer()
         {
-            if (lumen != null) lumen.DisposeBuffer();
+            if (buffer != null) buffer.DisposeBuffer();
         }
 
-        public PhotonBuffer LinkComputeKernel(ComputeShader shader, int id = 0)
-        {
-            if (lumen == null) return this;
-            lumen.LinkComputeKernel(shader, id);
-            return this;
-        }
 
-        public PhotonBuffer LinkMaterial(Material mat)
-        {
-            if (lumen == null) return this;
-            lumen.LinkMaterial(mat);
-            return this;
-        }
+        protected virtual void OnBeforeUpdate() {}
+
 
         private void Update()
         {
-            if (lumen == null)
+            if (buffer == null)
             {
                 return;
             }
 
-            if (source)
-            {
-                lumen.UpdateTransform(source.localToWorldMatrix);
-            }
-            
-            #if UNITY_EDITOR
+            OnBeforeUpdate();
+
+#if UNITY_EDITOR
             
             OnValidate();
             
-            #endif
+#endif
             
-            lumen.Update();
+            buffer.Update();
         }
     }
 }

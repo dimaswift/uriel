@@ -17,6 +17,16 @@ namespace Uriel.Domain
         public float density;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    [System.Serializable]
+    public struct Modulation
+    {
+        public float time;
+        public float frequency;
+        public float phase;
+        public float amplitude;
+    }
+
     public enum Solid
     {
         Tetrahedron = 0,

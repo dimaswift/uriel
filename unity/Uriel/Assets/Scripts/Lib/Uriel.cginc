@@ -27,6 +27,16 @@ struct Particle
     float mass;
 };
 
+struct Modulation
+{
+    float time;
+    float frequency;
+    float phase;
+    float amplitude;
+};
+
+static const Modulation DEFAULT_MOD = (Modulation) 0; 
+
 uint _PhotonCount;
 StructuredBuffer<Photon> _PhotonBuffer;
 
@@ -49,16 +59,20 @@ Photon createPhoton(uint type, float4x4 transform, uint iterations, float freque
     return w;  
 }  
 
-float sampleField(const float3 pos, const float3 vertex, const Photon photon, const uint size)
+float sampleField(const float3 pos, const float3 vertex,
+    const Photon photon, const uint size, Modulation m = DEFAULT_MOD)
 {
     const float3 offset = float3(photon.transform[0][3], photon.transform[1][3], photon.transform[2][3]);
     const float3 transformed = mul(vertex, photon.transform).xyz + offset;
     const float dist = saturate(distance(pos, transformed) * (1.0 / max(0.01, photon.radius * PI)));
-    return sin(dist * (photon.frequency) + (photon.phase) * photon.transform[3][3]) * photon.amplitude * (1.0 / size); 
+    const float freq = photon.frequency + sin(m.time * m.frequency) * m.amplitude;
+    const float phase = photon.phase + sin(m.time * m.phase) * m.amplitude;
+    const float amp = photon.amplitude * (1.0 / size);
+    return sin(dist * freq + phase) * amp; 
 }
 
 
-float sampleField(const float3 pos, const Photon photon)
+float sampleField(const float3 pos, const Photon photon, Modulation m = DEFAULT_MOD)
 {
     float density = 0.0;
     const uint size = getPlatonicSize(photon.type);
@@ -68,38 +82,25 @@ float sampleField(const float3 pos, const Photon photon)
         for (uint i = 0; i < size; i++)
         {
             const float3 vertex = getPlatonicVertex(photon.type, i);
-            density += sampleField(pos, vertex * (1 + (j * photon.density)), photon, size);
+            density += sampleField(pos, vertex * (1 + (j * photon.density)), photon, size, m);
         }
     }
     return density; 
 }
 
-float sampleField(float3 pos)
+float sampleField(float3 pos, Modulation m = DEFAULT_MOD)
 {
     float density = 0.0;
     for (uint i = 0; i < _PhotonCount; i++)
     {
         const Photon photon = _PhotonBuffer[i]; 
-        density += sampleField(pos, photon);
+        density += sampleField(pos, photon, m);
     }
     return density; 
 }
 
-float rayMarchFieldCycle(float3 origin, float length, uint steps, float depth, float frequency)
-{
-    const float step_size = length / steps;
-    const float3 dir = normalize(origin);
-    float total_density = 0.0;
-    for (uint i = 0; i < steps; ++i)
-    {
-        const float3 target = origin + dir * i * step_size * depth;
-        const float density = sampleField(target);
-        total_density += sin(density * frequency * 0.01);
-    }
-    return total_density;
-}
-
-float sampleMandelbrot(float3 pos, float2 plane_coord, uint iterations, uint orbitPlaneCount)
+float sampleMandelbrot(float3 pos, float2 plane_coord, uint iterations,
+    uint orbitPlaneCount, Modulation m = DEFAULT_MOD)
 {
     float x = 0;
     float y = 0;
@@ -113,7 +114,7 @@ float sampleMandelbrot(float3 pos, float2 plane_coord, uint iterations, uint orb
         while (step < iterations)
         {
             const float x_temp = x * x - y * y + plane_coord.x;
-            y = 2 * x * y + plane_coord.y;
+            y = 2 * x * y + plane_coord.y; 
             x = x_temp;
             step++;
             for (int plane = 0; plane < count; ++plane)
@@ -124,7 +125,7 @@ float sampleMandelbrot(float3 pos, float2 plane_coord, uint iterations, uint orb
                 const float3 orbitPos = float3(x, 0, y);
                 const float3 rotatedPos = orbitPos.x * axis + orbitPos.y * offsetDir + orbitPos.z * cross(
                     axis, offsetDir);
-                value += sampleField(pos, rotatedPos * photon.density, photon, count);
+                value += sampleField(pos, rotatedPos * photon.density, photon, count, m);
             }
         }
     }
@@ -132,14 +133,14 @@ float sampleMandelbrot(float3 pos, float2 plane_coord, uint iterations, uint orb
 }
 
 float rayMarchField(float3 origin, float3 dir, float length, uint steps, float min, float max,
-    float depth, float frequency, float amplitude)
+    float depth, float frequency, float amplitude, Modulation m = DEFAULT_MOD)
 {
     const float step_size = length / steps;
     float total_density = 0.0;
     for (uint i = 0; i < steps; ++i)
     {
         const float3 target = origin + dir * i * step_size  * depth;
-        const float density = sampleField(target);
+        const float density = sampleField(target, m);
         total_density += sin(smoothstep(min, max, density * frequency)  * amplitude);
     }
     return total_density;
