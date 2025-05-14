@@ -5,6 +5,9 @@ namespace Uriel.Domain
     [CreateAssetMenu(menuName = "Uriel/Resonance Cascade Config")]
     public class ResonanceCascadeConfig : ScriptableObject
     {
+        public Texture gradient;
+        public float gradientThreshold;
+        public float gradientMultiplier;
         public uint resolution = 128;
         public Vector3 threshold;
         public Vector3 multiplier;
@@ -21,5 +24,6 @@ namespace Uriel.Domain
         public float speed;
         public float attraction = 1;
         public float repulsion = 1;
+        public float radius = 1;
     }
 }

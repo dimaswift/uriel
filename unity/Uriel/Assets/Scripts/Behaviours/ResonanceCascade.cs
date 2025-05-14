@@ -15,7 +15,6 @@ namespace Uriel.Behaviours
         [SerializeField] private ComputeShader compute;
         [SerializeField] private MeshRenderer screenRenderer;
         [SerializeField] private MeshRenderer particlesRenderer;
-     
         [SerializeField] private ResonanceCascadeConfig config;
         
         private RenderTexture screen;
@@ -61,6 +60,8 @@ namespace Uriel.Behaviours
             spawnParticlesKernel = compute.FindKernel("SpawnParticles");
             fadeParticlesKernel = compute.FindKernel("FadeParticles");
             
+            compute.SetTexture(renderParticlesKernel, ShaderProps.Gradient, config.gradient);
+            compute.SetFloat(ShaderProps.GradientSize, config.gradient.width);
             
             compute.GetKernelThreadGroupSizes(computeFieldKernel, out threads, out _, out _);
          
@@ -141,6 +142,10 @@ namespace Uriel.Behaviours
 
         private void SetVariables()
         {
+           
+            compute.SetFloat(ShaderProps.GradientMultiplier, config.gradientMultiplier);
+            compute.SetFloat(ShaderProps.GradientThreshold, config.gradientThreshold);
+            compute.SetFloat(ShaderProps.Radius, config.radius);
             compute.SetFloat(ShaderProps.DeltaTime, Time.deltaTime);
             
             compute.SetFloat(ShaderProps.Attraction, config.attraction);
