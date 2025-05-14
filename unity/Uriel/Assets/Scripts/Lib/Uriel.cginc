@@ -65,9 +65,9 @@ float sampleField(const float3 pos, const float3 vertex,
     const float3 offset = float3(photon.transform[0][3], photon.transform[1][3], photon.transform[2][3]);
     const float3 transformed = mul(vertex, photon.transform).xyz + offset;
     const float dist = saturate(distance(pos, transformed) * (1.0 / max(0.01, photon.radius * PI)));
-    const float freq = photon.frequency + sin(m.time * m.frequency) * m.amplitude;
-    const float phase = photon.phase + sin(m.time * m.phase) * m.amplitude;
-    const float amp = photon.amplitude * (1.0 / size);
+    const float freq = photon.frequency + (m.time * m.frequency);
+    const float phase = photon.phase + m.time * m.phase;
+    const float amp = photon.amplitude + sin(m.amplitude * m.time) * (1.0 / size);
     return sin(dist * freq + phase) * amp; 
 }
 

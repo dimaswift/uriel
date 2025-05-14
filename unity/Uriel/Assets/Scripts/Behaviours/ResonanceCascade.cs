@@ -1,9 +1,10 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using Unity.Mathematics;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using Uriel.Domain;
+using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
@@ -11,26 +12,11 @@ namespace Uriel.Behaviours
     [RequireComponent(typeof(PhotonBuffer))]
     public class ResonanceCascade : MonoBehaviour
     {
-        [SerializeField] private int dimensions = 5;
-        [SerializeField] [Range(1, 32)] private uint scanRadius = 1;
         [SerializeField] private ComputeShader compute;
-        [SerializeField] private uint resolution = 128;
-        [SerializeField] private Vector3 threshold;
-        [SerializeField] private Vector3 multiplier;
         [SerializeField] private MeshRenderer screenRenderer;
         [SerializeField] private MeshRenderer particlesRenderer;
-        [SerializeField] private Vector3Int steps = new (1,1,1);
-        [SerializeField] private float scale = 1f;
-        [SerializeField] private int spawnRate = 1;
-        [SerializeField] private int particleRadius = 1;
-        [SerializeField] private float canvasFadeSpeed = 1f;
-        [SerializeField] private float phaseSpeed;
-        [SerializeField] private float lifetime;
-        [SerializeField] private float gravity;
-        [SerializeField] private float acceleration;
-        [SerializeField] private float speed;
-        [SerializeField] private float attraction = 1;
-        [SerializeField] private float repulsion = 1;
+     
+        [SerializeField] private ResonanceCascadeConfig config;
         
         private RenderTexture screen;
         private RenderTexture field;
@@ -78,7 +64,7 @@ namespace Uriel.Behaviours
             
             compute.GetKernelThreadGroupSizes(computeFieldKernel, out threads, out _, out _);
          
-            groups = Mathf.CeilToInt(resolution / (float)threads);
+            groups = Mathf.CeilToInt(config.resolution / (float)threads);
             
             screen = CreateTexture();
             particleCanvas = CreateTexture();
@@ -88,8 +74,8 @@ namespace Uriel.Behaviours
             particleVelocities = CreateTexture3D();
 
             modulationBuffer = new ComputeBuffer(1, Marshal.SizeOf(typeof(Modulation)));
-            resonanceBuffer = new ComputeBuffer(dimensions, Marshal.SizeOf(typeof(Resonance)));
-            resonances = new Resonance[dimensions];
+            resonanceBuffer = new ComputeBuffer(config.dimensions, Marshal.SizeOf(typeof(Resonance)));
+            resonances = new Resonance[config.dimensions];
             resonanceBuffer.SetData(resonances);
             
             compute.SetTexture(clearScreenKernel, ShaderProps.Screen, screen);
@@ -131,7 +117,7 @@ namespace Uriel.Behaviours
             compute.SetTexture(spawnParticlesKernel, ShaderProps.ParticleVelocities, particleVelocities);
 
             
-            compute.SetInt(ShaderProps.Resolution, (int) resolution);
+            compute.SetInt(ShaderProps.Resolution, (int)config.resolution);
             
             screenRenderer.material.mainTexture = screen;
             particlesRenderer.material.mainTexture = particleCanvas;
@@ -155,39 +141,41 @@ namespace Uriel.Behaviours
 
         private void SetVariables()
         {
-            compute.SetFloat(ShaderProps.Attraction, attraction);
-            compute.SetFloat(ShaderProps.Repulsion, repulsion);
-            compute.SetFloat(ShaderProps.Scale, scale);
-            compute.SetVector(ShaderProps.Steps, new Vector4(steps.x, steps.y, steps.z, 0));
-            compute.SetVector(ShaderProps.Threshold, threshold);
-            compute.SetVector(ShaderProps.Multiplier, multiplier);
+            compute.SetFloat(ShaderProps.DeltaTime, Time.deltaTime);
+            
+            compute.SetFloat(ShaderProps.Attraction, config.attraction);
+            compute.SetFloat(ShaderProps.Repulsion, config.repulsion);
+            compute.SetFloat(ShaderProps.Scale, config.scale);
+    
+            compute.SetVector(ShaderProps.Threshold, config.threshold);
+            compute.SetVector(ShaderProps.Multiplier, config.multiplier);
             compute.SetMatrix(ShaderProps.Matrix, transform.localToWorldMatrix);
             compute.SetVector(ShaderProps.Offset, transform.position);
-            compute.SetInt(ShaderProps.ScanRadius, (int)scanRadius);
+            compute.SetInt(ShaderProps.ScanRadius, (int)config.scanRadius);
 
-            compute.SetFloat(ShaderProps.DeltaTime, Time.deltaTime);
-            compute.SetFloat(ShaderProps.CanvasFadeSpeed, canvasFadeSpeed);
+          
+            compute.SetFloat(ShaderProps.CanvasFadeSpeed, config.canvasFadeSpeed);
    
-            compute.SetFloat(ShaderProps.Speed, speed);
-            compute.SetFloat(ShaderProps.Acceleration, acceleration);
-            compute.SetFloat(ShaderProps.Gravity, gravity);
-            compute.SetFloat(ShaderProps.Lifetime, lifetime);
+            compute.SetFloat(ShaderProps.Speed, config.speed);
+            compute.SetFloat(ShaderProps.Acceleration, config.acceleration);
+            compute.SetFloat(ShaderProps.Gravity, config.gravity);
+            compute.SetFloat(ShaderProps.Lifetime, config.lifetime);
             
-            compute.SetInt(ShaderProps.Dimensions, dimensions);
-            compute.SetInt(ShaderProps.ParticleRadius, particleRadius);
+            compute.SetInt(ShaderProps.Dimensions, config.dimensions);
+            compute.SetInt(ShaderProps.ParticleRadius, config.particleRadius);
             
-            compute.SetFloat(ShaderProps.PhaseSpeed, phaseSpeed);
+            compute.SetFloat(ShaderProps.PhaseSpeed, config.phaseSpeed);
         }
 
         private RenderTexture CreateTexture3D(GraphicsFormat format = GraphicsFormat.R32G32B32A32_SFloat)
         {
-            var tex = new RenderTexture((int)resolution, (int)resolution, 0, format)
+            var tex = new RenderTexture((int)config.resolution, (int)config.resolution, 0, format)
             {
                 enableRandomWrite = true,
                 useMipMap = false,
                 autoGenerateMips = false,
                 filterMode = FilterMode.Point,
-                volumeDepth = dimensions,
+                volumeDepth = config.dimensions,
                 dimension = UnityEngine.Rendering.TextureDimension.Tex3D,
             };
 
@@ -198,7 +186,7 @@ namespace Uriel.Behaviours
 
         private RenderTexture CreateTexture(GraphicsFormat format = GraphicsFormat.R32G32B32A32_SFloat)
         {
-            var tex = new RenderTexture((int)resolution, (int)resolution, 1, format)
+            var tex = new RenderTexture((int)config.resolution, (int)config.resolution, 1, format)
             {
                 enableRandomWrite = true,
                 useMipMap = false,
@@ -213,7 +201,7 @@ namespace Uriel.Behaviours
         
         private void ComputeField()
         {
-            for (int i = 0; i < dimensions; i++)
+            for (int i = 0; i < config.dimensions; i++)
             {
                 compute.SetInt(ShaderProps.CurrentDimension, i);
                 compute.Dispatch(computeFieldKernel, groups, groups, 1);
@@ -222,7 +210,7 @@ namespace Uriel.Behaviours
 
         private void ComputeParticles()
         {
-            for (int i = 0; i < dimensions; i++)
+            for (int i = 0; i < config.dimensions; i++)
             {
                 compute.SetInt(ShaderProps.CurrentDimension, i);
                 compute.Dispatch(computeParticlesKernel, groups, groups, 1);
@@ -239,7 +227,7 @@ namespace Uriel.Behaviours
         
         private void ClearField()
         {
-            compute.Dispatch(clearFieldKernel, groups, groups, dimensions);
+            compute.Dispatch(clearFieldKernel, groups, groups, config.dimensions);
         }
 
         private void RenderScreen()
@@ -253,8 +241,8 @@ namespace Uriel.Behaviours
             var uv = particlesRenderer.transform.InverseTransformPoint(worldPos)
                      + new Vector3(0.5f, 0.5f, 0);
             
-            Vector2Int pixelPos = new Vector2Int((int)math.round(uv.x * resolution), 
-                (int)math.round(uv.y * resolution));
+            Vector2Int pixelPos = new Vector2Int((int)math.round(uv.x * config.resolution), 
+                (int)math.round(uv.y * config.resolution));
             
             compute.SetInt(ShaderProps.SpawnCounter, amount);
            
@@ -278,12 +266,12 @@ namespace Uriel.Behaviours
         {
             if (Input.GetMouseButton(1))
             {
-                SpawnParticle(spawnRate, Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                SpawnParticle(config.spawnRate, Camera.main.ScreenToWorldPoint(Input.mousePosition));
             }
 
             if (Input.GetMouseButtonDown(0))
             {
-                SpawnParticle(spawnRate, Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                SpawnParticle(config.spawnRate, Camera.main.ScreenToWorldPoint(Input.mousePosition));
             }
             
             if (Input.GetKeyDown(KeyCode.R))
@@ -300,7 +288,7 @@ namespace Uriel.Behaviours
             if (Input.GetKeyDown(KeyCode.D))
             {
                 currentScreen++;
-                if (currentScreen >= dimensions)
+                if (currentScreen >= config.dimensions)
                 {
                     currentScreen = 0;
                 }
@@ -311,8 +299,16 @@ namespace Uriel.Behaviours
                 currentScreen--;
                 if (currentScreen < 0)
                 {
-                    currentScreen = dimensions - 1;
+                    currentScreen = config.dimensions - 1;
                 }
+            }
+
+            if (Input.GetKeyDown(KeyCode.S))
+            {
+                FileUtils.SaveTextureAsPNG(particleCanvas, "Cascades", Guid.NewGuid()
+                    .ToString()
+                    .ToUpper()
+                    .Substring(0,3));
             }
             
             SetVariables();

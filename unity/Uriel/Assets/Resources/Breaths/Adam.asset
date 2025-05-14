@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7ef1a3b685548198a722c93f6ea7630, type: 3}
   m_Name: Adam
   m_EditorClassIdentifier: 
+  rate: 2.6
   mods:
-  - time: 338.48837
-    frequency: 1
-    phase: 0
-    amplitude: 195.89
+  - time: 9.422437
+    frequency: 0.21
+    phase: 0.85
+    amplitude: 0
