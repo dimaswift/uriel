@@ -4,6 +4,9 @@ namespace Uriel.Domain
 {
     public static class ShaderProps
     {
+        public static readonly int FieldResolution = Shader.PropertyToID("_FieldResolution");
+        public static readonly int ParticleResolution = Shader.PropertyToID("_ParticleResolution");
+        public static readonly int MousePosition = Shader.PropertyToID("_MousePosition");
         public static readonly int GradientSize = Shader.PropertyToID("_GradientSize");
         public static readonly int Radius = Shader.PropertyToID("_Radius");
         public static readonly int PhotonCount = Shader.PropertyToID("_PhotonCount");

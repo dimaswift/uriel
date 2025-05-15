@@ -35,8 +35,10 @@ namespace Uriel.Behaviours
         private int spawnParticlesKernel;
         private int fadeParticlesKernel;
         private int collapseFieldKernel;
-
+        private int clearParticlesKernel;
+        
         private Resonance[] resonances;
+        private Camera cam;
 
         struct Resonance
         {
@@ -46,10 +48,13 @@ namespace Uriel.Behaviours
         private int currentScreen;
 
         private uint threads;
-        private int groups;
+        private int fieldGroups;
+        private int particleGroups;
 
         private void Start()
         {
+            cam = Camera.main;
+            clearParticlesKernel = compute.FindKernel("ClearParticles");
             collapseFieldKernel = compute.FindKernel("CollapseField");
             renderParticlesKernel = compute.FindKernel("RenderParticles");
             clearScreenKernel = compute.FindKernel("ClearScreen");
@@ -65,14 +70,15 @@ namespace Uriel.Behaviours
             
             compute.GetKernelThreadGroupSizes(computeFieldKernel, out threads, out _, out _);
          
-            groups = Mathf.CeilToInt(config.resolution / (float)threads);
+            fieldGroups = Mathf.CeilToInt(config.fieldResolution / (float)threads);
+            particleGroups = Mathf.CeilToInt(config.particleResolution / (float)threads);
             
-            screen = CreateTexture();
-            particleCanvas = CreateTexture();
+            screen = CreateTexture(config.fieldResolution);
+            particleCanvas = CreateTexture(config.particleResolution);
             
-            field = CreateTexture3D();
-            particlePositions = CreateTexture3D();
-            particleVelocities = CreateTexture3D();
+            field = CreateTexture3D(config.fieldResolution);
+            particlePositions = CreateTexture3D(config.particleResolution);
+            particleVelocities = CreateTexture3D(config.particleResolution);
 
             modulationBuffer = new ComputeBuffer(1, Marshal.SizeOf(typeof(Modulation)));
             resonanceBuffer = new ComputeBuffer(config.dimensions, Marshal.SizeOf(typeof(Resonance)));
@@ -88,6 +94,10 @@ namespace Uriel.Behaviours
             compute.SetTexture(clearFieldKernel, ShaderProps.ParticlePositions, particlePositions);
             compute.SetTexture(clearFieldKernel, ShaderProps.ParticleVelocities, particleVelocities);
 
+            compute.SetTexture(clearParticlesKernel, ShaderProps.ParticlePositions, particlePositions);
+            compute.SetTexture(clearParticlesKernel, ShaderProps.ParticleVelocities, particleVelocities);
+            compute.SetTexture(renderParticlesKernel, ShaderProps.Field, field);
+            
             compute.SetTexture(computeParticlesKernel, ShaderProps.ParticlePositions, particlePositions);
             compute.SetTexture(computeParticlesKernel, ShaderProps.ParticleVelocities, particleVelocities);
             compute.SetTexture(computeParticlesKernel, ShaderProps.ParticleCanvas, particleCanvas);
@@ -118,7 +128,8 @@ namespace Uriel.Behaviours
             compute.SetTexture(spawnParticlesKernel, ShaderProps.ParticleVelocities, particleVelocities);
 
             
-            compute.SetInt(ShaderProps.Resolution, (int)config.resolution);
+            compute.SetInt(ShaderProps.FieldResolution, (int)config.fieldResolution);
+            compute.SetInt(ShaderProps.ParticleResolution, (int)config.particleResolution);
             
             screenRenderer.material.mainTexture = screen;
             particlesRenderer.material.mainTexture = particleCanvas;
@@ -142,7 +153,8 @@ namespace Uriel.Behaviours
 
         private void SetVariables()
         {
-           
+            var pixelPos = GetMousePixelPos();
+            compute.SetVector(ShaderProps.MousePosition, new Vector4(pixelPos.x, pixelPos.y));
             compute.SetFloat(ShaderProps.GradientMultiplier, config.gradientMultiplier);
             compute.SetFloat(ShaderProps.GradientThreshold, config.gradientThreshold);
             compute.SetFloat(ShaderProps.Radius, config.radius);
@@ -172,9 +184,9 @@ namespace Uriel.Behaviours
             compute.SetFloat(ShaderProps.PhaseSpeed, config.phaseSpeed);
         }
 
-        private RenderTexture CreateTexture3D(GraphicsFormat format = GraphicsFormat.R32G32B32A32_SFloat)
+        private RenderTexture CreateTexture3D(uint resolution, GraphicsFormat format = GraphicsFormat.R32G32B32A32_SFloat)
         {
-            var tex = new RenderTexture((int)config.resolution, (int)config.resolution, 0, format)
+            var tex = new RenderTexture((int)resolution, (int)resolution, 0, format)
             {
                 enableRandomWrite = true,
                 useMipMap = false,
@@ -189,9 +201,9 @@ namespace Uriel.Behaviours
             return tex;
         }
 
-        private RenderTexture CreateTexture(GraphicsFormat format = GraphicsFormat.R32G32B32A32_SFloat)
+        private RenderTexture CreateTexture(uint resolution, GraphicsFormat format = GraphicsFormat.R32G32B32A32_SFloat)
         {
-            var tex = new RenderTexture((int)config.resolution, (int)config.resolution, 1, format)
+            var tex = new RenderTexture((int)resolution, (int)resolution, 1, format)
             {
                 enableRandomWrite = true,
                 useMipMap = false,
@@ -209,7 +221,7 @@ namespace Uriel.Behaviours
             for (int i = 0; i < config.dimensions; i++)
             {
                 compute.SetInt(ShaderProps.CurrentDimension, i);
-                compute.Dispatch(computeFieldKernel, groups, groups, 1);
+                compute.Dispatch(computeFieldKernel, fieldGroups, fieldGroups, 1);
             }
         }
 
@@ -218,36 +230,51 @@ namespace Uriel.Behaviours
             for (int i = 0; i < config.dimensions; i++)
             {
                 compute.SetInt(ShaderProps.CurrentDimension, i);
-                compute.Dispatch(computeParticlesKernel, groups, groups, 1);
+                compute.Dispatch(computeParticlesKernel, particleGroups, particleGroups, 1);
             }
 
             compute.SetInt(ShaderProps.CurrentScreen, 0);
-            compute.Dispatch(renderParticlesKernel, groups, groups, 1);
+            compute.Dispatch(renderParticlesKernel, particleGroups, particleGroups, 1);
         }
 
         private void ClearScreen()
         {
-            compute.Dispatch(clearScreenKernel, groups, groups, 1);
+            compute.Dispatch(clearScreenKernel, fieldGroups, fieldGroups, 1);
         }
         
         private void ClearField()
         {
-            compute.Dispatch(clearFieldKernel, groups, groups, config.dimensions);
+            compute.Dispatch(clearFieldKernel, fieldGroups, fieldGroups, config.dimensions);
         }
+
+        private void ClearParticles()
+        {
+            compute.Dispatch(clearParticlesKernel, particleGroups, particleGroups, config.dimensions);
+        }
+
 
         private void RenderScreen()
         {
             compute.SetInt(ShaderProps.CurrentScreen, currentScreen);
-            compute.Dispatch(renderScreenKernel, groups, groups, 1);
+            compute.Dispatch(renderScreenKernel, fieldGroups, fieldGroups, 1);
         }
 
-        private void SpawnParticle(int amount, Vector3 worldPos)
+        private Vector2Int WorldToPixel(Vector3 worldPos)
         {
             var uv = particlesRenderer.transform.InverseTransformPoint(worldPos)
                      + new Vector3(0.5f, 0.5f, 0);
-            
-            Vector2Int pixelPos = new Vector2Int((int)math.round(uv.x * config.resolution), 
-                (int)math.round(uv.y * config.resolution));
+            return new Vector2Int((int)math.round(uv.x * config.particleResolution),
+                (int)math.round(uv.y * config.particleResolution));
+        }
+
+        private Vector2Int GetMousePixelPos()
+        {
+            return WorldToPixel(cam.ScreenToWorldPoint(Input.mousePosition));
+        }
+
+
+        private void SpawnParticle(int amount, Vector2Int pixelPos)
+        {
             
             compute.SetInt(ShaderProps.SpawnCounter, amount);
            
@@ -258,12 +285,12 @@ namespace Uriel.Behaviours
         private void CollapseField()
         {
             compute.SetInt(ShaderProps.CurrentDimension, 0);
-            compute.Dispatch(collapseFieldKernel, groups, groups, 1);
+            compute.Dispatch(collapseFieldKernel, particleGroups, particleGroups, 1);
         }
 
         private void FadeParticleCanvas()
         {
-            compute.Dispatch(fadeParticlesKernel, groups, groups, 1);
+            compute.Dispatch(fadeParticlesKernel, particleGroups, particleGroups, 1);
         }
 
         
@@ -271,16 +298,17 @@ namespace Uriel.Behaviours
         {
             if (Input.GetMouseButton(1))
             {
-                SpawnParticle(config.spawnRate, Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                SpawnParticle(config.spawnRate, GetMousePixelPos());
             }
 
             if (Input.GetMouseButtonDown(0))
             {
-                SpawnParticle(config.spawnRate, Camera.main.ScreenToWorldPoint(Input.mousePosition));
+                SpawnParticle(config.spawnRate, GetMousePixelPos());
             }
             
             if (Input.GetKeyDown(KeyCode.R))
             {
+                ClearParticles();
                 ClearField();
                 ClearScreen();
             }

@@ -8,7 +8,8 @@ namespace Uriel.Domain
         public Texture gradient;
         public float gradientThreshold;
         public float gradientMultiplier;
-        public uint resolution = 128;
+        public uint fieldResolution = 128;
+        public uint particleResolution = 128;
         public Vector3 threshold;
         public Vector3 multiplier;
         public int dimensions = 5;

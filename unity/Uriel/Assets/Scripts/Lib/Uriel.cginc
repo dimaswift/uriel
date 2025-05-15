@@ -68,7 +68,7 @@ float sampleField(const float3 pos, const float3 vertex,
     const float freq = photon.frequency + (m.time * m.frequency);
     const float phase = photon.phase + m.time * m.phase;
     const float amp = photon.amplitude + sin(m.amplitude * m.time) * (1.0 / size);
-    return sin(dist * freq + phase) * amp; 
+    return cos(dist * freq + phase) * amp; 
 }
 
 

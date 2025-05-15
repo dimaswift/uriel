@@ -7,6 +7,7 @@
 #pragma kernel SpawnParticles
 #pragma kernel FadeParticles
 #pragma kernel CollapseField
+#pragma kernel ClearParticles
 
 #include "Assets/Scripts/Lib/Uriel.cginc"
 
@@ -15,7 +16,8 @@ struct Resonance
     int current;
 };
 
-uint _Resolution;
+uint _FieldResolution;
+uint _ParticleResolution;
 float _Scale;
 float _DeltaTime;
 float _CanvasFadeSpeed;
@@ -32,6 +34,7 @@ float _Time;
 float _Gravity;
 float _Radius;
 
+uint2 _MousePosition;
 uint _CurrentDimension;
 uint _Dimensions;
 RWTexture3D<float4> _ParticlePositions;
@@ -58,6 +61,12 @@ uint _ModulationCount;
 void ClearField(uint3 id : SV_DispatchThreadID)
 {
     _Field[id.xyz] = float4(0,0,0,0);
+
+}
+
+[numthreads(8, 8, 1)]
+void ClearParticles(uint3 id : SV_DispatchThreadID)
+{
     _ParticlePositions[id.xyz] = float4(0,0,0,0);
     _ParticleVelocities[id.xyz] = float4(0,0,0,0);
 }
@@ -66,12 +75,13 @@ void ClearField(uint3 id : SV_DispatchThreadID)
 void ClearScreen(uint3 id : SV_DispatchThreadID)
 {
     _Screen[id.xy] = float4(0,0,0,0);
-    _ParticleCanvas[id.xy] = float4(1,1,1,0);
+    _ParticleCanvas[id.xy] = float4(0,0,0,0);
 }
 
 [numthreads(8, 8, 1)]
 void FadeParticles(uint3 id : SV_DispatchThreadID)
 {
+    const float2 center = float2(id.x - float(_ParticleResolution) / 2, id.y - float(_ParticleResolution) / 2);
     float4 col = _ParticleCanvas[id.xy];
     col.a = lerp(col.a, 0, _DeltaTime * _CanvasFadeSpeed);
     _ParticleCanvas[id.xy] = col;
@@ -87,12 +97,16 @@ void RenderScreen(uint3 id : SV_DispatchThreadID)
 void RenderParticles(uint3 id : SV_DispatchThreadID)
 {
     float4 pos = _ParticlePositions[uint3(id.xy, _CurrentScreen)];
+    const uint2 pixelPos = uint2(round(pos.x), round(pos.y));
+    if (pos.w == 0 || pixelPos.x < 0 || pixelPos.x >= _ParticleResolution || pixelPos.y < 0 || pixelPos.y >= _ParticleResolution)
+    {
+        return;
+    }
+    
     float4 vel = _ParticleVelocities[uint3(id.xy, _CurrentScreen)];
-    const uint2 pixelPos = uint2(clamp(pos.x, 0, _Resolution), clamp(pos.y, 0, _Resolution));
     float4 col = _ParticleCanvas[pixelPos];
-    col.w += _DeltaTime * _Lifetime;
     float m = length(vel.xy) * _GradientMultiplier * 0.001;
-   // col.xyz = _Gradient[uint2(uint(pos.z * _GradientThreshold * 0.001) % uint(_GradientSize), 0)] * m;
+    col.w += _DeltaTime * _Lifetime;
     col.xyz = hsv2rgb(pos.z * _GradientThreshold * 0.001 * m, 1, 1);
     _ParticleCanvas[pixelPos] = col;
 }
@@ -100,22 +114,32 @@ void RenderParticles(uint3 id : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void CollapseField(uint3 id : SV_DispatchThreadID)
 {
-    if(distance(float2(float(_Resolution) / 2, float(_Resolution) / 2), id.xy) < float(_Resolution) / 2)
-    {
-        _ParticlePositions[uint3(id.xy, _CurrentDimension)] = float4(id.xy, 0, 1);
-    }
+    _ParticlePositions[uint3(id.xy, _CurrentDimension)] = float4(id.x, id.y, 0, 1);
 }
 
 [numthreads(8, 8, 1)]
 void ComputeField(uint3 id : SV_DispatchThreadID)
 {
-    const float xPos = float(id.x) / _Resolution;  
-    const float yPos = float(id.y) / _Resolution;
+    const float xPos = float(id.x) / (_FieldResolution - 1);  
+    const float yPos = float(id.y) / (_FieldResolution - 1);
     const float zPos = float(_CurrentDimension) / _Dimensions;
     const float3 uv = float3(xPos - 0.5, yPos - 0.5, zPos - 0.5) * _Scale;
     const float density = sampleField(uv, _ModulationBuffer[0]);
     float3 col =  density > 0 ? float3(density, 0, 0) : float3(0, 0, abs(density));
-    _Field[uint3(id.xy, _CurrentDimension)] = float4(col, 1);
+    _Field[uint3(id.xy, _CurrentDimension)] = float4(density,density,density, 1);
+    if(_CurrentDimension == 1)
+    {
+        _Field[uint3(id.xy, _CurrentDimension)] = float4(0,0,0, 1);
+    }
+}
+
+float sampleF(uint2 id)
+{
+    const float xPos = float(id.x) / (_FieldResolution - 1);  
+    const float yPos = float(id.y) / (_FieldResolution - 1);
+    const float zPos = float(_CurrentDimension) / _Dimensions;
+    const float3 uv = float3(xPos - 0.5, yPos - 0.5, zPos - 0.5) * _Scale;
+    return  sampleField(uv, _ModulationBuffer[0]);
 }
 
 [numthreads(8, 8, 1)]
@@ -127,31 +151,53 @@ void ComputeParticles(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    
-    const float2 center = float2(pos.x - float(_Resolution) / 2, pos.y - float(_Resolution) / 2);
+    const float ratio = (_FieldResolution - _ParticleResolution);
+    const float2 center = float2(pos.x - float(_ParticleResolution - 1) / 2, pos.y - float(_ParticleResolution - 1) / 2);
     float4 vel = _ParticleVelocities[uint3(id.xy, _CurrentDimension)];
-    
+    int2 fieldPos = int2(round(pos.x + ratio * 0.5),round(pos.y + ratio * 0.5));
     const int rad = _ParticleRadius;
     float2 fieldConvergence = float2(0,0);
-    float density = 0;
+    float4 density = _Field[uint3(fieldPos, _CurrentDimension)];
+    
     for (int x = -rad; x <= rad; x++)
     {
         for (int y = -rad; y <= rad; y++)
         {
-            int3 checkPoint = int3(pos.x + x, pos.y + y, _CurrentDimension);
-            checkPoint.x = clamp(checkPoint.x, 0, _Resolution);
-            checkPoint.y = clamp(checkPoint.y, 0, _Resolution);
-            float4 global = _Field[uint3(checkPoint)];
+            int2 checkPoint = int3(fieldPos.x + x, fieldPos.y + y, _CurrentDimension);
+            if(checkPoint.x < 0 || checkPoint.x >= _FieldResolution
+                || checkPoint.y < 0 || checkPoint.y >= _FieldResolution)
+            {
+                continue;
+            }
+            float4 global = _Field[uint3(checkPoint, _CurrentDimension)];
             fieldConvergence += float2(x, y) * global.r * _Attraction;
-            fieldConvergence -= float2(x, y) * global.b * _Attraction;
-            pos.z += global.r * _DeltaTime * _PhaseSpeed;
-            pos.z -= global.b * _DeltaTime * _PhaseSpeed;
+           // fieldConvergence -= float2(x, y) * global.b * _Attraction;
         }
     }
-
-    const float2 force = fieldConvergence * _Acceleration * _DeltaTime / sqrt(length(center));
     
-    vel.xy += force;
+    // pos.z += _PhaseSpeed * _DeltaTime * sampleF(fieldPos);;
+    // int2 checkPoint = int3(fieldPos.x + 1, fieldPos.y, _CurrentDimension);
+    // float global = sampleF(checkPoint);
+    // fieldConvergence += float2(1, 0) * global * _Attraction;
+    //
+    // checkPoint = int3(fieldPos.x - 1, fieldPos.y, _CurrentDimension);
+    // global = sampleF(checkPoint);
+    // fieldConvergence += float2(-1, 0) * global * _Attraction;
+    //
+    // checkPoint = int3(fieldPos.x, fieldPos.y + 1, _CurrentDimension);
+    // global = sampleF(checkPoint);;
+    // fieldConvergence += float2(0, 1) * global * _Attraction;
+    //
+    // checkPoint = int3(fieldPos.x, fieldPos.y - 1, _CurrentDimension);
+    // global = sampleF(checkPoint);
+    // fieldConvergence += float2(0, -1) * global * _Attraction;
+ 
+   
+  //  pos.z -= _PhaseSpeed * _DeltaTime * density.b;
+    
+    const float2 force = fieldConvergence * _Acceleration;
+    
+    vel.xy += force * _DeltaTime;
     pos.xy += vel.xy * _Speed * _DeltaTime;
     
     if(pos.z >= _GradientSize)
@@ -159,11 +205,13 @@ void ComputeParticles(uint3 id : SV_DispatchThreadID)
        // pos.z = 0;
     }
 
-    if (length(center) > _Resolution * _Radius)
+    if (length(center) > _FieldResolution * _Radius)
     {
-        pos.xy = int2(float(_Resolution) / 2, float(_Resolution) / 2);
-        vel *= -_Gravity;
-      //  pos.z += _DeltaTime * _PhaseSpeed;
+       pos.xy = _MousePosition;
+       // pos.xy = float2(float(_ParticleResolution - 1) / 2, float(_ParticleResolution - 1) / 2) + force;
+       //pos.xy = int2(float(_Resolution) / 4, float(_Resolution) / 4);
+        vel *=  -_Gravity;
+        pos.z += _DeltaTime * _PhaseSpeed;
     }
     
     _ParticlePositions[uint3(id.xy, _CurrentDimension)] = pos;
