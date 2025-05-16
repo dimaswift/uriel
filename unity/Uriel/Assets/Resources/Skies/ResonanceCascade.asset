@@ -19,12 +19,12 @@ MonoBehaviour:
       e02: 0
       e03: 0
       e10: 0
-      e11: 0.8386706
-      e12: -0.54463893
+      e11: 1
+      e12: 0
       e13: 0
       e20: 0
-      e21: 0.54463893
-      e22: 0.8386706
+      e21: 0
+      e22: 1
       e23: 0
       e30: 0
       e31: 0
@@ -32,8 +32,8 @@ MonoBehaviour:
       e33: 1
     iterations: 1
     type: 4
-    frequency: 3632.6
-    amplitude: 0.28
-    phase: 16.01
-    radius: 9.47
-    density: 0.64
+    frequency: 1
+    amplitude: 1
+    phase: 0
+    radius: 1
+    density: 1

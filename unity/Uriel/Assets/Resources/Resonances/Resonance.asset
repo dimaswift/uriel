@@ -13,23 +13,23 @@ MonoBehaviour:
   m_Name: Resonance
   m_EditorClassIdentifier: 
   gradient: {fileID: 2800000, guid: e11ffa00b579cfc489886886ef8276f4, type: 3}
-  gradientThreshold: 1.13
-  gradientMultiplier: 1759.6
+  gradientThreshold: 0.49
+  gradientMultiplier: 531.6
   fieldResolution: 1024
   particleResolution: 1024
   threshold: {x: 24.4, y: 1, z: 1}
   multiplier: {x: 1, y: 1, z: 0.01}
   dimensions: 3
   scanRadius: 1
-  scale: 1.85
+  scale: 1
   spawnRate: 1
   particleRadius: 10
-  canvasFadeSpeed: 5.95
-  phaseSpeed: 0.1
-  lifetime: 0.08
-  gravity: 0.99
-  acceleration: 3.57
-  speed: 2.62
-  attraction: 0.59
-  repulsion: 1
+  canvasFadeSpeed: 5.91
+  phaseSpeed: 0.01
+  lifetime: 0.4
+  gravity: 0.31
+  acceleration: 1
+  speed: 2.14
+  attraction: 1
+  repulsion: 77.21
   radius: 0.49

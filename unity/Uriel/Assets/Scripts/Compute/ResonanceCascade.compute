@@ -146,72 +146,72 @@ float sampleF(uint2 id)
 void ComputeParticles(uint3 id : SV_DispatchThreadID)
 {
     float4 pos = _ParticlePositions[uint3(id.xy, _CurrentDimension)];
-    
+
+    //it's dormant (alpha is almost zero, a ghost per se), no need to process it further
     if (pos.w <= 0.001)
     {
         return;
     }
-    const float ratio = (_FieldResolution - _ParticleResolution);
-    const float2 center = float2(pos.x - float(_ParticleResolution - 1) / 2, pos.y - float(_ParticleResolution - 1) / 2);
+    const float halfRes = (_FieldResolution - 1) / 2;
+    const float2 center = float2(pos.x - halfRes, pos.y - halfRes);
     float4 vel = _ParticleVelocities[uint3(id.xy, _CurrentDimension)];
-    int2 fieldPos = int2(round(pos.x + ratio * 0.5),round(pos.y + ratio * 0.5));
+    const int2 fieldCoords = int2(round(pos.x), round(pos.y));
     const int rad = _ParticleRadius;
-    float2 fieldConvergence = float2(0,0);
-    float4 density = _Field[uint3(fieldPos, _CurrentDimension)];
+    float2 fieldConvergence = float2(0, 0);
+    const float4 centerDensity = _Field[uint3(fieldCoords, _CurrentDimension)];
     
     for (int x = -rad; x <= rad; x++)
     {
         for (int y = -rad; y <= rad; y++)
         {
-            int2 checkPoint = int3(fieldPos.x + x, fieldPos.y + y, _CurrentDimension);
+            int2 checkPoint = int3(fieldCoords.x + x, fieldCoords.y + y, _CurrentDimension);
             if(checkPoint.x < 0 || checkPoint.x >= _FieldResolution
                 || checkPoint.y < 0 || checkPoint.y >= _FieldResolution)
             {
                 continue;
             }
-            float4 global = _Field[uint3(checkPoint, _CurrentDimension)];
-            fieldConvergence += float2(x, y) * global.r * _Attraction;
-           // fieldConvergence -= float2(x, y) * global.b * _Attraction;
+            const float4 fieldDensity = _Field[uint3(checkPoint, _CurrentDimension)];
+            fieldConvergence += float2(x, y) * fieldDensity.r * _Attraction;
         }
     }
-    
-    // pos.z += _PhaseSpeed * _DeltaTime * sampleF(fieldPos);;
-    // int2 checkPoint = int3(fieldPos.x + 1, fieldPos.y, _CurrentDimension);
-    // float global = sampleF(checkPoint);
-    // fieldConvergence += float2(1, 0) * global * _Attraction;
-    //
-    // checkPoint = int3(fieldPos.x - 1, fieldPos.y, _CurrentDimension);
-    // global = sampleF(checkPoint);
-    // fieldConvergence += float2(-1, 0) * global * _Attraction;
-    //
-    // checkPoint = int3(fieldPos.x, fieldPos.y + 1, _CurrentDimension);
-    // global = sampleF(checkPoint);;
-    // fieldConvergence += float2(0, 1) * global * _Attraction;
-    //
-    // checkPoint = int3(fieldPos.x, fieldPos.y - 1, _CurrentDimension);
-    // global = sampleF(checkPoint);
-    // fieldConvergence += float2(0, -1) * global * _Attraction;
- 
-   
-  //  pos.z -= _PhaseSpeed * _DeltaTime * density.b;
-    
+
+    //seek denser universal field A.K.A God presence
     const float2 force = fieldConvergence * _Acceleration;
     
     vel.xy += force * _DeltaTime;
     pos.xy += vel.xy * _Speed * _DeltaTime;
-    
-    if(pos.z >= _GradientSize)
-    {
-       // pos.z = 0;
-    }
 
+    //particle is out of bounds, but information is not lost
+    //it's re-emitted from the eyes preserving phase and velocity
     if (length(center) > _FieldResolution * _Radius)
     {
-       pos.xy = _MousePosition;
-       // pos.xy = float2(float(_ParticleResolution - 1) / 2, float(_ParticleResolution - 1) / 2) + force;
-       //pos.xy = int2(float(_Resolution) / 4, float(_Resolution) / 4);
-        vel *=  -_Gravity;
-        pos.z += _DeltaTime * _PhaseSpeed;
+        float eyeWidth = 0.1;
+        float eyeHeight = 1.5;
+        float eyeHorizontal = halfRes + _ParticleResolution * eyeWidth * sign(center.x);
+        float eyeVertical = float(_ParticleResolution - 1) / eyeHeight;
+
+        if(center.y > 0)
+        {
+            pos.xy = float2(eyeHorizontal, eyeVertical);
+        }
+        else
+        {
+            //third eye is guided by hand (first biofeedback?)
+            pos.xy = _MousePosition;
+        }
+      
+        //reverse velocity upon entering the abyss, but preserve direction
+        vel *= -1;
+        //limit velocity for stability purposes
+        if (length(vel) > _FieldResolution * _Gravity)
+        {
+            vel = normalize(vel) * _FieldResolution * _Gravity;
+        }
+    }
+    else
+    {
+        //cycle phase A.K.A lifecycle
+        pos.z += _DeltaTime * _PhaseSpeed * centerDensity.x;
     }
     
     _ParticlePositions[uint3(id.xy, _CurrentDimension)] = pos;

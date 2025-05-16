@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rate: 1.5
   mods:
-  - time: 17.062605
-    frequency: 1.03
-    phase: 0.16
-    amplitude: 0.63
+  - time: 0.7954869
+    frequency: 1
+    phase: 0.1
+    amplitude: 1
