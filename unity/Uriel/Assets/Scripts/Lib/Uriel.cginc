@@ -57,7 +57,87 @@ Photon createPhoton(uint type, float4x4 transform, uint iterations, float freque
     w.type = type;
     w.transform = transform;
     return w;  
-}  
+}
+
+#define MaxIterations 1
+
+float solveKepler(float meanAnomaly, float eccentricity)
+{
+    float E = meanAnomaly + eccentricity * sin(meanAnomaly);
+    return E;
+}
+
+float ellipticalSine(float time, float eccentricity)
+{
+    const float eccentricAnomaly = solveKepler(time, eccentricity);
+    return sqrt(1 - eccentricity * eccentricity) * sin(eccentricAnomaly);
+}
+
+float triWave(float freq, float dutyCycle, float amplitude)
+{
+    float t = (freq) % 1.0f;
+
+    float value;
+        
+    if (t < dutyCycle)
+    {
+        value = -amplitude + (2 * amplitude * t / dutyCycle);
+    }
+    else
+    {
+        float fallT = (t - dutyCycle) / (1 - dutyCycle);
+        value = amplitude - (2 * amplitude * fallT);
+    }
+        
+    return value;
+}
+
+float squareWave(float frequency, float dutyCycle, float amplitude, float smoothing)
+{
+        float t = (frequency) % 1.0f;
+    
+        if (smoothing <= 0)
+        {
+            return (t < dutyCycle ? amplitude : -amplitude);
+        }
+    
+        float value;
+    
+        float distFromDutyTransition = min(
+            abs(t - dutyCycle),
+            abs(t - dutyCycle - 1)
+        );
+        
+        float distFromZeroTransition = min(
+            t,
+            1.0 - t
+        );
+    
+        float nearestTransition = min(distFromDutyTransition, distFromZeroTransition);
+    
+        float smoothRange = smoothing;
+        
+        if (nearestTransition < smoothRange)
+        {
+            float ratio = nearestTransition / smoothRange;
+            
+            if (t < dutyCycle && t > 0 && t < 1.0 - dutyCycle)
+                value = lerp(0, amplitude, ratio);
+            else if (t > dutyCycle && t < 1.0)
+                value = lerp(0, -amplitude, ratio);
+            else if (t < dutyCycle)
+                value = amplitude;
+            else
+                value = -amplitude;
+        }
+        else
+        {
+            value = (t < dutyCycle ? amplitude : -amplitude);
+        }
+        
+        return value;
+    
+}
 
 float sampleField(const float3 pos, const float3 vertex,
     const Photon photon, const uint size, Modulation m = DEFAULT_MOD)
@@ -68,7 +148,7 @@ float sampleField(const float3 pos, const float3 vertex,
     const float freq = photon.frequency + (m.time * m.frequency);
     const float phase = photon.phase + m.time * m.phase;
     const float amp = photon.amplitude + sin(m.amplitude * m.time) * (1.0 / size);
-    return cos(dist * freq + phase) * amp; 
+    return sin(dist * freq + phase) * amp;
 }
 
 

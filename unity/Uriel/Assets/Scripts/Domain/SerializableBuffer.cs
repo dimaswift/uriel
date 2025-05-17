@@ -33,9 +33,10 @@ namespace Uriel.Domain
         {
             if (buffer != null) return;
             var data = GetData();
+            if (data.Count == 0) return;
             buffer = new ComputeBuffer(data.Count, Marshal.SizeOf(typeof(T)));
             buffer.SetData(data);
-        }
+        } 
         
         public override bool CreateBuffer()
         {

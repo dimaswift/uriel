@@ -13,8 +13,10 @@ Shader "Uriel/LitSurfaceGradient"
         _Multiplier ("Multiplier", Range(-3.14, 3.14)) = 1
         _Depth("Depth", Range(-3.14, 3.14)) = 1.0
         _Steps("Steps", Range(1.0, 100.0)) = 1.0
-        _Min("Min", Range(-3.0, 3.0)) = 1.0
-        _Max("Max", Range(-3.0, 3.0)) = 1.0
+        _Min("Min", Range(-1.0, 1.0)) = 1.0
+        _Max("Max", Range(-1.0, 1.0)) = 1.0
+        _Range("Range", Float) = 3.0
+        
         _Frequency("Frequency", Range(0, 0.5)) = 0.5
         _Amplitude("Amplitude", Range(0, 0.5)) = 0.5
     }  
@@ -53,6 +55,7 @@ Shader "Uriel/LitSurfaceGradient"
             int _Steps;
             float _Frequency;
             float _Amplitude;
+            float _Range;
             
             v2f vert(const appdata_t input)  
             {  
@@ -67,7 +70,8 @@ Shader "Uriel/LitSurfaceGradient"
             {
                 const float3 origin =  id.world_pos;
                 const float ray_length = sqrt(length(origin));
-                const float value = rayMarchField(origin, normalize(origin), ray_length, _Steps, _Min, _Max, _Depth,
+                const float value = rayMarchField(origin, normalize(origin), ray_length,
+                    _Steps, _Min * _Range, _Max * _Range, _Depth,
                     _Frequency, _Amplitude);
                 const float3 diffuse_color = applyCustomLighting(sampleGradient(value), id.world_normal, id.world_normal);
                 return float4(diffuse_color, 1);  

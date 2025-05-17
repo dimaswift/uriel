@@ -158,7 +158,7 @@ namespace Uriel.Behaviours
             compute.SetFloat(ShaderProps.GradientMultiplier, config.gradientMultiplier);
             compute.SetFloat(ShaderProps.GradientThreshold, config.gradientThreshold);
             compute.SetFloat(ShaderProps.Radius, config.radius);
-            compute.SetFloat(ShaderProps.DeltaTime, Time.deltaTime);
+            compute.SetFloat(ShaderProps.DeltaTime, Time.fixedDeltaTime);
             
             compute.SetFloat(ShaderProps.Attraction, config.attraction);
             compute.SetFloat(ShaderProps.Repulsion, config.repulsion);
@@ -347,12 +347,17 @@ namespace Uriel.Behaviours
             SetVariables();
             
             ComputeField();
-            
+
             ComputeParticles();
             
             RenderScreen();
 
             FadeParticleCanvas();
+        }
+
+        private void FixedUpdate()
+        {
+           
         }
 
         private void OnDestroy()

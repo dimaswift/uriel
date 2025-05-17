@@ -4,6 +4,8 @@ namespace Uriel.Domain
 {
     public static class ShaderProps
     {
+        public static readonly int Stars = Shader.PropertyToID("_Stars");
+        public static readonly int StarCount = Shader.PropertyToID("_StarCount");
         public static readonly int FieldResolution = Shader.PropertyToID("_FieldResolution");
         public static readonly int ParticleResolution = Shader.PropertyToID("_ParticleResolution");
         public static readonly int MousePosition = Shader.PropertyToID("_MousePosition");

@@ -6,10 +6,12 @@ namespace Uriel.Domain
     [CreateAssetMenu(menuName = "Uriel/Lumen")]
     public class Lumen : SerializableBuffer<Photon>
     {
+        [SerializeField] private bool updateTransform;
         public List<Photon> photons = new();
         
         public void UpdateTransform(Matrix4x4 m)
         {
+            if (!updateTransform) return;
             for (int i = 0; i < photons.Count; i++)
             {
                 Photon p = photons[i];
@@ -25,6 +27,8 @@ namespace Uriel.Domain
         
         protected override void OnBeforeUpdate()
         {
+            if (!updateTransform) return;
+            
             for (int i = 0; i < photons.Count; i++)
             {
                 Photon p = photons[i];

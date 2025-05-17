@@ -1,0 +1,40 @@
+#pragma kernel Tick
+#pragma kernel Init
+
+#include "Assets/Scripts/Lib/Sky.cginc"
+
+RWStructuredBuffer<Star> _Stars;
+StructuredBuffer<Star> _ProtoStars;
+
+uint _StarCount;
+float _DeltaTime;
+float _Speed;
+float _Radius;
+float4 _Offset;
+
+[numthreads(8, 1, 1)]
+void Init(uint3 id : SV_DispatchThreadID)
+{
+    const uint index = id.x;
+    Star star = _ProtoStars[0];
+    const float step = (PI - _Offset.x) / (_StarCount * _Offset.y);
+    float3 pos;
+    pos.y = 0; 
+    pos.x = sin(step * index) * _Radius;
+    pos.z = cos(step * index) * _Radius;
+    star.location = pos;
+    _Stars[index] = star;
+}
+
+[numthreads(8, 1, 1)]
+void Tick(uint3 id : SV_DispatchThreadID)
+{
+    const uint index = id.x;
+    Star star = _Stars[index];
+    float alt = sin(star.frequency * star.time + star.phase) * star.amplitude + star.dutyCycle;
+    star.time += _DeltaTime * _Speed * star.velocity;
+    star.location = float3(star.location.x, alt, star.location.z);
+    
+    
+    _Stars[index] = star;
+}

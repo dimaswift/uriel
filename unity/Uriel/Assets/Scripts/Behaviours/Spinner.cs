@@ -5,10 +5,10 @@ namespace Uriel.Behaviours
     public class Spinner : MonoBehaviour
     {
         [SerializeField] private float speed = 10f;
-        
+        [SerializeField] private AnimationCurve curve;
         private void Update()
         {
-            transform.Rotate(Vector3.up * Time.deltaTime * speed);
+            transform.localEulerAngles = new Vector3(0, 0, curve.Evaluate(Time.time * speed));
         }
     }
 

@@ -9,17 +9,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
+  m_Script: {fileID: 11500000, guid: e00687e3211a49e284ccaaf4fe33b8df, type: 3}
   m_Name: Alpha
   m_EditorClassIdentifier: 
-  photons:
-  - source: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0}
-    ripples: 0
-    harmonic: 0
-    type: 0
-    frequency: 0
-    amplitude: 0
-    density: 0
-    phase: 0
-    depth: 0
+  capacity: 512
+  simulationSpeed: 0
+  radius: 0.61
+  offset: {x: 0, y: 1, z: 0, w: 0}
+  protoStars:
+  - frequency: 1.62
+    amplitude: 0.06
+    phase: 5.93
+    dutyCycle: 0.86
+    velocity: 0.89
+    time: 12.5
+    location: {x: -4.81, y: 44, z: 0}

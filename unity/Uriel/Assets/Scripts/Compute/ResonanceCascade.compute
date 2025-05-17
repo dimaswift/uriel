@@ -98,23 +98,27 @@ void RenderParticles(uint3 id : SV_DispatchThreadID)
 {
     float4 pos = _ParticlePositions[uint3(id.xy, _CurrentScreen)];
     const uint2 pixelPos = uint2(round(pos.x), round(pos.y));
-    if (pos.w == 0 || pixelPos.x < 0 || pixelPos.x >= _ParticleResolution || pixelPos.y < 0 || pixelPos.y >= _ParticleResolution)
+    if (pixelPos.x < 0 || pixelPos.x >= _ParticleResolution || pixelPos.y < 0 || pixelPos.y >= _ParticleResolution)
     {
         return;
     }
     
-    float4 vel = _ParticleVelocities[uint3(id.xy, _CurrentScreen)];
+    float4 prevPos = _ParticleVelocities[uint3(id.xy, _CurrentScreen)];
+  
     float4 col = _ParticleCanvas[pixelPos];
-    float m = length(vel.xy) * _GradientMultiplier * 0.001;
+    float m = length(prevPos.xy - pos) * _GradientMultiplier * 0.001;
     col.w += _DeltaTime * _Lifetime;
-    col.xyz = hsv2rgb(pos.z * _GradientThreshold * 0.001 * m, 1, 1);
+    col.xyz = hsv2rgb(length(prevPos.xy - pos) * _GradientThreshold * 0.001, 1, m);
     _ParticleCanvas[pixelPos] = col;
 }
 
 [numthreads(8, 8, 1)]
 void CollapseField(uint3 id : SV_DispatchThreadID)
 {
-    _ParticlePositions[uint3(id.xy, _CurrentDimension)] = float4(id.x, id.y, 0, 1);
+
+    float4 p = _ParticlePositions[uint3(id.xy, _CurrentDimension)] ;
+    _ParticlePositions[uint3(id.xy, _CurrentDimension)] = float4(id.x, id.y, p.z, 1.0);
+    _ParticleVelocities[uint3(id.xy, _CurrentDimension)] = float4(id.x, id.y, 0, 1);
 }
 
 [numthreads(8, 8, 1)]
@@ -148,17 +152,18 @@ void ComputeParticles(uint3 id : SV_DispatchThreadID)
     float4 pos = _ParticlePositions[uint3(id.xy, _CurrentDimension)];
 
     //it's dormant (alpha is almost zero, a ghost per se), no need to process it further
-    if (pos.w <= 0.001)
-    {
-        return;
-    }
+    // if (pos.w <= 0.001)
+    // {
+    //     return;
+    // }
     const float halfRes = (_FieldResolution - 1) / 2;
     const float2 center = float2(pos.x - halfRes, pos.y - halfRes);
-    float4 vel = _ParticleVelocities[uint3(id.xy, _CurrentDimension)];
+    float4 prevPos = _ParticleVelocities[uint3(id.xy, _CurrentDimension)];
     const int2 fieldCoords = int2(round(pos.x), round(pos.y));
     const int rad = _ParticleRadius;
     float2 fieldConvergence = float2(0, 0);
     const float4 centerDensity = _Field[uint3(fieldCoords, _CurrentDimension)];
+
     
     for (int x = -rad; x <= rad; x++)
     {
@@ -174,48 +179,57 @@ void ComputeParticles(uint3 id : SV_DispatchThreadID)
             fieldConvergence += float2(x, y) * fieldDensity.r * _Attraction;
         }
     }
+    float2 acceleration = float2(fieldConvergence.x, fieldConvergence.y) * _Acceleration;
 
-    //seek denser universal field A.K.A God presence
-    const float2 force = fieldConvergence * _Acceleration;
-    
-    vel.xy += force * _DeltaTime;
-    pos.xy += vel.xy * _Speed * _DeltaTime;
-
+    float2 tmp = pos.xy;
+    pos.xy = 2.0 * tmp - prevPos.xy + acceleration * _Speed * _Speed;
+    prevPos.xy = tmp;
+   
     //particle is out of bounds, but information is not lost
     //it's re-emitted from the eyes preserving phase and velocity
     if (length(center) > _FieldResolution * _Radius)
     {
+      //  pos.z += _PhaseSpeed;
         float eyeWidth = 0.1;
         float eyeHeight = 1.5;
         float eyeHorizontal = halfRes + _ParticleResolution * eyeWidth * sign(center.x);
         float eyeVertical = float(_ParticleResolution - 1) / eyeHeight;
-
+        float2 vel = pos - prevPos;
+        prevPos.xy = pos + normalize(acceleration) * _Gravity;
+        
+        pos.xy = float2(eyeHorizontal,eyeVertical);
         if(center.y > 0)
         {
-            pos.xy = float2(eyeHorizontal, eyeVertical);
+            pos.xy = float2(eyeHorizontal, -eyeVertical);
         }
         else
         {
             //third eye is guided by hand (first biofeedback?)
             pos.xy = _MousePosition;
+         //   pos.xy = float2(eyeHorizontal, -eyeVertical);
         }
-      
-        //reverse velocity upon entering the abyss, but preserve direction
-        vel *= -1;
-        //limit velocity for stability purposes
-        if (length(vel) > _FieldResolution * _Gravity)
-        {
-            vel = normalize(vel) * _FieldResolution * _Gravity;
-        }
+        prevPos.xy = pos - normalize(vel + acceleration) * _Gravity;
+        //
+        // //reverse velocity upon entering the abyss, but preserve direction
+        // vel *= -1;
+        // //limit velocity for stability purposes
+        // if (length(vel) > _FieldResolution * _Gravity)
+        // {
+        //     vel = normalize(vel) * _FieldResolution * _Gravity;
+        // }
+       
+
     }
     else
     {
         //cycle phase A.K.A lifecycle
-        pos.z += _DeltaTime * _PhaseSpeed * centerDensity.x;
+       
     }
+
+ 
     
     _ParticlePositions[uint3(id.xy, _CurrentDimension)] = pos;
-    _ParticleVelocities[uint3(id.xy, _CurrentDimension)] = vel;
+    _ParticleVelocities[uint3(id.xy, _CurrentDimension)] = prevPos;
 }
 
 [numthreads(1, 1, 1)]
@@ -227,7 +241,7 @@ void SpawnParticles(uint3 id : SV_DispatchThreadID)
         uint x = round(_SpawnPoint.x);
         uint y = round(_SpawnPoint.y);
         _ParticlePositions[uint3(x, y, _CurrentScreen)] = float4(x,y,0,1);
-        _ParticleVelocities[uint3(x, y, _CurrentScreen)] = float4(0,0,0,0);
+        _ParticleVelocities[uint3(x, y, _CurrentScreen)] = float4(x,y,0,0);
         c--;
     }
 }

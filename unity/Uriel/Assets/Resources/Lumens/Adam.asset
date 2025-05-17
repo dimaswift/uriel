@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
-  m_Name: ResonanceCascade
+  m_Name: Adam
   m_EditorClassIdentifier: 
+  updateTransform: 1
   photons:
   - transform:
       e00: 1
@@ -31,9 +32,9 @@ MonoBehaviour:
       e32: 0
       e33: 1
     iterations: 1
-    type: 4
-    frequency: 1
-    amplitude: 1
-    phase: 0
-    radius: 1
-    density: 1
+    type: 5
+    frequency: 7740
+    amplitude: 0.74
+    phase: 1.01
+    radius: 367.6
+    density: -2893

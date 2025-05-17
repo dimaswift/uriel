@@ -17,6 +17,7 @@ namespace Uriel.Domain
         public float density;
     }
 
+
     [StructLayout(LayoutKind.Sequential)]
     [System.Serializable]
     public struct Modulation
