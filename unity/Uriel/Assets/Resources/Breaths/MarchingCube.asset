@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f7ef1a3b685548198a722c93f6ea7630, type: 3}
-  m_Name: RayTrace
+  m_Name: MarchingCube
   m_EditorClassIdentifier: 
-  rate: 0.12
+  rate: 1.3
   mods:
-  - time: 3.9350288
-    frequency: 0
-    phase: 35.62
-    amplitude: 0
+  - time: 152.03012
+    frequency: 4.51
+    phase: 4.44
+    amplitude: 0.49

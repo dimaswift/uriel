@@ -9,6 +9,78 @@ namespace Uriel.Utils
 {
     public static class FileUtils
     {
+        public static void MeshToObjFile(Mesh mesh, string filePath, bool includeUVs = true, bool includeNormals = true)
+        {
+            StringBuilder sb = new StringBuilder();
+            
+            sb.AppendLine("# Unity Mesh to OBJ Exporter");
+            sb.AppendLine("# Mesh: " + mesh.name);
+            
+            // Write vertices
+            Vector3[] vertices = mesh.vertices;
+            foreach (Vector3 v in vertices)
+            {
+                sb.AppendLine("v " + v.x + " " + v.y + " " + v.z);
+            }
+            
+            // Write UVs
+            if (includeUVs && mesh.uv.Length > 0)
+            {
+                Vector2[] uvs = mesh.uv;
+                foreach (Vector2 uv in uvs)
+                {
+                    sb.AppendLine("vt " + uv.x + " " + uv.y);
+                }
+            }
+            
+            // Write normals
+            if (includeNormals && mesh.normals.Length > 0)
+            {
+                Vector3[] normals = mesh.normals;
+                foreach (Vector3 n in normals)
+                {
+                    sb.AppendLine("vn " + n.x + " " + n.y + " " + n.z);
+                }
+            }
+            
+            // Write triangles
+            int[] triangles = mesh.triangles;
+            for (int i = 0; i < triangles.Length; i += 3)
+            {
+                int idx1 = triangles[i] + 1;    // OBJ format uses 1-based indices
+                int idx2 = triangles[i + 1] + 1;
+                int idx3 = triangles[i + 2] + 1;
+                
+                // Format depends on what data is available
+                if (includeUVs && includeNormals && mesh.uv.Length > 0 && mesh.normals.Length > 0)
+                {
+                    sb.AppendLine("f " + idx1 + "/" + idx1 + "/" + idx1 + " " + 
+                                        idx2 + "/" + idx2 + "/" + idx2 + " " + 
+                                        idx3 + "/" + idx3 + "/" + idx3);
+                }
+                else if (includeUVs && mesh.uv.Length > 0)
+                {
+                    sb.AppendLine("f " + idx1 + "/" + idx1 + " " + 
+                                        idx2 + "/" + idx2 + " " + 
+                                        idx3 + "/" + idx3);
+                }
+                else if (includeNormals && mesh.normals.Length > 0)
+                {
+                    sb.AppendLine("f " + idx1 + "//" + idx1 + " " + 
+                                        idx2 + "//" + idx2 + " " + 
+                                        idx3 + "//" + idx3);
+                }
+                else
+                {
+                    sb.AppendLine("f " + idx1 + " " + idx2 + " " + idx3);
+                }
+            }
+            
+            // Write to file
+            File.WriteAllText(filePath, sb.ToString());
+            Debug.Log("Mesh exported to: " + filePath);
+        }
+    
         public static void ExportMeshToASCIISTL(Mesh mesh, string filePath, string name = "Uriel")
         {
             StringBuilder sb = new StringBuilder();

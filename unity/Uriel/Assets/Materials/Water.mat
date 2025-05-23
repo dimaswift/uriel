@@ -207,7 +207,7 @@ Material:
     - _SrcBlendAlpha: 1
     - _Start: 50
     - _StepSize: 0.0435
-    - _Steps: 34.1
+    - _Steps: 10.6
     - _Surface: 0
     - _Threshold: 0.857
     - _ThresholdThin: 0.01

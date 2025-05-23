@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
-  m_Name: Vase
+  m_Name: MarchingCube
   m_EditorClassIdentifier: 
   updateTransform: 1
   photons:
@@ -32,10 +32,10 @@ MonoBehaviour:
       e32: 0
       e33: 1
     iterations: 1
-    type: 1
-    frequency: 12.8
-    amplitude: -0.28
-    phase: 59.2
-    radius: 31
-    density: 74.4
-    scale: 457
+    type: 4
+    frequency: 32.4
+    amplitude: 0.27
+    phase: 305.2
+    radius: 2.69
+    density: 4.59
+    scale: 8.8
