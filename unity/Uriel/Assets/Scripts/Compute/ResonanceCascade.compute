@@ -35,22 +35,17 @@ float _Gravity;
 float _Radius;
 
 uint2 _MousePosition;
-uint _CurrentDimension;
-uint _Dimensions;
-RWTexture3D<float4> _ParticlePositions;
-RWTexture3D<float4> _ParticleVelocities;
 
-RWStructuredBuffer<Resonance> _ResonanceBuffer;
-RWTexture3D<float4> _Field;
+RWTexture2D<float4> _ParticlePositions;
+RWTexture2D<float4> _OldParticlePositions;
+RWTexture2D<float4> _Field;
 RWTexture2D<float4> _Screen;
 RWTexture2D<float4> _ParticleCanvas;
 Texture2D<float4> _Gradient;
 float _GradientSize;
-
 float _GradientThreshold;
 float _GradientMultiplier;
-
-uint _CurrentScreen;
+float3 _Multiplier;
 uint _SpawnCounter;
 float2 _SpawnPoint;
 
@@ -60,15 +55,14 @@ uint _ModulationCount;
 [numthreads(8, 8, 1)]
 void ClearField(uint3 id : SV_DispatchThreadID)
 {
-    _Field[id.xyz] = float4(0,0,0,0);
-
+    _Field[id.xy] = float4(0,0,0,0);
 }
 
 [numthreads(8, 8, 1)]
 void ClearParticles(uint3 id : SV_DispatchThreadID)
 {
-    _ParticlePositions[id.xyz] = float4(0,0,0,0);
-    _ParticleVelocities[id.xyz] = float4(0,0,0,0);
+    _ParticlePositions[id.xy] = float4(0,0,0,0);
+    _OldParticlePositions[id.xy] = float4(0,0,0,0);
 }
 
 [numthreads(8, 8, 1)]
@@ -81,44 +75,41 @@ void ClearScreen(uint3 id : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void FadeParticles(uint3 id : SV_DispatchThreadID)
 {
-    const float2 center = float2(id.x - float(_ParticleResolution) / 2, id.y - float(_ParticleResolution) / 2);
     float4 col = _ParticleCanvas[id.xy];
-    col.a = lerp(col.a, 0, _DeltaTime * _CanvasFadeSpeed);
+    col = lerp(col, float4(0,0,0,1), _Speed * _CanvasFadeSpeed);
     _ParticleCanvas[id.xy] = col;
 }
 
 [numthreads(8, 8, 1)]
 void RenderScreen(uint3 id : SV_DispatchThreadID)
 {
-    _Screen[id.xy] = _Field[uint3(id.xy, _CurrentScreen)];
+    _Screen[id.xy] = _Field[id.xy];
 }
 
 [numthreads(8, 8, 1)]
 void RenderParticles(uint3 id : SV_DispatchThreadID)
 {
-    float4 pos = _ParticlePositions[uint3(id.xy, _CurrentScreen)];
-    const uint2 pixelPos = uint2(round(pos.x), round(pos.y));
+    float4 pos = _ParticlePositions[id.xy];
+    const int2 pixelPos = int2(round(pos.x), round(pos.y));
     if (pixelPos.x < 0 || pixelPos.x >= _ParticleResolution || pixelPos.y < 0 || pixelPos.y >= _ParticleResolution)
     {
         return;
     }
-    
-    float4 prevPos = _ParticleVelocities[uint3(id.xy, _CurrentScreen)];
-  
+    float4 prevPos = _OldParticlePositions[id.xy];
     float4 col = _ParticleCanvas[pixelPos];
-    float m = length(prevPos.xy - pos) * _GradientMultiplier * 0.001;
-    col.w += _DeltaTime * _Lifetime;
-    col.xyz = hsv2rgb(length(prevPos.xy - pos) * _GradientThreshold * 0.001, 1, m);
+    float m = length(prevPos.xy - pos) * _GradientThreshold;
+    //col += float4(hsv2rgb(m, 1, _GradientMultiplier * length(prevPos.xy - pos) * 0.001), 0);
+    col += _Gradient[uint2(uint(m), 0)] * _GradientMultiplier  * length(prevPos.xy - pos) * 0.001;
+    col.w = 1;
     _ParticleCanvas[pixelPos] = col;
 }
 
 [numthreads(8, 8, 1)]
 void CollapseField(uint3 id : SV_DispatchThreadID)
 {
-
-    float4 p = _ParticlePositions[uint3(id.xy, _CurrentDimension)] ;
-    _ParticlePositions[uint3(id.xy, _CurrentDimension)] = float4(id.x, id.y, p.z, 1.0);
-    _ParticleVelocities[uint3(id.xy, _CurrentDimension)] = float4(id.x, id.y, 0, 1);
+    float4 p = _ParticlePositions[id.xy];
+    _ParticlePositions[id.xy] = float4(id.x, id.y, p.z, 1.0);
+    _OldParticlePositions[id.xy] = float4(id.x, id.y, 0, 1);
 }
 
 [numthreads(8, 8, 1)]
@@ -126,110 +117,60 @@ void ComputeField(uint3 id : SV_DispatchThreadID)
 {
     const float xPos = float(id.x) / (_FieldResolution - 1);  
     const float yPos = float(id.y) / (_FieldResolution - 1);
-    const float zPos = float(_CurrentDimension) / _Dimensions;
-    const float3 uv = float3(xPos - 0.5, yPos - 0.5, zPos - 0.5) * _Scale;
-    const float density = sampleField(uv, _ModulationBuffer[0]);
-    float3 col =  density > 0 ? float3(density, 0, 0) : float3(0, 0, abs(density));
-    _Field[uint3(id.xy, _CurrentDimension)] = float4(density,density,density, 1);
-    if(_CurrentDimension == 1)
-    {
-        _Field[uint3(id.xy, _CurrentDimension)] = float4(0,0,0, 1);
-    }
-}
-
-float sampleF(uint2 id)
-{
-    const float xPos = float(id.x) / (_FieldResolution - 1);  
-    const float yPos = float(id.y) / (_FieldResolution - 1);
-    const float zPos = float(_CurrentDimension) / _Dimensions;
-    const float3 uv = float3(xPos - 0.5, yPos - 0.5, zPos - 0.5) * _Scale;
-    return  sampleField(uv, _ModulationBuffer[0]);
+    const float2 uv = float2(xPos - 0.5, yPos - 0.5) * _Scale;
+    const float density = sampleField(float3(uv, sin(_ModulationBuffer[0].time)), _ModulationBuffer[0]);
+    float3 c = hsv2rgb(density * 0.01, 1, 1);
+    float grey = (c.r + c.g + c.b) / 3.0;
+    _Field[id.xy] = float4(grey,grey,grey, 1);
 }
 
 [numthreads(8, 8, 1)]
 void ComputeParticles(uint3 id : SV_DispatchThreadID)
 {
-    float4 pos = _ParticlePositions[uint3(id.xy, _CurrentDimension)];
-
-    //it's dormant (alpha is almost zero, a ghost per se), no need to process it further
-    // if (pos.w <= 0.001)
-    // {
-    //     return;
-    // }
-    const float halfRes = (_FieldResolution - 1) / 2;
-    const float2 center = float2(pos.x - halfRes, pos.y - halfRes);
-    float4 prevPos = _ParticleVelocities[uint3(id.xy, _CurrentDimension)];
-    const int2 fieldCoords = int2(round(pos.x), round(pos.y));
+    float4 pos = _ParticlePositions[id.xy];
+    const float halfRes = (_FieldResolution) / 2;
+    float4 prevPos = _OldParticlePositions[id.xy];
+    const int2 fieldCoords = int2(ceil(pos.x), ceil(pos.y));
     const int rad = _ParticleRadius;
     float2 fieldConvergence = float2(0, 0);
-    const float4 centerDensity = _Field[uint3(fieldCoords, _CurrentDimension)];
 
-    
     for (int x = -rad; x <= rad; x++)
     {
         for (int y = -rad; y <= rad; y++)
         {
-            int2 checkPoint = int3(fieldCoords.x + x, fieldCoords.y + y, _CurrentDimension);
+            int2 checkPoint = int2(fieldCoords.x + x, fieldCoords.y + y);
             if(checkPoint.x < 0 || checkPoint.x >= _FieldResolution
                 || checkPoint.y < 0 || checkPoint.y >= _FieldResolution)
             {
                 continue;
             }
-            const float4 fieldDensity = _Field[uint3(checkPoint, _CurrentDimension)];
-            fieldConvergence += float2(x, y) * fieldDensity.r * _Attraction;
+            const float4 fieldDensity = _Field[checkPoint];
+            fieldConvergence += float2(x, y) * fieldDensity.r * _Attraction * _Speed;
         }
     }
-    float2 acceleration = float2(fieldConvergence.x, fieldConvergence.y) * _Acceleration;
-
+    const float2 acceleration = float2(fieldConvergence.x, fieldConvergence.y) * _Acceleration;
+    
     float2 tmp = pos.xy;
-    pos.xy = 2.0 * tmp - prevPos.xy + acceleration * _Speed * _Speed;
+    
+    float2 newPos = 2.0 * tmp - prevPos.xy + acceleration * _Speed * _Speed;
+    pos.xy = newPos;
     prevPos.xy = tmp;
-   
+    const int2 pixelPos = int2(round(pos.x), round(pos.y));
+    const float2 center = float2(pos.x - halfRes, pos.y - halfRes);
     //particle is out of bounds, but information is not lost
     //it's re-emitted from the eyes preserving phase and velocity
-    if (length(center) > _FieldResolution * _Radius)
+    if (pixelPos.x < 0 || pixelPos.x >= _ParticleResolution
+        || pixelPos.y < 0 || pixelPos.y >= _ParticleResolution ||
+        length(center) > _FieldResolution * _Radius)
     {
-      //  pos.z += _PhaseSpeed;
-        float eyeWidth = 0.1;
-        float eyeHeight = 1.5;
-        float eyeHorizontal = halfRes + _ParticleResolution * eyeWidth * sign(center.x);
-        float eyeVertical = float(_ParticleResolution - 1) / eyeHeight;
+        //pos.xy = _MousePosition;
+        pos.xy = float2(halfRes, halfRes);
         float2 vel = pos - prevPos;
-        prevPos.xy = pos + normalize(acceleration) * _Gravity;
-        
-        pos.xy = float2(eyeHorizontal,eyeVertical);
-        if(center.y > 0)
-        {
-            pos.xy = float2(eyeHorizontal, -eyeVertical);
-        }
-        else
-        {
-            //third eye is guided by hand (first biofeedback?)
-            pos.xy = _MousePosition;
-         //   pos.xy = float2(eyeHorizontal, -eyeVertical);
-        }
-        prevPos.xy = pos - normalize(vel + acceleration) * _Gravity;
-        //
-        // //reverse velocity upon entering the abyss, but preserve direction
-        // vel *= -1;
-        // //limit velocity for stability purposes
-        // if (length(vel) > _FieldResolution * _Gravity)
-        // {
-        //     vel = normalize(vel) * _FieldResolution * _Gravity;
-        // }
-       
-
+        prevPos.xy = pos + normalize(vel + acceleration * _Speed * _Speed) * _Gravity;
     }
-    else
-    {
-        //cycle phase A.K.A lifecycle
-       
-    }
-
- 
     
-    _ParticlePositions[uint3(id.xy, _CurrentDimension)] = pos;
-    _ParticleVelocities[uint3(id.xy, _CurrentDimension)] = prevPos;
+    _ParticlePositions[id.xy] = pos;
+    _OldParticlePositions[id.xy] = prevPos;
 }
 
 [numthreads(1, 1, 1)]
@@ -240,8 +181,8 @@ void SpawnParticles(uint3 id : SV_DispatchThreadID)
     {
         uint x = round(_SpawnPoint.x);
         uint y = round(_SpawnPoint.y);
-        _ParticlePositions[uint3(x, y, _CurrentScreen)] = float4(x,y,0,1);
-        _ParticleVelocities[uint3(x, y, _CurrentScreen)] = float4(x,y,0,0);
+        _ParticlePositions[uint2(x, y)] = float4(x,y,0,1);
+        _OldParticlePositions[uint2(x, y)] = float4(x,y,0,0);
         c--;
     }
 }

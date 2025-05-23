@@ -1,0 +1,161 @@
+#pragma kernel Init
+#pragma kernel ComputeParticles
+#pragma kernel ComputeField
+#pragma kernel SpawnParticle
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+RWStructuredBuffer<float3> _VertexBuffer;
+RWStructuredBuffer<int> _TriangleBuffer;
+RWStructuredBuffer<float3> _NormalBuffer;
+
+RWStructuredBuffer<Particle> _Particles;
+RWTexture3D<float4> _Field;
+
+uint _FieldResolution;
+
+uint _ParticlesCount;
+uint _VertexCount;
+uint _Capacity;
+float _Speed;
+float _Acceleration;
+float _Gravity;
+uint _ParticleRadius;
+float _Bounds;
+float _SampleRadius;
+float _ParticleSize;
+float3 _SpawnPoint;
+int _Frequency;
+
+static const float PACKING_DENSITY = 0.74048; // ~74.05% of space filled
+static const float2 HEX_OFFSET = float2(1.0, 0.0);
+static const float2 HEX_OFFSET_B = float2(0.5, 0.866025404); // sqrt(3)/2
+static const float LAYER_HEIGHT = 0.816496581; // sqrt(2/3)
+
+
+
+[numthreads(8, 8, 1)]
+void Init(uint3 id : SV_DispatchThreadID)
+{
+    Particle p;
+    p.charge = _Frequency;
+    p.mass = 1;
+    p.position = float3(id.x, id.y, id.z) * _Bounds;
+    p.oldPosition = p.position;
+    p.size = _ParticleSize;
+    uint index = id.x + (id.y * _FieldResolution) + (id.z * _FieldResolution * _FieldResolution);
+    _Particles[index] = p;
+}
+
+[numthreads(1, 1, 1)]
+void SpawnParticle(uint3 id : SV_DispatchThreadID)
+{
+    for (int i = 0; i < _ParticlesCount; ++i)
+    {
+        Particle p = _Particles[i];
+        if(p.size > 0)
+        {
+            continue;
+        }
+
+        p.size = _ParticleSize;
+        p.position = _SpawnPoint;
+        p.oldPosition = _SpawnPoint;
+        p.charge = 0;
+        _Particles[i] = p;
+        break;
+    }
+}
+
+
+[numthreads(8, 8, 1)]
+void ComputeField(uint3 id : SV_DispatchThreadID)
+{
+    const float xPos = float(id.x) / (_FieldResolution - 1);  
+    const float yPos = float(id.y) / (_FieldResolution - 1);
+    const float zPos = float(id.z) / (_FieldResolution - 1);
+    const float3 uv = float3(xPos - 0.5, yPos - 0.5, zPos - 0.5);
+    // const float density = sampleField(uv);
+    // float3 c = hsv2rgb(density * 0.1, 1, 1);
+    // float grey = (c.r + c.g + c.b) / 3.0;
+    // _Field[id.xyz] = float4(grey,grey,grey, grey);
+    float density = 0.0;
+    Photon photon = _PhotonBuffer[0];
+    Modulation m = DEFAULT_MOD;
+  
+    for (uint i = 0; i < _ParticlesCount; i++)
+    {
+        Particle p = _Particles[i];
+        if (p.size <= 0) continue;
+        const float3 vertex = p.position;
+        density += sampleField(uv, vertex * photon.scale, photon, _ParticlesCount, m);
+    }
+    float3 c = hsv2rgb(density * 0.5, 1, 1);
+    float grey = (c.r + c.g + c.b) / 3.0;
+    _Field[id.xyz] = float4(c, grey);
+}
+
+
+[numthreads(8, 1, 1)]
+void ComputeParticles(uint3 id : SV_DispatchThreadID)
+{
+    Particle particle = _Particles[id.x];
+    if(particle.size <= 0)
+    {
+        return;
+    }
+    const int halfRes = _FieldResolution / 2;
+    const int3 fieldCoords = int3(
+        round(particle.position.x * halfRes) + halfRes,
+        round(particle.position.y * halfRes) + halfRes,
+        round(particle.position.z * halfRes) + halfRes);
+    
+    const int rad = _ParticleRadius;
+    
+    float3 fieldConvergence = float3(0, 0, 0);
+    
+    for (int x = -rad; x <= rad; x++)
+    {
+        for (int y = -rad; y <= rad; y++)
+        {
+            for (int z = -rad; z <= rad; z++)
+            {
+                // int3 checkPoint = int3(fieldCoords.x + x, fieldCoords.y + y, fieldCoords.z + z);
+                // if (checkPoint.x < 0 || checkPoint.x >= _FieldResolution
+                //     || checkPoint.y < 0 || checkPoint.y >= _FieldResolution
+                //     || checkPoint.z < 0 || checkPoint.z >= _FieldResolution)
+                // {
+                //     continue;
+                // }
+                const float fieldDensity = sampleField(particle.position + float3(x,y,z) * _SampleRadius);
+                const float g = fieldDensity;
+                fieldConvergence += float3(x, y, z) * g * _Speed * _Speed;
+             
+            }
+        }
+    }
+    const float3 acceleration = fieldConvergence * _Acceleration;
+    particle.charge = _Frequency;
+    const float3 tmp = particle.position;
+    
+    const float3 newPos = 2.0 * tmp - particle.oldPosition + acceleration * _Speed * _Speed;
+    particle.position = newPos;
+    particle.oldPosition = tmp;
+    particle.size = _ParticleSize;
+    const int3 newFieldPos = int3(
+        round(particle.position.x + halfRes),
+        round(particle.position.y + halfRes),
+        round(particle.position.z + halfRes));
+    
+    if (newFieldPos.x <= -halfRes || newFieldPos.x >= halfRes
+        || newFieldPos.y <= -halfRes || newFieldPos.y >= halfRes
+        || newFieldPos.z <= -halfRes || newFieldPos.z >= halfRes
+        || length(newFieldPos) > _FieldResolution * _Bounds)
+    {
+       // particle.position = float3(0, 0, 0);
+        const float3 vel = particle.position - particle.oldPosition;
+       // particle.oldPosition = particle.position + normalize(vel + acceleration * _Speed * _Speed) * _Gravity;
+    }
+    
+   // _Particles[id.x] = particle;
+}

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
   m_Name: Water
   m_EditorClassIdentifier: 
+  updateTransform: 1
   photons:
   - transform:
       e00: 1
@@ -19,21 +20,22 @@ MonoBehaviour:
       e02: 0
       e03: 0
       e10: 0
-      e11: 0.862602
-      e12: -0.5058832
+      e11: 1
+      e12: 0
       e13: 0
       e20: 0
-      e21: 0.5058832
-      e22: 0.862602
+      e21: 0
+      e22: 1
       e23: 0
       e30: 0
       e31: 0
       e32: 0
       e33: 1
-    iterations: 1
-    type: 4
-    frequency: 522.5
-    amplitude: 1.64
-    phase: 114.7
-    radius: 5.18
-    density: 3.83
+    iterations: 3
+    type: 1
+    frequency: 0
+    amplitude: 0.2
+    phase: 258.2
+    radius: 12.67
+    density: 1.13
+    scale: 6.5

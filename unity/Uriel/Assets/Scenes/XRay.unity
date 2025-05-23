@@ -509,17 +509,17 @@ MonoBehaviour:
   computeShader: {fileID: 7200000, guid: b2a6189538ecb4149bab131ff3c7f0d2, type: 3}
   targetMaterial: {fileID: 2100000, guid: 18ddccef41639594a91fdd72a3c89064, type: 2}
   gradient: {fileID: 2800000, guid: 6443fb42340ce394a89fdc772cbe0726, type: 3}
-  steps: 75
-  resolution: {x: 256, y: 512}
-  captureResolution: {x: 2310, y: 3860}
+  steps: 5
+  resolution: {x: 512, y: 512}
+  captureResolution: {x: 2048, y: 2048}
   depth: 0.21
-  grayscale: 0
+  grayscale: 1
   gradientMultiplier: 3.91
-  gradientThreshold: 8.17
+  gradientThreshold: 8.11
   frequency: 0.16
-  amplitude: 2.6
-  min: 1.64
-  max: 0.89
+  amplitude: 1.43
+  min: 9.97
+  max: -59
   focus: 0.38
   target: {fileID: 1395742868}
   source: {fileID: 740638501}
@@ -552,8 +552,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b1eb8d9efef4d3890af2df452785ee8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  buffer: {fileID: 11400000, guid: 3c74eee69ef38564baee38f8cfe3cad6, type: 2}
   source: {fileID: 740638501}
-  lumen: {fileID: 11400000, guid: 3c74eee69ef38564baee38f8cfe3cad6, type: 2}
 --- !u!1 &740638500
 GameObject:
   m_ObjectHideFlags: 0

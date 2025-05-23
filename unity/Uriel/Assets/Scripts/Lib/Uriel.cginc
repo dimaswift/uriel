@@ -16,12 +16,13 @@ struct Photon
     float phase;
     float radius;
     float density;
+    float scale;
 };
 
 struct Particle 
 {
     float3 position;
-    float3 velocity;
+    float3 oldPosition;
     float charge;
     float size;
     float mass;
@@ -139,18 +140,35 @@ float squareWave(float frequency, float dutyCycle, float amplitude, float smooth
     
 }
 
+float map(float value, float min1, float max1, float min2, float max2)
+{
+     const float perc = (value - min1) / (max1 - min1);
+    return  perc * (max2 - min2) + min2;
+}
+
 float sampleField(const float3 pos, const float3 vertex,
     const Photon photon, const uint size, Modulation m = DEFAULT_MOD)
 {
     const float3 offset = float3(photon.transform[0][3], photon.transform[1][3], photon.transform[2][3]);
-    const float3 transformed = mul(vertex, photon.transform).xyz + offset;
-    const float dist = saturate(distance(pos, transformed) * (1.0 / max(0.01, photon.radius * PI)));
+    const float3 transformed = mul(vertex, photon.transform).xyz + (offset * photon.scale);
+    const float dist = saturate(distance(pos * photon.scale, transformed) * (1.0 / max(0.01, photon.radius * PI)));
     const float freq = photon.frequency + (m.time * m.frequency);
     const float phase = photon.phase + m.time * m.phase;
     const float amp = photon.amplitude + sin(m.amplitude * m.time) * (1.0 / size);
-    return sin(dist * freq + phase) * amp;
+    return sin((dist * freq + phase)) * amp ;
 }
 
+float3 sampleFieldNormal(const float3 pos, const float3 vertex,
+    const Photon photon, const uint size, Modulation m = DEFAULT_MOD)
+{
+    const float3 offset = float3(photon.transform[0][3], photon.transform[1][3], photon.transform[2][3]);
+    const float3 transformed = mul(vertex, photon.transform).xyz + offset;
+    const float dist = saturate(distance(pos * photon.scale, transformed) * (1.0 / max(0.01, photon.radius * PI)));
+    const float freq = photon.frequency + (m.time * m.frequency);
+    const float phase = photon.phase + m.time * m.phase;
+    const float amp = photon.amplitude + sin(m.amplitude * m.time) * (1.0 / size);
+    return sin((dist * freq + phase)) * amp ;
+}
 
 float sampleField(const float3 pos, const Photon photon, Modulation m = DEFAULT_MOD)
 {

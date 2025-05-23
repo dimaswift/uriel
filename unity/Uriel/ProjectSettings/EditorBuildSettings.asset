@@ -20,9 +20,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Normal.unity
     guid: 751cc7af936152146b5517deefba3aea
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/ResonanceCascade.unity
     guid: 00549d7d6619cc94b86b2025e5306d0c
+  - enabled: 1
+    path: Assets/Scenes/Water.unity
+    guid: a1c74007294293c4da934f7aeacfa1ba
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

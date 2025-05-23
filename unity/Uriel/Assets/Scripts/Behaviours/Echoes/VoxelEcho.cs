@@ -17,8 +17,10 @@ namespace Uriel.Behaviours
         private void Start()
         {
             particles = gameObject.AddComponent<ParticleRenderer>();
-            particles.Init(mesh, material, ResolutionCubed);
-            particles.LinkComputeKernel(compute);
+            particles
+                .SetUp(mesh, material, ResolutionCubed)
+                .Init()
+                .LinkComputeKernel(compute);
         }
 
        

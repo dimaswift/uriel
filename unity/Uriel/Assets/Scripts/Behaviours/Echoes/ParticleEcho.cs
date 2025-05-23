@@ -35,7 +35,8 @@ namespace Uriel.Behaviours
             photonBuffer = gameObject.GetComponent<PhotonBuffer>();
             particleRenderer = gameObject.GetComponent<ParticleRenderer>();
 
-            particleRenderer.Init(mesh, mat, CubedCapacity)
+            particleRenderer.SetUp(mesh, mat, CubedCapacity)
+                .Init()
                 .LinkComputeKernel(compute, initKernel)
                 .LinkComputeKernel(compute, processKernel);
             

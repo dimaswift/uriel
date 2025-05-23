@@ -74,6 +74,17 @@ Shader "Uriel/Hologram"
                 const float3 triNormal = normalize(cross(p1 - p0, p2 - p0));
                 return triNormal;
             }
+
+            float3 calcNormal(float3 p)
+            {
+                float2 e = float2(0.001, 0);
+                float3 n = float3(
+                    sampleField(p + e.xyy) - sampleField(p - e.xyy),
+                    sampleField(p + e.yxy) - sampleField(p - e.yxy),
+                    sampleField(p + e.yyx) - sampleField(p - e.yyx)
+                );
+                return normalize(n);
+            }
             
             float3 rayMarch(float3 origin, float3 dir) {
                 
@@ -83,7 +94,7 @@ Shader "Uriel/Hologram"
                 {
                     const float3 pos = origin + dir * _Displacement * i;
                     const float density = sampleField(pos);
-                    dir = constructFieldTriangleNormal(pos, dir);
+                    dir = calcNormal(pos);
                     col += hsv2rgb(density * _Hue * 0.001, _Value, _Saturation) * m;
                 }
                 return col * _Multiplier;

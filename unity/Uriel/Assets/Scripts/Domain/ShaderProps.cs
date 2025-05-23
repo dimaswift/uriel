@@ -4,6 +4,13 @@ namespace Uriel.Domain
 {
     public static class ShaderProps
     {
+        public static readonly int ParticleSize = Shader.PropertyToID("_ParticleSize");
+        public static readonly int Bounds = Shader.PropertyToID("_Bounds");
+        public static readonly int Capacity = Shader.PropertyToID("_Capacity");
+        public static readonly int VertexCount = Shader.PropertyToID("_VertexCount");
+        public static readonly int VertexBuffer = Shader.PropertyToID("_VertexBuffer");
+        public static readonly int NormalBuffer = Shader.PropertyToID("_NormalBuffer");
+        public static readonly int TriangleBuffer = Shader.PropertyToID("_TriangleBuffer");
         public static readonly int Stars = Shader.PropertyToID("_Stars");
         public static readonly int StarCount = Shader.PropertyToID("_StarCount");
         public static readonly int FieldResolution = Shader.PropertyToID("_FieldResolution");
@@ -69,12 +76,12 @@ namespace Uriel.Domain
         public static readonly int OrbitOrigin = Shader.PropertyToID("_OrbitOrigin");
         public static readonly int CurrentScreen = Shader.PropertyToID("_CurrentScreen");
         public static readonly int ParticlePositions = Shader.PropertyToID("_ParticlePositions");
-        public static readonly int ParticleVelocities = Shader.PropertyToID("_ParticleVelocities");
         public static readonly int ParticleCanvas = Shader.PropertyToID("_ParticleCanvas");
         public static readonly int SpawnCounter = Shader.PropertyToID("_SpawnCounter");
         public static readonly int SpawnPoint = Shader.PropertyToID("_SpawnPoint");
         public static readonly int ParticleRadius = Shader.PropertyToID("_ParticleRadius");
         public static readonly int ResonanceBuffer = Shader.PropertyToID("_ResonanceBuffer");
+        public static readonly int OldParticlePositions = Shader.PropertyToID("_OldParticlePositions");
         
     }
 }

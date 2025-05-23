@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using Uriel.Domain;
 using Random = UnityEngine.Random;
@@ -7,17 +8,50 @@ namespace Uriel.Behaviours
 {
     public class ParticleRenderer : MonoBehaviour
     {
-        private ComputeBuffer particlesBuffer;
-        private ComputeBuffer meshBuffer;
-        private Mesh mesh;
-        private Material mat;
+        [SerializeField] private int capacity;
+        [SerializeField] private bool initOnAwake;
+        [SerializeField] private Mesh mesh;
+        [SerializeField] private Material material;
 
         private Particle[] particlesList;
-
-        public ParticleRenderer Init(Mesh mesh, Material mat, int capacity)
+        private ComputeBuffer particlesBuffer;
+        private ComputeBuffer meshBuffer;
+        
+        private void Awake()
         {
-            
+            if (!initOnAwake) return;
+            Init();
+        }
+        
+        public ParticleRenderer SetUp(Mesh mesh, Material material, int capacity)
+        {
+            this.material = material;
             this.mesh = mesh;
+            this.capacity = capacity;
+            return this;
+        }
+
+        public ParticleRenderer SetUp(int capacity)
+        {
+            this.capacity = capacity;
+            return this;
+        }
+        
+        public ParticleRenderer Init()
+        {
+            if (material == null || mesh == null)
+            {
+                Debug.LogError($"Particle Renderer '{name}' is missing mesh or material");
+                return this;
+            }
+
+            if (capacity <= 0)
+            {
+                Debug.LogError($"Particle Renderer '{name}' has zero capacity");
+                return this;
+            }   
+            
+            CleanUp();
             particlesList = new Particle[capacity];
             particlesBuffer = new ComputeBuffer(capacity, Marshal.SizeOf(typeof(Particle)));
             uint[] args = new uint[5] { 0, 0, 0, 0, 0 };
@@ -25,10 +59,15 @@ namespace Uriel.Behaviours
             args[1] = (uint)capacity;
             meshBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
             meshBuffer.SetData(args);
-            this.mat = mat;
-            return LinkMaterial(mat);
+            return LinkMaterial(material);
         }
 
+        private void CleanUp()
+        {
+            particlesBuffer?.Release();
+            meshBuffer?.Release();
+        }
+        
         public ParticleRenderer LinkComputeKernel(ComputeShader shader, int id = 0)
         {
             shader.SetBuffer(id, ShaderProps.Particles, particlesBuffer);
@@ -87,14 +126,18 @@ namespace Uriel.Behaviours
 
         public void Draw()
         {
-            Graphics.DrawMeshInstancedIndirect(mesh, 0, mat,
+            Graphics.DrawMeshInstancedIndirect(mesh, 0, material,
                 new Bounds(transform.position, Vector3.one * (float.MaxValue)), meshBuffer);
         }
 
         private void OnDestroy()
         {
-            particlesBuffer?.Release();
-            meshBuffer?.Release();
+            CleanUp();
+        }
+
+        public Material GetMaterial()
+        {
+            return material;
         }
     }
 }

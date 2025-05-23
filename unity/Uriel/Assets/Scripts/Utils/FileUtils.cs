@@ -45,9 +45,9 @@ namespace Uriel.Utils
                 
             try  
             {
-                RenderTexture tempRT = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.ARGB32);  
+                RenderTexture tempRT = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.ARGB64);  
                 Graphics.Blit(texture, tempRT);
-                Texture2D tex2D = new Texture2D(tempRT.width, tempRT.height, TextureFormat.RGBA32, false);  
+                Texture2D tex2D = new Texture2D(tempRT.width, tempRT.height, TextureFormat.RGBA64_SIGNED, false);  
                 RenderTexture.active = tempRT;  
                 tex2D.ReadPixels(new Rect(0, 0, tempRT.width, tempRT.height), 0, 0);  
                 tex2D.Apply();  

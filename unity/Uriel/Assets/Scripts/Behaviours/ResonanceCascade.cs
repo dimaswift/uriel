@@ -20,7 +20,7 @@ namespace Uriel.Behaviours
         private RenderTexture screen;
         private RenderTexture field;
         private RenderTexture particlePositions;
-        private RenderTexture particleVelocities;
+        private RenderTexture oldParticlePositions;
         private RenderTexture particleCanvas;
    
         private ComputeBuffer resonanceBuffer;
@@ -76,9 +76,9 @@ namespace Uriel.Behaviours
             screen = CreateTexture(config.fieldResolution);
             particleCanvas = CreateTexture(config.particleResolution);
             
-            field = CreateTexture3D(config.fieldResolution);
-            particlePositions = CreateTexture3D(config.particleResolution);
-            particleVelocities = CreateTexture3D(config.particleResolution);
+            field = CreateTexture(config.fieldResolution);
+            particlePositions = CreateTexture(config.particleResolution);
+            oldParticlePositions = CreateTexture(config.particleResolution);
 
             modulationBuffer = new ComputeBuffer(1, Marshal.SizeOf(typeof(Modulation)));
             resonanceBuffer = new ComputeBuffer(config.dimensions, Marshal.SizeOf(typeof(Resonance)));
@@ -92,25 +92,26 @@ namespace Uriel.Behaviours
             
             compute.SetTexture(clearFieldKernel, ShaderProps.Field, field);
             compute.SetTexture(clearFieldKernel, ShaderProps.ParticlePositions, particlePositions);
-            compute.SetTexture(clearFieldKernel, ShaderProps.ParticleVelocities, particleVelocities);
+            compute.SetTexture(clearFieldKernel, ShaderProps.OldParticlePositions, oldParticlePositions);
 
             compute.SetTexture(clearParticlesKernel, ShaderProps.ParticlePositions, particlePositions);
-            compute.SetTexture(clearParticlesKernel, ShaderProps.ParticleVelocities, particleVelocities);
+            compute.SetTexture(clearParticlesKernel, ShaderProps.OldParticlePositions, oldParticlePositions);
             compute.SetTexture(renderParticlesKernel, ShaderProps.Field, field);
             
             compute.SetTexture(computeParticlesKernel, ShaderProps.ParticlePositions, particlePositions);
-            compute.SetTexture(computeParticlesKernel, ShaderProps.ParticleVelocities, particleVelocities);
+            compute.SetTexture(computeParticlesKernel, ShaderProps.OldParticlePositions, oldParticlePositions);
             compute.SetTexture(computeParticlesKernel, ShaderProps.ParticleCanvas, particleCanvas);
 
             compute.SetTexture(computeParticlesKernel, ShaderProps.Field, field);
 
             compute.SetTexture(fadeParticlesKernel, ShaderProps.ParticleCanvas, particleCanvas);
+            compute.SetTexture(fadeParticlesKernel, ShaderProps.ParticlePositions, particlePositions);
             
             compute.SetTexture(renderScreenKernel, ShaderProps.Screen, screen);
             compute.SetTexture(renderScreenKernel, ShaderProps.Field, field);
             compute.SetTexture(renderParticlesKernel, ShaderProps.ParticleCanvas, particleCanvas);
             compute.SetTexture(renderParticlesKernel, ShaderProps.ParticlePositions, particlePositions);
-            compute.SetTexture(renderParticlesKernel, ShaderProps.ParticleVelocities, particleVelocities);
+            compute.SetTexture(renderParticlesKernel, ShaderProps.OldParticlePositions, oldParticlePositions);
 
             compute.SetBuffer(computeFieldKernel, ShaderProps.ResonanceBuffer, resonanceBuffer);
             compute.SetBuffer(collapseFieldKernel, ShaderProps.ResonanceBuffer, resonanceBuffer);
@@ -118,14 +119,14 @@ namespace Uriel.Behaviours
             
             compute.SetTexture(collapseFieldKernel, ShaderProps.Field, field);
             compute.SetTexture(collapseFieldKernel, ShaderProps.ParticlePositions, particlePositions);
-            compute.SetTexture(collapseFieldKernel, ShaderProps.ParticleVelocities, particleVelocities);
+            compute.SetTexture(collapseFieldKernel, ShaderProps.OldParticlePositions, oldParticlePositions);
 
             
             compute.SetTexture(clearScreenKernel, ShaderProps.ParticleCanvas, particleCanvas);
 
             
             compute.SetTexture(spawnParticlesKernel, ShaderProps.ParticlePositions, particlePositions);
-            compute.SetTexture(spawnParticlesKernel, ShaderProps.ParticleVelocities, particleVelocities);
+            compute.SetTexture(spawnParticlesKernel, ShaderProps.OldParticlePositions, oldParticlePositions);
 
             
             compute.SetInt(ShaderProps.FieldResolution, (int)config.fieldResolution);
@@ -157,6 +158,7 @@ namespace Uriel.Behaviours
             compute.SetVector(ShaderProps.MousePosition, new Vector4(pixelPos.x, pixelPos.y));
             compute.SetFloat(ShaderProps.GradientMultiplier, config.gradientMultiplier);
             compute.SetFloat(ShaderProps.GradientThreshold, config.gradientThreshold);
+            
             compute.SetFloat(ShaderProps.Radius, config.radius);
             compute.SetFloat(ShaderProps.DeltaTime, Time.fixedDeltaTime);
             
@@ -365,7 +367,7 @@ namespace Uriel.Behaviours
             if (field) field.Release();
             if (screen) screen.Release();
             if (particlePositions) particlePositions.Release();
-            if (particleVelocities) particleVelocities.Release();
+            if (oldParticlePositions) oldParticlePositions.Release();
             if (particleCanvas) particleCanvas.Release();
             if (resonanceBuffer != null) resonanceBuffer.Release();
             if (modulationBuffer != null) modulationBuffer.Release();

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
   m_Name: XRay
   m_EditorClassIdentifier: 
+  updateTransform: 0
   photons:
   - transform:
       e00: 4.818364
@@ -19,21 +20,21 @@ MonoBehaviour:
       e02: 0
       e03: 0
       e10: 0
-      e11: 4.818364
-      e12: 0
+      e11: 2.581099
+      e12: -4.06873
       e13: 0
       e20: 0
-      e21: 0
-      e22: 4.818364
-      e23: -1.6329187
+      e21: 4.06873
+      e22: 2.581099
+      e23: 1.513473
       e30: 0
       e31: 0
       e32: 0
       e33: 1
-    iterations: 5
+    iterations: 10
     type: 4
-    frequency: 35.4
-    amplitude: 26
-    phase: 40.1
-    radius: 9.3
-    density: 2.18
+    frequency: 71.8
+    amplitude: -0.83
+    phase: 23.1
+    radius: 29.4
+    density: 0.59

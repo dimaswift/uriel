@@ -15,6 +15,7 @@ namespace Uriel.Domain
         public float phase;
         public float radius;
         public float density;
+        public float scale;
     }
 
 

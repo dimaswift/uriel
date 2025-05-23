@@ -18,7 +18,7 @@ namespace Uriel.Behaviours
         {
             if (buffer == null) return;
             var rend = GetComponent<MeshRenderer>();
-            if (rend)
+            if (rend && rend.sharedMaterial)
             {
                 buffer.EnsureBufferExists();
                 LinkMaterial(rend.sharedMaterial);

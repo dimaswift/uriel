@@ -3,6 +3,8 @@ Shader "Uriel/Water"
     Properties  
     {  
         _Gradient ("Gradient", 2D) = "white" {}
+        _GradientStart ("Gradient Start", Range(0.0, 10.0)) = 0
+        _GradientEnd ("Gradient End", Range(0.0, 10.0)) = 0
         _Threshold ("Threshold", Range(0.0, 1.0)) = 10
         _Multiplier ("Multiplier", Range(0.0, 10.0)) = 10
         _LightColor ("Light Color", Color) = (1,1,1,1)
@@ -15,7 +17,8 @@ Shader "Uriel/Water"
         _Steps ("Steps", Range(1, 50)) = 1
         _Frequency ("Frequency", Range(-3, 3)) = 0
         _Amplitude ("Amplitude", Range(-3, 3)) = 0
-        _Scale ("Scale", Range(0, 0.01)) = 0.005
+        _Scale ("Scale", Range(-0.1, 0.1)) = 0.005
+        
     }  
     SubShader  
     {  
@@ -53,10 +56,24 @@ Shader "Uriel/Water"
             float _Amplitude;
             float _Displacement;
             float _Scale;
+            float _GradientStart;
+            float _GradientEnd;
+            StructuredBuffer<Modulation> _ModulationBuffer;
+            
+
+            float3 calcNormal(float3 p)
+            {
+                float2 e = float2(_Depth, 0);
+                float3 n = float3(
+                    sampleField(p + e.xyy, _ModulationBuffer[0]) - sampleField(p - e.xyy, _ModulationBuffer[0]),
+                    sampleField(p + e.yxy, _ModulationBuffer[0]) - sampleField(p - e.yxy, _ModulationBuffer[0]),
+                    sampleField(p + e.yyx, _ModulationBuffer[0]) - sampleField(p - e.yyx, _ModulationBuffer[0])
+                );
+                return normalize(n);
+            }
             
             float3 sampleDisplacedField(float3 pos, float3 normal, float epsilon)
             {
-   
                 const float density = sampleField(pos);
                 return pos + normal * density * epsilon;
             }
@@ -80,21 +97,23 @@ Shader "Uriel/Water"
                 return triNormal;
             }
             
-            float3 rayMarch(float3 origin, float3 dir) {
+            
+            float3 rayMarch(float3 origin, float3 dir)
+            {
                 float3 pos = origin;
                 float marchPhase = 0.0;
                 float v = 0;
                 float3 current_dir = dir;
-                for (int i = 0; i < _Steps; i++) {
-                        
-                        pos += current_dir * sin(marchPhase) * _Scale;
-                        marchPhase += _Smoothness;
-                        float3 n = constructFieldTriangleNormal(pos, dir);
-                        v += applyCustomLighting(_LightColor, pos, n).x * _Frequency;
-                        current_dir += n * _Displacement;
-                    }
+                for (int i = 0; i < _Steps; i++)
+                {
+                    pos += current_dir * sin(marchPhase) * _Scale;
+                    marchPhase += _Smoothness;
+                    float3 n = calcNormal(pos);
+                    v += applyCustomLighting(_LightColor, pos, n).x * _Frequency;
+                    current_dir += n * _Displacement;
+                }
                 
-                return sampleGradient(v);
+                return sampleGradient(map(v, -1, 1,  _GradientStart, _GradientEnd));
             }
             
             v2f vert(const appdata_t input)  
