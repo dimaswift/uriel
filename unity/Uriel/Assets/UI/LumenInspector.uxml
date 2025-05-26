@@ -1,0 +1,18 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Styles/basic.uss?fileID=7433441132597879392&amp;guid=d6cc03b7520784d42aedd7f7518bf48d&amp;type=3#basic" />
+    <ui:VisualElement name="Root" style="flex-grow: 1;">
+        <ui:DropdownField label="Lumen" name="Lumen" class="label" />
+        <ui:DropdownField label="Photon" name="Photon" class="label">
+            <ui:Button text="Delete" name="Delete" />
+            <ui:Button text="Add" name="Add" />
+        </ui:DropdownField>
+        <ui:EnumField label="Solid" value="Center" type="Uriel.Domain.Solid, Assembly-CSharp" name="Solid" class="label" />
+        <ui:SliderInt label="Iterations" value="1" high-value="50" low-value="1" name="Iterations" show-input-field="true" class="label" />
+        <ui:Slider label="Frequency" value="1" high-value="100" name="Frequency" show-input-field="true" class="label" />
+        <ui:Slider label="Amplitude" value="1" high-value="3" name="Amplitude" show-input-field="true" low-value="-3" class="label" />
+        <ui:Slider label="Phase" value="1" high-value="100" name="Phase" show-input-field="true" class="label" />
+        <ui:Slider label="Radius" value="1" high-value="5" name="Radius" show-input-field="true" class="label" />
+        <ui:Slider label="Density" value="1" high-value="5" name="Density" show-input-field="true" low-value="-5" class="label" />
+        <ui:Slider label="Scale" value="1" high-value="100" name="Scale" show-input-field="true" class="label" />
+    </ui:VisualElement>
+</ui:UXML>

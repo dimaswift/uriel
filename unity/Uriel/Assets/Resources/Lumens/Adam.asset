@@ -33,8 +33,9 @@ MonoBehaviour:
       e33: 1
     iterations: 1
     type: 5
-    frequency: 7740
+    frequency: 100
     amplitude: 0.74
     phase: 1.01
-    radius: 367.6
-    density: -2893
+    radius: 100
+    density: 0
+    scale: 0

@@ -7,6 +7,7 @@ namespace Uriel.Domain
 {
     public abstract class SerializableBuffer<T> : SerializableBufferBase where T : struct
     {
+       
         protected override string GetName() => typeof(T).Name;
         protected abstract List<T> GetData();
         
@@ -36,6 +37,7 @@ namespace Uriel.Domain
             if (data.Count == 0) return;
             buffer = new ComputeBuffer(data.Count, Marshal.SizeOf(typeof(T)));
             buffer.SetData(data);
+            CreateBuffer(data.Count);
         } 
         
         public override bool CreateBuffer()
@@ -46,10 +48,9 @@ namespace Uriel.Domain
             {
                 return false;
             }
-            
             buffer = new ComputeBuffer(data.Count, Marshal.SizeOf(typeof(T)));
             buffer.SetData(data);
-            
+            CreateBuffer(data.Count);
             return true;
         }
     }

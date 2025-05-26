@@ -1,0 +1,10 @@
+:root {
+}
+
+.label {
+    color: rgb(255, 255, 255);
+}
+
+#unity-text-input {
+    color: rgb(53, 53, 53);
+}

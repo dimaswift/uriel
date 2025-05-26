@@ -35,7 +35,7 @@ MonoBehaviour:
     type: 3
     frequency: 8.47
     amplitude: 0.23
-    phase: 260.8
+    phase: 100
     radius: 3.22
     density: -0.09
     scale: -0.09

@@ -1,8 +1,6 @@
 #pragma kernel Construct
 #pragma kernel Clear
 
-#include "Assets/Scripts/Lib/Uriel.cginc"
-
 #define SIZEOF_UINT 4
 #define SIZEOF_FLOAT3 12
 
@@ -10,11 +8,11 @@ RWByteAddressBuffer VertexBuffer;
 RWByteAddressBuffer IndexBuffer;
 RWStructuredBuffer<uint> Counter;
 StructuredBuffer<uint2> TriangleTable;
-
+Texture3D<float> Field;
 uint3 Dims;
 uint MaxTriangle;
 float Scale;
-float Isovalue;
+float TargetValue;
 
 float3 TransformPoint(float3 p)
 {
@@ -29,10 +27,7 @@ uint EdgeIndexFromTriangleTable(uint2 data, uint index)
 
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
-    float ux = float(x - float(Dims.x) * 0.5) / Dims.x;
-    float uy = float(y - float(Dims.y) * 0.5) / Dims.y;
-    float uz = float(z - float(Dims.z) * 0.5) / Dims.z;
-    return sampleField(float3(ux, uy, uz));
+    return Field[uint3(x,y,z)];
 }
 
 float4 VoxelValueWithGradient(uint3 i)
@@ -89,7 +84,7 @@ void Construct(uint3 id : SV_DispatchThreadID)
 
     uint selector = 0;
     for (int i = 0; i < 8; i++)
-        selector |= (samples[i].w < Isovalue) << i;
+        selector |= (samples[i].w < TargetValue) << i;
     
     if (selector == 0 || selector == 0xff) return;
     
@@ -102,7 +97,7 @@ void Construct(uint3 id : SV_DispatchThreadID)
         float4 sample2 = samples[pair.y];
         const float3 vertex1 = id + CubeVertex(pair.x);
         const float3 vertex2 = id + CubeVertex(pair.y);
-        const float param = (Isovalue - sample1.w) / (sample2.w - sample1.w);
+        const float param = (TargetValue - sample1.w) / (sample2.w - sample1.w);
         vertices[i] = TransformPoint(lerp(vertex1, vertex2, param));
         normals[i] = -normalize(lerp(sample1.xyz, sample2.xyz, param));
     }

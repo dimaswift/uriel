@@ -45,7 +45,7 @@ Shader "Uriel/UnlitDepth"
                 const float value = sampleField(id.world_pos);
                 const float3 c = hsv2rgb(value * _Threshold, 1, 1);
                 const float grey = (c.r + c.g + c.b) / 3.0;
-                return float4(grey,grey,grey, 1) * _Multiplier;  
+                return float4(c, 1) * _Multiplier;  
             }  
             
             ENDCG  

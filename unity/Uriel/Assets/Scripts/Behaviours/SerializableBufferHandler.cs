@@ -25,6 +25,11 @@ namespace Uriel.Behaviours
             }
         }
 
+        public void SetBuffer(T buff)
+        {
+            this.buffer = buff;
+        }
+        
         public SerializableBufferHandler<T> LinkComputeKernel(ComputeShader shader, int id = 0)
         {
             if (buffer == null) return this;

@@ -1,22 +1,21 @@
+
+
 using UnityEngine;
 using UnityEngine.Rendering;
 using Uriel.Utils;
 
 namespace Uriel.Behaviours 
 {
-    public class MeshBuilder : System.IDisposable
+    public class CubeMarch : System.IDisposable
     {
         public Mesh Mesh => mesh;
 
-        public MeshBuilder(int x, int y, int z, int budget, ComputeShader compute)
-          => Initialize((x, y, z), budget, compute);
+        public CubeMarch(int x, int y, int z, int budget, ComputeShader compute, RenderTexture field)
+          => Initialize((x, y, z), budget, compute, field);
 
         public void Dispose()
           => ReleaseAll();
-
-        public void Build(float target, float scale)
-          => Run(target, scale);
-
+        
         (int x, int y, int z) grids;
         int triangleBudget;
 
@@ -29,13 +28,14 @@ namespace Uriel.Behaviours
         private GraphicsBuffer indexBuffer;
         private int constructKernel, clearKernel;
         
-        private void Initialize((int, int, int) dims, int budget, ComputeShader compute)
+        private void Initialize((int, int, int) dims, int budget, ComputeShader compute, RenderTexture field)
         {
             grids = dims;
             triangleBudget = budget;
             this.compute = compute;
             constructKernel = compute.FindKernel("Construct");
             clearKernel = compute.FindKernel("Clear");
+            compute.SetTexture(constructKernel, "Field", field);
             AllocateBuffers();
             AllocateMesh(3 * triangleBudget);
         }
@@ -46,14 +46,15 @@ namespace Uriel.Behaviours
             ReleaseMesh();
         }
 
-        private void Run(float target, float scale)
+        public void Run(float target, float range)
         {
             counterBuffer.SetCounterValue(0);
-            
+            var scale = 1f / grids.x;
             compute.SetInts("Dims", grids);
             compute.SetInt("MaxTriangle", triangleBudget);
             compute.SetFloat("Scale", scale);
-            compute.SetFloat("Isovalue", target);
+            compute.SetFloat("TargetValue", target);
+            compute.SetFloat("ValueRange", range);
             compute.SetBuffer(0, "TriangleTable", triangleTable);
 
             compute.SetBuffer(constructKernel, "VertexBuffer", vertexBuffer);
@@ -371,7 +372,7 @@ namespace Uriel.Behaviours
             0xffffffffff819831UL,
             0xfffffffffffff190UL,
             0xfffffffffffff830UL,
-            0xffffffffffffffffUL
-        };
+            0xffffffffffffffffUL 
+             };
     }
 }

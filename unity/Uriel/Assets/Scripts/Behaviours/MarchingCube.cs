@@ -6,32 +6,37 @@ namespace Uriel.Behaviours
     public class MarchingCube : MonoBehaviour
     {
         [SerializeField] private bool update;
-        [SerializeField] private float target, scale;
+        [SerializeField] private float target, range;
         [SerializeField] private int budget = 64;
         [SerializeField] private int resolution = 64;
-        [SerializeField] private ComputeShader compute;
+        [SerializeField] private ComputeShader cubeMarchCompute, floodFillCompute;
         [SerializeField] private MeshFilter meshFilter;
 
-        private MeshBuilder builder;
+        private CubeMarch cube;
+        private FloodFill floodFill;
         
         private void Start()
         {
-            builder = 
-                new MeshBuilder(resolution, resolution, resolution, budget, compute);
+            floodFill = new FloodFill(floodFillCompute, resolution, resolution, resolution);
+            
+            cube = 
+                new CubeMarch(resolution, resolution, resolution, 
+                    budget, cubeMarchCompute, floodFill.FieldTexture);
            
-            meshFilter.mesh = builder.Mesh;
+            meshFilter.mesh = cube.Mesh;
 
             GetComponent<PhotonBuffer>()
-                .LinkComputeKernel(compute);
-
-            builder.Build(target, scale);
+                .LinkComputeKernel(cubeMarchCompute)
+                .LinkComputeKernel(floodFillCompute);
+            
         }
 
         private void Update()
         {
             if (update)
             {
-                builder.Build(target, scale);
+                floodFill.Run(target, VolumePicker.Main.Selection);
+                cube.Run(target, range);
             }
 
             if (Input.GetKeyDown(KeyCode.S))
@@ -42,7 +47,8 @@ namespace Uriel.Behaviours
 
         private void OnDestroy()
         {
-            builder?.Dispose();
+            cube?.Dispose();
+            floodFill?.Dispose();
         }
     }
 }

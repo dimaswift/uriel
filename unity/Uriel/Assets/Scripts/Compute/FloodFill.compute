@@ -1,0 +1,134 @@
+
+#pragma kernel SampleField
+#pragma kernel PlaceSeed
+#pragma kernel FloodFillStep
+#pragma kernel ApplyComponentMask
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+// Input/Output textures
+RWTexture3D<float> FieldTexture;        // Scalar field values
+RWTexture3D<uint> ComponentTexture;     // Component IDs (0 = empty, 1 = filled)
+RWTexture3D<uint> TempTexture;          // Temporary buffer for flood fill propagation
+RWTexture3D<float> MaskedFieldTexture;  // Final masked field with only valid components
+
+// Buffers
+RWStructuredBuffer<uint> ComponentSize;      // Size of the component
+RWStructuredBuffer<uint> PropagationFlag;    // Did any propagation happen this iteration?
+RWStructuredBuffer<uint3> SeedPosition;      // The seed position in voxel coordinates
+
+// Parameters
+uint3 Dims;
+float TargetValue;
+float3 Seed;
+
+// Helper functions
+float SampleFieldAt(uint3 pos)
+{
+    float ux = float(pos.x - float(Dims.x) * 0.5) / Dims.x;
+    float uy = float(pos.y - float(Dims.y) * 0.5) / Dims.y;
+    float uz = float(pos.z - float(Dims.z) * 0.5) / Dims.z;
+    return sampleField(float3(ux, uy, uz));
+}
+
+
+uint3 PointToVoxel(float3 pos)
+{
+    float3 voxelFloat = float3(pos.x * Dims.x, pos.y * Dims.y, pos.z * Dims.z) + Dims * 0.5;
+    return uint3(clamp(voxelFloat, 0, float3(Dims) - 1));
+}
+
+// Kernel 1: Sample the scalar field into texture
+[numthreads(8, 8, 8)]
+void SampleField(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= Dims)) return;
+    
+    float value = SampleFieldAt(id);
+    FieldTexture[id] = value;
+    
+    // Initialize component texture
+    // 0 = empty space or unvisited
+    // 1 = visited/part of component
+    ComponentTexture[id] = 0;
+    TempTexture[id] = 0;
+    MaskedFieldTexture[id] = -1000.0; // Initialize as masked out
+}
+
+// Kernel 2: Place single seed point
+[numthreads(1, 1, 1)]
+void PlaceSeed(uint3 id : SV_DispatchThreadID)
+{
+    // Convert spherical coordinates to voxel position
+    uint3 seedPos = PointToVoxel(Seed);
+    
+    // Store seed position for debugging
+    SeedPosition[0] = seedPos;
+    
+    // Check if seed position is valid and contains solid material
+    if (all(seedPos < Dims))
+    {
+        float value = FieldTexture[seedPos];
+        if (value >= TargetValue)
+        {
+            ComponentTexture[seedPos] = 1;
+            TempTexture[seedPos] = 1;
+            ComponentSize[0] = 1;
+            PropagationFlag[0] = 1;
+        }
+    }
+}
+
+// Kernel 3: Flood fill step - propagate from voxels marked in TempTexture
+[numthreads(8, 8, 8)]
+void FloodFillStep(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= Dims)) return;
+    
+    // Only propagate from newly added voxels (marked in TempTexture)
+    if (TempTexture[id] == 0) return;
+    
+    // Clear this voxel from temp texture (it's now processed)
+    TempTexture[id] = 0;
+    
+    // Check 6-connected neighbors
+    for (int axis = 0; axis < 3; axis++)
+    {
+        for (int dir = -1; dir <= 1; dir += 2)
+        {
+            int3 offset = int3(0, 0, 0);
+            offset[axis] = dir;
+            
+            uint3 neighborPos = id + offset;
+            if (any(neighborPos >= Dims)) continue;
+            
+            // Check if neighbor is solid and unvisited
+            if (ComponentTexture[neighborPos] == 0 && FieldTexture[neighborPos] >= TargetValue)
+            {
+                // Try to claim this neighbor
+                uint oldVal;
+                InterlockedCompareExchange(ComponentTexture[neighborPos], 0, 1, oldVal);
+                
+                if (oldVal == 0) // Successfully claimed
+                {
+                    TempTexture[neighborPos] = 1; // Mark for next iteration
+                    InterlockedAdd(ComponentSize[0], 1);
+                    PropagationFlag[0] = 1; // Signal that propagation occurred
+                }
+            }
+        }
+    }
+}
+
+// Kernel 4: Apply component mask to field texture
+[numthreads(8, 8, 8)]
+void ApplyComponentMask(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= Dims)) return;
+    
+    float fieldValue = FieldTexture[id];
+    uint isInComponent = ComponentTexture[id];
+    
+    // Keep field value only if this voxel is part of the component
+    MaskedFieldTexture[id] = (isInComponent == 1) ? fieldValue : -1000.0;
+}
