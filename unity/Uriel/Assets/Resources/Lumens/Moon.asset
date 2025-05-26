@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
   m_Name: Moon
   m_EditorClassIdentifier: 
+  updateTransform: 0
   photons:
   - transform:
       e00: 4.576703
@@ -32,8 +33,9 @@ MonoBehaviour:
       e33: 1
     iterations: 1
     type: 5
-    frequency: 453.1
+    frequency: 100
     amplitude: 0.63
-    phase: -23.77
+    phase: 0
     radius: 4.89
     density: -0.68
+    scale: 0

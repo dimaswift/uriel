@@ -37,7 +37,6 @@ namespace Uriel.Domain
             if (data.Count == 0) return;
             buffer = new ComputeBuffer(data.Count, Marshal.SizeOf(typeof(T)));
             buffer.SetData(data);
-            CreateBuffer(data.Count);
         } 
         
         public override bool CreateBuffer()
@@ -50,7 +49,6 @@ namespace Uriel.Domain
             }
             buffer = new ComputeBuffer(data.Count, Marshal.SizeOf(typeof(T)));
             buffer.SetData(data);
-            CreateBuffer(data.Count);
             return true;
         }
     }

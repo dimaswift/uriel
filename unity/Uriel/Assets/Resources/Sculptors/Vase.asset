@@ -12,14 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b38492fabd444578861324cac6f354ed, type: 3}
   m_Name: Vase
   m_EditorClassIdentifier: 
-  fieldResolution: 16
-  shells: 1
-  capacity: 27
-  particleRadius: 2
-  bounds: 1
-  gravity: 0.71
-  acceleration: 257
-  speed: 0.02
-  sampleRadius: 0.002
-  particleSize: 0.99
-  frequency: 10
+  invertTriangles: 1
+  flipNormals: 1
+  target: 63.1
+  range: 503.9
+  budget: 10000000
+  resolution: 512

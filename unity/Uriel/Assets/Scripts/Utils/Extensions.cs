@@ -13,6 +13,15 @@ namespace Uriel.Utils
                 Mathf.CeilToInt((float) size / z));
         }
 
+        public static Vector3Int GetGroups(this ComputeShader compute, Vector3Int size, int kernel)
+        {
+            compute.GetKernelThreadGroupSizes(kernel, out var x, out var y, out var z);
+            return new Vector3Int(
+                Mathf.CeilToInt((float)size.x / x),
+                Mathf.CeilToInt((float)size.y / y),
+                Mathf.CeilToInt((float)size.z / z));
+        }
+
         public static void SetInts
             (this ComputeShader compute, string name, (int x, int y, int z) t)
             => compute.SetInts(name, t.x, t.y, t.z);
@@ -20,6 +29,10 @@ namespace Uriel.Utils
         public static void SetInts
             (this ComputeShader compute, string name, Vector3Int v)
             => compute.SetInts(name, v.x, v.y, v.z);
+
+        public static void SetInts
+            (this ComputeShader compute, int id, Vector3Int v)
+            => compute.SetInts(id, v.x, v.y, v.z);
 
         public static void DispatchThreads
             (this ComputeShader compute, int kernel, int x, int y, int z)

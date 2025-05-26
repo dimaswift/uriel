@@ -98,7 +98,7 @@ namespace Uriel.Behaviours
             }
             if (Input.GetKeyDown(KeyCode.E))
             {
-                FileUtils.ExportMeshToASCIISTL(currentMesh, Path.Combine(saveDirectory, "/Generated/STL/" + Guid.NewGuid().ToString().Substring(0, 5).ToUpper()));
+                FileUtils.ExportMeshToASCIISTL(currentMesh, Path.Combine(Application.dataPath, "/Generated/STL/" + Guid.NewGuid().ToString().Substring(0, 5).ToUpper()));
             }
         }
 

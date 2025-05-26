@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
   m_Name: Hologram
   m_EditorClassIdentifier: 
+  updateTransform: 0
   photons:
   - transform:
       e00: 1
@@ -32,8 +33,9 @@ MonoBehaviour:
       e33: 1
     iterations: 1
     type: 5
-    frequency: 1737
-    amplitude: 46177
+    frequency: 100
+    amplitude: 3
     phase: 10.55
-    radius: 58.3
-    density: -169.3
+    radius: 5
+    density: -5
+    scale: 0

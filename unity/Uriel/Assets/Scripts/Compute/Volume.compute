@@ -1,0 +1,20 @@
+#pragma kernel Run
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+RWTexture3D<float> _Field;
+uint3 _Dims;
+
+float sampleFieldAt(uint3 pos)
+{
+    float ux = float(pos.x - float(_Dims.x) * 0.5) / _Dims.x;
+    float uy = float(pos.y - float(_Dims.y) * 0.5) / _Dims.y;
+    float uz = float(pos.z - float(_Dims.z) * 0.5) / _Dims.z;
+    return sampleField(float3(ux, uy, uz));
+}
+
+[numthreads(8, 8, 8)]
+void Run(uint3 id : SV_DispatchThreadID)
+{
+    _Field[id] = sampleFieldAt(id);
+}

@@ -1,6 +1,7 @@
 ﻿
 using UnityEngine;
 using UnityEngine.Rendering;
+using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
@@ -190,16 +191,6 @@ namespace Uriel.Behaviours
             componentSize?.Dispose();
             propagationFlag?.Dispose();
             seedPosition?.Dispose();
-        }
-    }
-    
-    // Extension helper for dispatch
-    public static class ComputeShaderExtensions
-    {
-        public static void DispatchThreads(this ComputeShader compute, int kernel, int x, int y, int z)
-        {
-            compute.GetKernelThreadGroupSizes(kernel, out uint gx, out uint gy, out uint gz);
-            compute.Dispatch(kernel, (x + (int)gx - 1) / (int)gx, (y + (int)gy - 1) / (int)gy, (z + (int)gz - 1) / (int)gz);
         }
     }
 }

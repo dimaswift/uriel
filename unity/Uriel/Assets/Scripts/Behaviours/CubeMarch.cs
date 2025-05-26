@@ -10,8 +10,9 @@ namespace Uriel.Behaviours
     {
         public Mesh Mesh => mesh;
 
-        public CubeMarch(int x, int y, int z, int budget, ComputeShader compute, RenderTexture field)
-          => Initialize((x, y, z), budget, compute, field);
+        public CubeMarch(int x, int y, int z, int budget, ComputeShader compute, 
+            RenderTexture field, RenderTexture thresholdField)
+          => Initialize((x, y, z), budget, compute, field, thresholdField);
 
         public void Dispose()
           => ReleaseAll();
@@ -28,7 +29,8 @@ namespace Uriel.Behaviours
         private GraphicsBuffer indexBuffer;
         private int constructKernel, clearKernel;
         
-        private void Initialize((int, int, int) dims, int budget, ComputeShader compute, RenderTexture field)
+        private void Initialize((int, int, int) dims, int budget, 
+            ComputeShader compute, RenderTexture field, RenderTexture thresholdField)
         {
             grids = dims;
             triangleBudget = budget;
@@ -36,6 +38,7 @@ namespace Uriel.Behaviours
             constructKernel = compute.FindKernel("Construct");
             clearKernel = compute.FindKernel("Clear");
             compute.SetTexture(constructKernel, "Field", field);
+            compute.SetTexture(constructKernel, "ThresholdField", thresholdField);
             AllocateBuffers();
             AllocateMesh(3 * triangleBudget);
         }
@@ -46,7 +49,7 @@ namespace Uriel.Behaviours
             ReleaseMesh();
         }
 
-        public void Run(float target, float range)
+        public void Run(float target, float range, bool flipNormals, bool invertTriangles)
         {
             counterBuffer.SetCounterValue(0);
             var scale = 1f / grids.x;
@@ -56,12 +59,13 @@ namespace Uriel.Behaviours
             compute.SetFloat("TargetValue", target);
             compute.SetFloat("ValueRange", range);
             compute.SetBuffer(0, "TriangleTable", triangleTable);
-
+            compute.SetInt("FlipNormals", flipNormals ? 1 : 0);
+            compute.SetInt("InvertTriangles", invertTriangles ? 1 : 0);
             compute.SetBuffer(constructKernel, "VertexBuffer", vertexBuffer);
             compute.SetBuffer(constructKernel, "IndexBuffer", indexBuffer);
             compute.SetBuffer(constructKernel, "Counter", counterBuffer);
             compute.DispatchThreads(0, grids);
-
+   
             compute.SetBuffer(clearKernel, "VertexBuffer", vertexBuffer);
             compute.SetBuffer(clearKernel, "IndexBuffer", indexBuffer);
             compute.SetBuffer(clearKernel, "Counter", counterBuffer);

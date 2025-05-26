@@ -28,6 +28,7 @@ namespace Uriel.Behaviours
         public void SetBuffer(T buff)
         {
             this.buffer = buff;
+            buffer.EnsureBufferExists();
         }
         
         public SerializableBufferHandler<T> LinkComputeKernel(ComputeShader shader, int id = 0)

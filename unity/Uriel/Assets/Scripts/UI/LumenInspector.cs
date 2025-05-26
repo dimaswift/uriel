@@ -101,6 +101,7 @@ namespace Uriel.UI
             }
             
             buffer.SetBuffer(lumensDict[lumenName]);
+            
             foreach (Material material in materials)
             {
                 buffer.LinkMaterial(material);
@@ -200,6 +201,7 @@ namespace Uriel.UI
 
         private void OnLumenChanged(ChangeEvent<string> evt)
         {
+            print(evt.newValue);
             SelectLumen(evt.newValue);
         }
 

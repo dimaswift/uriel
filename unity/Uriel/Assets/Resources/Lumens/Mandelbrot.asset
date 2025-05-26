@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
   m_Name: Mandelbrot
   m_EditorClassIdentifier: 
+  updateTransform: 0
   photons:
   - transform:
       e00: 1
@@ -32,8 +33,9 @@ MonoBehaviour:
       e33: 1
     iterations: 1
     type: 5
-    frequency: 118
+    frequency: 100
     amplitude: 0.89
-    phase: 167.1
+    phase: 100
     radius: 2.02
-    density: 6.98
+    density: 5
+    scale: 0

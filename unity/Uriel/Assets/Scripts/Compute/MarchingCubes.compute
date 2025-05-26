@@ -9,10 +9,14 @@ RWByteAddressBuffer IndexBuffer;
 RWStructuredBuffer<uint> Counter;
 StructuredBuffer<uint2> TriangleTable;
 Texture3D<float> Field;
+Texture3D<float> ThresholdField;  // New: per-voxel threshold values
 uint3 Dims;
 uint MaxTriangle;
 float Scale;
+float ValueRange;     // Base range (can be scaled by threshold texture)
 float TargetValue;
+uint FlipNormals;     // 0 = normal, 1 = flip normals
+uint InvertTriangles; 
 
 float3 TransformPoint(float3 p)
 {
@@ -27,13 +31,31 @@ uint EdgeIndexFromTriangleTable(uint2 data, uint index)
 
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
+    if (distance(uint3(x,y,z), uint3(Dims.x, Dims.y, Dims.z) * 0.5) > ValueRange)
+    {
+        return ThresholdField[uint3(x,y,z)];;
+    }
     return Field[uint3(x,y,z)];
+}
+
+float sampleThresholdVoxel(uint x, uint y, uint z)
+{
+    return ThresholdField[uint3(x,y,z)];
+}
+
+// Get signed distance from the range using per-voxel threshold
+float GetSignedDistanceFromRange(float value, float threshold)
+{
+    float distFromCenter = value - threshold;
+    return smoothstep(1, 0, abs(distFromCenter) - TargetValue);
 }
 
 float4 VoxelValueWithGradient(uint3 i)
 {
     uint3 i_n = max(i, 1) - 1;
     uint3 i_p = min(i + 1, Dims - 1);
+    
+    // Sample the field values
     float v = sampleFieldVoxel(i.x, i.y, i.z);
     float v_nx = sampleFieldVoxel(i_n.x, i.y, i.z);
     float v_px = sampleFieldVoxel(i_p.x, i.y, i.z);
@@ -41,7 +63,17 @@ float4 VoxelValueWithGradient(uint3 i)
     float v_py = sampleFieldVoxel(i.x, i_p.y, i.z);
     float v_nz = sampleFieldVoxel(i.x, i.y, i_n.z);
     float v_pz = sampleFieldVoxel(i.x, i.y, i_p.z);
-    return float4(v_px - v_nx, v_py - v_ny, v_pz - v_nz, v);
+    
+    // Calculate gradient from the original field (this gives us correct normals)
+    float3 gradient = float3(v_px - v_nx, v_py - v_ny, v_pz - v_nz);
+    
+    // Get the threshold for this voxel
+    float threshold = sampleThresholdVoxel(i.x, i.y, i.z);
+    
+    // Calculate marching value using per-voxel threshold
+    float marchingValue = GetSignedDistanceFromRange(v, threshold);
+    
+    return float4(gradient, marchingValue);
 }
 
 void WriteVertex(uint offset, float3 p, float3 n)
@@ -77,14 +109,15 @@ void Construct(uint3 id : SV_DispatchThreadID)
 {
     if (any(id + 1 >= Dims.xyz)) return;
 
-   
     float4 samples[8];
     for (uint i = 0; i < 8; i++)
         samples[i] = VoxelValueWithGradient(id + CubeVertex(i));
 
+    // Build selector based on marching value
+    // Bit is set if vertex is outside the range (positive marching value)
     uint selector = 0;
     for (int i = 0; i < 8; i++)
-        selector |= (samples[i].w < TargetValue) << i;
+        selector |= (samples[i].w > 0) << i;
     
     if (selector == 0 || selector == 0xff) return;
     
@@ -97,19 +130,41 @@ void Construct(uint3 id : SV_DispatchThreadID)
         float4 sample2 = samples[pair.y];
         const float3 vertex1 = id + CubeVertex(pair.x);
         const float3 vertex2 = id + CubeVertex(pair.y);
-        const float param = (TargetValue - sample1.w) / (sample2.w - sample1.w);
+        
+        // Interpolate based on zero crossing
+        const float param = sample1.w / (sample1.w - sample2.w);
         vertices[i] = TransformPoint(lerp(vertex1, vertex2, param));
-        normals[i] = -normalize(lerp(sample1.xyz, sample2.xyz, param));
+        
+        // Interpolate gradients and normalize to get normal
+        float3 normal = -normalize(lerp(sample1.xyz, sample2.xyz, param));
+        
+        // Apply flip normals if requested
+        normals[i] = FlipNormals ? -normal : normal;
     }
     
     const uint2 tri_data = TriangleTable[selector];
     for (int i = 0; i < 15; i += 3)
     {
-        uint e1 = EdgeIndexFromTriangleTable(tri_data, i);
-        uint e2 = EdgeIndexFromTriangleTable(tri_data, i + 1);
-        uint e3 = EdgeIndexFromTriangleTable(tri_data, i + 2);
-        if (e1 == 15) return;
+        uint e3;
+        uint e2;
+        uint e1;
 
+        if (InvertTriangles == 1)
+        {
+            e3 = EdgeIndexFromTriangleTable(tri_data, i);
+            e2 = EdgeIndexFromTriangleTable(tri_data, i + 1);
+            e1 = EdgeIndexFromTriangleTable(tri_data, i + 2);
+            if (e3 == 15) return;
+        }
+        else
+        {
+            e1 = EdgeIndexFromTriangleTable(tri_data, i);
+            e2 = EdgeIndexFromTriangleTable(tri_data, i + 1);
+            e3 = EdgeIndexFromTriangleTable(tri_data, i + 2);
+            if (e1 == 15) return;
+        }
+        
+        
         const uint count = Counter.IncrementCounter();
         if (count >= MaxTriangle) return;
 

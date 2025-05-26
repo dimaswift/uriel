@@ -4,7 +4,9 @@ namespace Uriel.Domain
 {
     public static class ShaderProps
     {
-        public static readonly int ParticleSize = Shader.PropertyToID("_ParticleSize");
+        public static readonly int InvertTriangles = Shader.PropertyToID("_InvertTriangles");
+        public static readonly int CutoffRadius = Shader.PropertyToID("_CutoffRadius");
+        public static readonly int Dims = Shader.PropertyToID("_Dims");
         public static readonly int Bounds = Shader.PropertyToID("_Bounds");
         public static readonly int Capacity = Shader.PropertyToID("_Capacity");
         public static readonly int VertexCount = Shader.PropertyToID("_VertexCount");

@@ -201,7 +201,7 @@ Material:
     - _StepSize: 0.0435
     - _Steps: 65.3
     - _Surface: 0
-    - _Threshold: 0.084
+    - _Threshold: 0.52
     - _ThresholdThin: 0.01
     - _UseLight: 0
     - _WaveAmplitude: 0.0248

@@ -158,7 +158,7 @@ Material:
     - _Iterations: 0
     - _Max: -1.09
     - _MaxColor: 0.086
-    - _Metallic: 0
+    - _Metallic: 0.663
     - _Min: -2.49
     - _MinColor: 0
     - _Mode: 0.333
@@ -196,7 +196,7 @@ Material:
     - _Shape: 4
     - _Shell: 34.9
     - _Shininess: 130
-    - _Smoothness: 0.5
+    - _Smoothness: 0.705
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SpecularMultiplier: 5
@@ -230,7 +230,7 @@ Material:
     - _Z: 2
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 0.4245283, g: 0.4245283, b: 0.4245283, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorPos: {r: 0.15, g: 1.58, b: 0.25, a: 0.92}
     - _Color_0: {r: 0.2971698, g: 0.5244031, b: 1, a: 1}

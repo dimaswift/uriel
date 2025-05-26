@@ -81,15 +81,16 @@ namespace Uriel.Utils
             Debug.Log("Mesh exported to: " + filePath);
         }
     
-        public static void ExportMeshToASCIISTL(Mesh mesh, string filePath, string name = "Uriel")
+        public static void ExportMeshToASCIISTL(Mesh mesh, string name = "Uriel")
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"solid {name}");
             Vector3[] vertices = mesh.vertices;
             int[] triangles = mesh.triangles;
+           
             CultureInfo invariantCulture = CultureInfo.InvariantCulture;
 
-            for (int i = 0; i < triangles.Length; i += 3)
+            for (int i = 0; i <= triangles.Length - 3; i += 3)
             {
                 Vector3 v1 = vertices[triangles[i]];
                 Vector3 v2 = vertices[triangles[i + 1]];
@@ -106,8 +107,13 @@ namespace Uriel.Utils
                 sb.AppendLine("     endfacet");
             }
             sb.AppendLine($"endsolid {name}");
-        
-            File.WriteAllText(filePath + ".stl", sb.ToString());
+           
+            string directory = Path.Combine(Application.dataPath, "Generated/STL/");
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            File.WriteAllText(Path.Combine(directory, name + ".stl"), sb.ToString());
         }  
         
          public static void SaveTextureAsPNG(RenderTexture texture, string saveDirectory, string filePrefix)  

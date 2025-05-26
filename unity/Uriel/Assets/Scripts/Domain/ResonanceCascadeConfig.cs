@@ -27,4 +27,5 @@ namespace Uriel.Domain
         public float repulsion = 1;
         public float radius = 1;
     }
+    
 }
