@@ -24,7 +24,7 @@ namespace Uriel.Behaviours
         private ComputeShader compute;
         private ComputeBuffer triangleTable;
         private ComputeBuffer counterBuffer;
-        private ComputeBuffer holesBuffer;
+        private ComputeBuffer shellBuffer;
 
         private Mesh mesh;
         private GraphicsBuffer vertexBuffer;
@@ -51,27 +51,27 @@ namespace Uriel.Behaviours
             ReleaseMesh();
         }
 
-        public void Run(Sculpt sculpt, Vector4[] holes)
+        public void Run(Sculpt sculpt, Vector4[] shells)
         {
-            if (holesBuffer == null || holesBuffer.count != holes.Length)
+            if (shellBuffer == null || shellBuffer.count != shells.Length)
             {
-                if (holesBuffer != null) holesBuffer.Release();
+                if (shellBuffer != null) shellBuffer.Release();
 
-                if (holes.Length > 0)
+                if (shells.Length > 0)
                 {
-                    holesBuffer = new ComputeBuffer(holes.Length, sizeof(float) * 4);
-                    compute.SetBuffer(constructKernel, "Holes", holesBuffer);
+                    shellBuffer = new ComputeBuffer(shells.Length, sizeof(float) * 4);
+                    compute.SetBuffer(constructKernel, "Shells", shellBuffer);
                 }
                 
                
             }
 
-            if (holesBuffer != null)
+            if (shellBuffer != null)
             {
-                holesBuffer.SetData(holes);
+                shellBuffer.SetData(shells);
             }
           
-            compute.SetInt("HolesCount", holes.Length);
+            compute.SetInt("ShellCount", shells.Length);
             
             counterBuffer.SetCounterValue(0);
             
@@ -86,19 +86,19 @@ namespace Uriel.Behaviours
             compute.SetVector("Core", sculpt.core);
             compute.SetFloat("CoreStrength", sculpt.coreStrength);
             compute.SetFloat("CoreRadius", sculpt.coreRadius);
-            compute.SetBuffer(0, "TriangleTable", triangleTable);
+            compute.SetBuffer(constructKernel, "TriangleTable", triangleTable);
             compute.SetInt("FlipNormals", sculpt.flipNormals ? 1 : 0);
             compute.SetInt("RadialSymmetryCount", sculpt.radialSymmetryCount);
             compute.SetInt("InvertTriangles", sculpt.invertTriangles ? 1 : 0);
             compute.SetBuffer(constructKernel, "VertexBuffer", vertexBuffer);
             compute.SetBuffer(constructKernel, "IndexBuffer", indexBuffer);
             compute.SetBuffer(constructKernel, "Counter", counterBuffer);
-            compute.DispatchThreads(0, grids);
+            compute.DispatchThreads(constructKernel, grids);
    
             compute.SetBuffer(clearKernel, "VertexBuffer", vertexBuffer);
             compute.SetBuffer(clearKernel, "IndexBuffer", indexBuffer);
             compute.SetBuffer(clearKernel, "Counter", counterBuffer);
-            compute.DispatchThreads(1, 1024, 1, 1);
+            compute.DispatchThreads(clearKernel, 1024, 1, 1);
 
             var ext = new Vector3(grids.x, grids.y, grids.z) * scale;
             mesh.bounds = new Bounds(Vector3.zero, ext);

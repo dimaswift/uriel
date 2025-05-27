@@ -8,7 +8,7 @@ namespace Uriel.Domain
         public Sculpt sculpt;
         public int budget = 64;
         public int resolution = 64;
-        public Vector4[] holes;
+        public Vector4[] shells;
     }
 
     [System.Serializable]
@@ -22,7 +22,7 @@ namespace Uriel.Domain
         public Vector3 ellipsoidScale;
         public int radialSymmetryCount;
         public Vector3 core;
-        public float coreStrength;
+        [Range(-0.1f, 0.1f)] public float coreStrength;
         public float coreRadius;
     }
 }

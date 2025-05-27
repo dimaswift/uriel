@@ -201,7 +201,6 @@ namespace Uriel.UI
 
         private void OnLumenChanged(ChangeEvent<string> evt)
         {
-            print(evt.newValue);
             SelectLumen(evt.newValue);
         }
 
@@ -216,6 +215,7 @@ namespace Uriel.UI
         
         void RefreshPhotonDropdown()
         {
+            
             if (photonDropdown == null) return;
             
             // Store current selection

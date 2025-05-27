@@ -93,7 +93,7 @@ float holes(uint x, uint y, uint z)
 
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
-    return holes(x,y,z);
+    return ellipsoidCutoff(x,y,z)  + core(uint3(x,y,z));
 }
 
 float sampleThresholdVoxel(uint x, uint y, uint z)

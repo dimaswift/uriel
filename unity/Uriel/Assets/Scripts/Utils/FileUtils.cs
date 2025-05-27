@@ -81,6 +81,8 @@ namespace Uriel.Utils
             Debug.Log("Mesh exported to: " + filePath);
         }
     
+        
+        
         public static void ExportMeshToASCIISTL(Mesh mesh, string name = "Uriel")
         {
             StringBuilder sb = new StringBuilder();

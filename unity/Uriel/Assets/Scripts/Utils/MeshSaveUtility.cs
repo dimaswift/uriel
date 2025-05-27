@@ -9,7 +9,7 @@ namespace Uriel.Utils
         /// <summary>
         /// Saves a mesh asset with automatic GUID preservation if overwriting
         /// </summary>
-        public static void SaveMeshAsset(Mesh mesh, string defaultName = "ProceduralMesh")
+        public static Mesh SaveMeshAsset(Mesh mesh, string defaultName = "ProceduralMesh")
         {
             // Opens a file save dialog window
             string path = EditorUtility.SaveFilePanel("Save Mesh Asset", "Assets/Meshes", defaultName, "asset");
@@ -18,7 +18,7 @@ namespace Uriel.Utils
             if(string.IsNullOrEmpty(path)) 
             {
                 Debug.Log("Save cancelled");
-                return;
+                return null;
             }
 
             // Transforms the path to a project relative path
@@ -27,7 +27,7 @@ namespace Uriel.Utils
             if(string.IsNullOrEmpty(path))
             {
                 Debug.LogError("Path must be within the project Assets folder");
-                return;
+                return null;
             }
 
             // Check if this path already contains a mesh
@@ -51,7 +51,9 @@ namespace Uriel.Utils
             AssetDatabase.SaveAssets();
             
             // Ping the asset in the project window
-            EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Mesh>(path));
+            var result = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            EditorGUIUtility.PingObject(result);
+            return result;
         }
         
         /// <summary>
