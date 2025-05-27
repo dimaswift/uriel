@@ -12,9 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b38492fabd444578861324cac6f354ed, type: 3}
   m_Name: Vase
   m_EditorClassIdentifier: 
-  invertTriangles: 1
-  flipNormals: 1
-  target: 63.1
-  range: 503.9
+  sculpt:
+    target: 43.6
+    radius: 4.03
+    transitionWidth: 22.7
+    flipNormals: 0
+    invertTriangles: 1
+    ellipsoidScale: {x: 1.2, y: 1.97, z: 1.2}
+    radialSymmetryCount: 6
+    core: {x: 128, y: 218.2, z: 128}
+    coreStrength: 0.06
+    coreRadius: 10.94
   budget: 10000000
-  resolution: 512
+  resolution: 256
+  holes:
+  - {x: 128, y: 82.7, z: 128, w: 89.1}

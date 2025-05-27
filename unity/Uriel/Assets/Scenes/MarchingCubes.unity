@@ -800,7 +800,6 @@ MonoBehaviour:
   cubeMarchCompute: {fileID: 7200000, guid: 9f19ed91e8aa34430ac0ea80fb20eead, type: 3}
   volumeCompute: {fileID: 7200000, guid: 98f0c17cbdbb42d18649e5d55baa9608, type: 3}
   meshFilter: {fileID: 1077332997}
-  tex: {fileID: 0}
 --- !u!4 &970564457
 Transform:
   m_ObjectHideFlags: 0

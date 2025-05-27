@@ -2,6 +2,7 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
+using Uriel.Domain;
 using Uriel.Utils;
 
 namespace Uriel.Behaviours 
@@ -23,6 +24,7 @@ namespace Uriel.Behaviours
         private ComputeShader compute;
         private ComputeBuffer triangleTable;
         private ComputeBuffer counterBuffer;
+        private ComputeBuffer holesBuffer;
 
         private Mesh mesh;
         private GraphicsBuffer vertexBuffer;
@@ -49,18 +51,45 @@ namespace Uriel.Behaviours
             ReleaseMesh();
         }
 
-        public void Run(float target, float range, bool flipNormals, bool invertTriangles)
+        public void Run(Sculpt sculpt, Vector4[] holes)
         {
+            if (holesBuffer == null || holesBuffer.count != holes.Length)
+            {
+                if (holesBuffer != null) holesBuffer.Release();
+
+                if (holes.Length > 0)
+                {
+                    holesBuffer = new ComputeBuffer(holes.Length, sizeof(float) * 4);
+                    compute.SetBuffer(constructKernel, "Holes", holesBuffer);
+                }
+                
+               
+            }
+
+            if (holesBuffer != null)
+            {
+                holesBuffer.SetData(holes);
+            }
+          
+            compute.SetInt("HolesCount", holes.Length);
+            
             counterBuffer.SetCounterValue(0);
+            
             var scale = 1f / grids.x;
             compute.SetInts("Dims", grids);
             compute.SetInt("MaxTriangle", triangleBudget);
             compute.SetFloat("Scale", scale);
-            compute.SetFloat("TargetValue", target);
-            compute.SetFloat("ValueRange", range);
+            compute.SetFloat("TargetValue", sculpt.target);
+            compute.SetFloat("Radius", sculpt.radius);
+            compute.SetFloat("TransitionWidth", sculpt.transitionWidth);
+            compute.SetVector("EllipsoidScale", sculpt.ellipsoidScale);
+            compute.SetVector("Core", sculpt.core);
+            compute.SetFloat("CoreStrength", sculpt.coreStrength);
+            compute.SetFloat("CoreRadius", sculpt.coreRadius);
             compute.SetBuffer(0, "TriangleTable", triangleTable);
-            compute.SetInt("FlipNormals", flipNormals ? 1 : 0);
-            compute.SetInt("InvertTriangles", invertTriangles ? 1 : 0);
+            compute.SetInt("FlipNormals", sculpt.flipNormals ? 1 : 0);
+            compute.SetInt("RadialSymmetryCount", sculpt.radialSymmetryCount);
+            compute.SetInt("InvertTriangles", sculpt.invertTriangles ? 1 : 0);
             compute.SetBuffer(constructKernel, "VertexBuffer", vertexBuffer);
             compute.SetBuffer(constructKernel, "IndexBuffer", indexBuffer);
             compute.SetBuffer(constructKernel, "Counter", counterBuffer);
@@ -77,6 +106,7 @@ namespace Uriel.Behaviours
 
         private void AllocateBuffers()
         {
+           
             triangleTable = new ComputeBuffer(256, sizeof(ulong));
             triangleTable.SetData(TriangleTable);
             counterBuffer = new ComputeBuffer(1, 4, ComputeBufferType.Counter);

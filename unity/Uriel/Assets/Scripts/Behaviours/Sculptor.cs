@@ -18,8 +18,6 @@ namespace Uriel.Behaviours
         private CubeMarch cubeMarch;
         private VolumeWriter fieldVolumeWriter;
         private VolumeWriter thresholdVolumeWriter;
-
-        [SerializeField] private RenderTexture tex;
         
         private void Start()
         {
@@ -33,10 +31,9 @@ namespace Uriel.Behaviours
                     cubeMarchCompute,
                     fieldVolumeWriter.Texture,
                     thresholdVolumeWriter.Texture);
-
-            tex = fieldVolumeWriter.Texture;
             
             meshFilter.mesh = cubeMarch.Mesh;
+            fieldBuffer.LinkMaterial(meshFilter.GetComponent<MeshRenderer>().material);
         }
 
         private void Update()
@@ -45,14 +42,12 @@ namespace Uriel.Behaviours
             {
                 fieldVolumeWriter.Run();
                 thresholdVolumeWriter.Run();
-                cubeMarch.Run(config.target, config.range, config.flipNormals, config.invertTriangles);
+                cubeMarch.Run(config.sculpt, config.holes);
             }
 
             if (Input.GetKeyDown(KeyCode.S))
             {
-                FileUtils.ExportMeshToASCIISTL(cubeMarch.Mesh,
-                    Path.Combine(Application.dataPath,
-                        "Generated/STL/" + Guid.NewGuid().ToString().Substring(0, 5).ToUpper()));
+                MeshSaveUtility.SaveMeshAsset(cubeMarch.Mesh, "Adam");
             }
         }
 

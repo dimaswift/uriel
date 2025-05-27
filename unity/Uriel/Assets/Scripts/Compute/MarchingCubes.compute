@@ -3,20 +3,29 @@
 
 #define SIZEOF_UINT 4
 #define SIZEOF_FLOAT3 12
+#include "Assets/Scripts/Lib/Sky.cginc"
 
 RWByteAddressBuffer VertexBuffer;
 RWByteAddressBuffer IndexBuffer;
 RWStructuredBuffer<uint> Counter;
 StructuredBuffer<uint2> TriangleTable;
+StructuredBuffer<float4> Holes;
 Texture3D<float> Field;
 Texture3D<float> ThresholdField;  // New: per-voxel threshold values
 uint3 Dims;
 uint MaxTriangle;
 float Scale;
-float ValueRange;     // Base range (can be scaled by threshold texture)
+float Radius;     // Base range (can be scaled by threshold texture)
 float TargetValue;
+float TransitionWidth;
 uint FlipNormals;     // 0 = normal, 1 = flip normals
 uint InvertTriangles; 
+float3 EllipsoidScale;
+uint RadialSymmetryCount;
+uint HolesCount;
+float3 Core;
+float CoreStrength;
+float CoreRadius;
 
 float3 TransformPoint(float3 p)
 {
@@ -29,13 +38,62 @@ uint EdgeIndexFromTriangleTable(uint2 data, uint index)
                                data.y >> ((index - 8) * 4));
 }
 
+float smoothFalloff(uint x, uint y, uint z, float3 center, float radius)
+{
+    // Calculate distance from center
+
+    float dist = distance(float3(x,y,z), center);
+    
+    // Define transition zone
+    float innerRadius = radius - TransitionWidth;  // Start of transition
+    float outerRadius = radius;                     // End of transition
+    
+    // Calculate smooth falloff
+    float falloff = smoothstep(outerRadius, innerRadius, dist);
+    
+    // Multiply field value by falloff
+    return Field[uint3(x,y,z)] * falloff;
+}
+
+
+float ellipsoidCutoff(uint x, uint y, uint z)
+{
+    float3 center = float3(Dims.x, Dims.y, Dims.z) * 0.5;
+    float3 scaledPos = (float3(x,y,z) - center) / EllipsoidScale;
+    
+    float dist = length(scaledPos);
+
+    float innerRadius = Radius - TransitionWidth;  // Start of transition
+    float outerRadius = Radius;                     // End of transition
+    
+    float falloff = smoothstep(outerRadius, innerRadius, dist);
+
+    return Field[uint3(x,y,z)] * falloff;
+}
+
+float core(uint3 pos)
+{
+    //float3 center = float3(Dims.x, Dims.y, Dims.z) * 0.5;
+    float coreDistance = length(pos - Core);
+    float coreGlow = exp(-coreDistance * CoreStrength) * CoreRadius;
+    return coreGlow;
+}
+
+float holes(uint x, uint y, uint z)
+{
+    float v = smoothFalloff(x, y, z, uint3(x,y,z), Radius) + core(uint3(x,y,z));
+    for (int i = 0; i < HolesCount; ++i)
+    {
+        float4 hole = Holes[i];
+        float cutoff = smoothFalloff(x, y, z, hole.xyz, hole.w);
+        v *= cutoff;
+    }
+    return v;
+} 
+
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
-    if (distance(uint3(x,y,z), uint3(Dims.x, Dims.y, Dims.z) * 0.5) > ValueRange)
-    {
-        return ThresholdField[uint3(x,y,z)];;
-    }
-    return Field[uint3(x,y,z)];
+    return holes(x,y,z);
 }
 
 float sampleThresholdVoxel(uint x, uint y, uint z)
@@ -47,7 +105,7 @@ float sampleThresholdVoxel(uint x, uint y, uint z)
 float GetSignedDistanceFromRange(float value, float threshold)
 {
     float distFromCenter = value - threshold;
-    return smoothstep(1, 0, abs(distFromCenter) - TargetValue);
+    return abs(distFromCenter) - TargetValue;
 }
 
 float4 VoxelValueWithGradient(uint3 i)

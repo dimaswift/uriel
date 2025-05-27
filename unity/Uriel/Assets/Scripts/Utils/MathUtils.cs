@@ -1,4 +1,7 @@
-﻿namespace Uriel.Utils
+﻿using System;
+using UnityEngine;
+
+namespace Uriel.Utils
 {
     public static class MathUtils
     {

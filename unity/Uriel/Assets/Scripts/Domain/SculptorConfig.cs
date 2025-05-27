@@ -5,10 +5,24 @@ namespace Uriel.Domain
     [CreateAssetMenu(menuName = "Uriel/Sculptor")]
     public class SculptorConfig : ScriptableObject
     {
-        public bool invertTriangles;
-        public bool flipNormals;
-        public float target, range;
+        public Sculpt sculpt;
         public int budget = 64;
         public int resolution = 64;
+        public Vector4[] holes;
+    }
+
+    [System.Serializable]
+    public struct Sculpt
+    {
+        public float target;
+        public float radius;
+        public float transitionWidth;
+        public bool flipNormals;
+        public bool invertTriangles;
+        public Vector3 ellipsoidScale;
+        public int radialSymmetryCount;
+        public Vector3 core;
+        public float coreStrength;
+        public float coreRadius;
     }
 }
