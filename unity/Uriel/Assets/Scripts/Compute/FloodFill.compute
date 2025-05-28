@@ -19,7 +19,7 @@ RWStructuredBuffer<uint3> SeedPosition;      // The seed position in voxel coord
 
 // Parameters
 uint3 Dims;
-float TargetValue;
+float Shell;
 float3 Seed;
 
 // Helper functions
@@ -69,7 +69,7 @@ void PlaceSeed(uint3 id : SV_DispatchThreadID)
     if (all(seedPos < Dims))
     {
         float value = FieldTexture[seedPos];
-        if (value >= TargetValue)
+        if (value >= Shell)
         {
             ComponentTexture[seedPos] = 1;
             TempTexture[seedPos] = 1;
@@ -103,7 +103,7 @@ void FloodFillStep(uint3 id : SV_DispatchThreadID)
             if (any(neighborPos >= Dims)) continue;
             
             // Check if neighbor is solid and unvisited
-            if (ComponentTexture[neighborPos] == 0 && FieldTexture[neighborPos] >= TargetValue)
+            if (ComponentTexture[neighborPos] == 0 && FieldTexture[neighborPos] >= Shell)
             {
                 // Try to claim this neighbor
                 uint oldVal;

@@ -14,7 +14,7 @@ namespace Uriel.Domain
     [System.Serializable]
     public struct Sculpt
     {
-        public float target;
+        public float shell;
         public float radius;
         public float transitionWidth;
         public bool flipNormals;
@@ -24,5 +24,6 @@ namespace Uriel.Domain
         public Vector3 core;
         [Range(-0.1f, 0.1f)] public float coreStrength;
         public float coreRadius;
+        public float scale;
     }
 }

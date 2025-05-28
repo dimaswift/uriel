@@ -3,26 +3,22 @@
 
 #define SIZEOF_UINT 4
 #define SIZEOF_FLOAT3 12
-#include "Assets/Scripts/Lib/Sky.cginc"
 
 RWByteAddressBuffer VertexBuffer;
 RWByteAddressBuffer IndexBuffer;
 RWStructuredBuffer<uint> Counter;
 StructuredBuffer<uint2> TriangleTable;
-StructuredBuffer<float4> Holes;
 Texture3D<float> Field;
 Texture3D<float> ThresholdField;  // New: per-voxel threshold values
 uint3 Dims;
 uint MaxTriangle;
 float Scale;
 float Radius;     // Base range (can be scaled by threshold texture)
-float TargetValue;
+float Shell;
 float TransitionWidth;
 uint FlipNormals;     // 0 = normal, 1 = flip normals
 uint InvertTriangles; 
 float3 EllipsoidScale;
-uint RadialSymmetryCount;
-uint HolesCount;
 float3 Core;
 float CoreStrength;
 float CoreRadius;
@@ -38,25 +34,14 @@ uint EdgeIndexFromTriangleTable(uint2 data, uint index)
                                data.y >> ((index - 8) * 4));
 }
 
-float smoothFalloff(uint x, uint y, uint z, float3 center, float radius)
+float core(uint3 pos)
 {
-    // Calculate distance from center
-
-    float dist = distance(float3(x,y,z), center);
-    
-    // Define transition zone
-    float innerRadius = radius - TransitionWidth;  // Start of transition
-    float outerRadius = radius;                     // End of transition
-    
-    // Calculate smooth falloff
-    float falloff = smoothstep(outerRadius, innerRadius, dist);
-    
-    // Multiply field value by falloff
-    return Field[uint3(x,y,z)] * falloff;
+    const float coreDistance = length(pos - Core);
+    const float coreGlow = exp(-coreDistance * CoreStrength) * CoreRadius;
+    return coreGlow;
 }
 
-
-float ellipsoidCutoff(uint x, uint y, uint z)
+float ellipsoidFalloff(uint x, uint y, uint z)
 {
     float3 center = float3(Dims.x, Dims.y, Dims.z) * 0.5;
     float3 scaledPos = (float3(x,y,z) - center) / EllipsoidScale;
@@ -68,68 +53,36 @@ float ellipsoidCutoff(uint x, uint y, uint z)
     
     float falloff = smoothstep(outerRadius, innerRadius, dist);
 
-    return Field[uint3(x,y,z)] * falloff;
+    return falloff;
 }
 
-float core(uint3 pos)
-{
-    //float3 center = float3(Dims.x, Dims.y, Dims.z) * 0.5;
-    float coreDistance = length(pos - Core);
-    float coreGlow = exp(-coreDistance * CoreStrength) * CoreRadius;
-    return coreGlow;
-}
-
-float holes(uint x, uint y, uint z)
-{
-    float v = smoothFalloff(x, y, z, uint3(x,y,z), Radius) + core(uint3(x,y,z));
-    for (int i = 0; i < HolesCount; ++i)
-    {
-        float4 hole = Holes[i];
-        float cutoff = smoothFalloff(x, y, z, hole.xyz, hole.w);
-        v *= cutoff;
-    }
-    return v;
-} 
 
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
-    return ellipsoidCutoff(x,y,z)  + core(uint3(x,y,z));
-}
-
-float sampleThresholdVoxel(uint x, uint y, uint z)
-{
-    return ThresholdField[uint3(x,y,z)];
-}
-
-// Get signed distance from the range using per-voxel threshold
-float GetSignedDistanceFromRange(float value, float threshold)
-{
-    float distFromCenter = value - threshold;
-    return abs(distFromCenter) - TargetValue;
+    const float field = Field[uint3(x,y,z)];
+    const float threshold = ThresholdField[uint3(x,y,z)];
+    const float falloff = ellipsoidFalloff(x,y,z);
+    return field * threshold * falloff + core(uint3(x,y,z));
 }
 
 float4 VoxelValueWithGradient(uint3 i)
 {
-    uint3 i_n = max(i, 1) - 1;
-    uint3 i_p = min(i + 1, Dims - 1);
+    const uint3 i_n = max(i, 1) - 1;
+    const uint3 i_p = min(i + 1, Dims - 1);
     
     // Sample the field values
-    float v = sampleFieldVoxel(i.x, i.y, i.z);
-    float v_nx = sampleFieldVoxel(i_n.x, i.y, i.z);
-    float v_px = sampleFieldVoxel(i_p.x, i.y, i.z);
-    float v_ny = sampleFieldVoxel(i.x, i_n.y, i.z);
-    float v_py = sampleFieldVoxel(i.x, i_p.y, i.z);
-    float v_nz = sampleFieldVoxel(i.x, i.y, i_n.z);
-    float v_pz = sampleFieldVoxel(i.x, i.y, i_p.z);
+    const float center = sampleFieldVoxel(i.x, i.y, i.z);
+    const float v_nx = sampleFieldVoxel(i_n.x, i.y, i.z);
+    const float v_px = sampleFieldVoxel(i_p.x, i.y, i.z);
+    const float v_ny = sampleFieldVoxel(i.x, i_n.y, i.z);
+    const float v_py = sampleFieldVoxel(i.x, i_p.y, i.z);
+    const float v_nz = sampleFieldVoxel(i.x, i.y, i_n.z);
+    const float v_pz = sampleFieldVoxel(i.x, i.y, i_p.z);
     
     // Calculate gradient from the original field (this gives us correct normals)
-    float3 gradient = float3(v_px - v_nx, v_py - v_ny, v_pz - v_nz);
+    const float3 gradient = float3(v_px - v_nx, v_py - v_ny, v_pz - v_nz);
     
-    // Get the threshold for this voxel
-    float threshold = sampleThresholdVoxel(i.x, i.y, i.z);
-    
-    // Calculate marching value using per-voxel threshold
-    float marchingValue = GetSignedDistanceFromRange(v, threshold);
+    const float marchingValue = center - Shell;
     
     return float4(gradient, marchingValue);
 }

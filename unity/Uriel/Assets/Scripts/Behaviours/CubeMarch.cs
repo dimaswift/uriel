@@ -79,13 +79,14 @@ namespace Uriel.Behaviours
             compute.SetInts("Dims", grids);
             compute.SetInt("MaxTriangle", triangleBudget);
             compute.SetFloat("Scale", scale);
-            compute.SetFloat("TargetValue", sculpt.target);
+            compute.SetFloat("Shell", sculpt.shell);
             compute.SetFloat("Radius", sculpt.radius);
             compute.SetFloat("TransitionWidth", sculpt.transitionWidth);
             compute.SetVector("EllipsoidScale", sculpt.ellipsoidScale);
             compute.SetVector("Core", sculpt.core);
             compute.SetFloat("CoreStrength", sculpt.coreStrength);
             compute.SetFloat("CoreRadius", sculpt.coreRadius);
+            compute.SetFloat("Scale", sculpt.scale);
             compute.SetBuffer(constructKernel, "TriangleTable", triangleTable);
             compute.SetInt("FlipNormals", sculpt.flipNormals ? 1 : 0);
             compute.SetInt("RadialSymmetryCount", sculpt.radialSymmetryCount);
