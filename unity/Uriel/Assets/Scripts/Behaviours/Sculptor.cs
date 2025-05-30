@@ -43,8 +43,8 @@ namespace Uriel.Behaviours
         {
             if (runInUpdate)
             {
-                fieldVolumeWriter.Run();
-                thresholdVolumeWriter.Run();
+                fieldVolumeWriter.Run(config.sculpt.innerRadius);
+                thresholdVolumeWriter.Run(config.sculpt.innerRadius);
                 cubeMarch.Run(config.sculpt, config.shells);
             }
 

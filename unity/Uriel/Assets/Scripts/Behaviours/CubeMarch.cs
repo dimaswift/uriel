@@ -86,6 +86,7 @@ namespace Uriel.Behaviours
             compute.SetVector("Core", sculpt.core);
             compute.SetFloat("CoreStrength", sculpt.coreStrength);
             compute.SetFloat("CoreRadius", sculpt.coreRadius);
+            compute.SetFloat("InnerRadius", sculpt.innerRadius);
             compute.SetFloat("Scale", sculpt.scale);
             compute.SetBuffer(constructKernel, "TriangleTable", triangleTable);
             compute.SetInt("FlipNormals", sculpt.flipNormals ? 1 : 0);

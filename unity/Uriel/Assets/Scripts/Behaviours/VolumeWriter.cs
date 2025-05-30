@@ -44,8 +44,9 @@ namespace Uriel.Behaviours
             texture.Create();
         }
 
-        public void Run()
+        public void Run(float scale)
         {
+            compute.SetFloat(ShaderProps.Scale, scale);
             photonBuffer.LinkComputeKernel(compute);
             compute.SetInts(ShaderProps.Dims, dimensions);
             compute.SetTexture(0, ShaderProps.Field, texture);

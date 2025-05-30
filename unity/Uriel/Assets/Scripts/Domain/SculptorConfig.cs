@@ -16,6 +16,7 @@ namespace Uriel.Domain
     {
         public float shell;
         public float radius;
+        public float innerRadius;
         public float transitionWidth;
         public bool flipNormals;
         public bool invertTriangles;
@@ -25,5 +26,6 @@ namespace Uriel.Domain
         [Range(-0.1f, 0.1f)] public float coreStrength;
         public float coreRadius;
         public float scale;
+        
     }
 }

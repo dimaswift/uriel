@@ -22,6 +22,7 @@ float3 EllipsoidScale;
 float3 Core;
 float CoreStrength;
 float CoreRadius;
+float InnerRadius;
 
 float3 TransformPoint(float3 p)
 {
@@ -50,7 +51,8 @@ float ellipsoidFalloff(uint x, uint y, uint z)
 
     float innerRadius = Radius - TransitionWidth;  // Start of transition
     float outerRadius = Radius;                     // End of transition
-    
+   
+
     float falloff = smoothstep(outerRadius, innerRadius, dist);
 
     return falloff;
@@ -60,9 +62,9 @@ float ellipsoidFalloff(uint x, uint y, uint z)
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
     const float field = Field[uint3(x,y,z)];
-    const float threshold = ThresholdField[uint3(x,y,z)];
+    float threshold = ThresholdField[uint3(x,y,z)];
     const float falloff = ellipsoidFalloff(x,y,z);
-    return field * threshold * falloff + core(uint3(x,y,z));
+    return ((field - threshold)  * falloff + core(uint3(x,y,z)));
 }
 
 float4 VoxelValueWithGradient(uint3 i)
@@ -81,8 +83,11 @@ float4 VoxelValueWithGradient(uint3 i)
     
     // Calculate gradient from the original field (this gives us correct normals)
     const float3 gradient = float3(v_px - v_nx, v_py - v_ny, v_pz - v_nz);
-    
-    const float marchingValue = center - Shell;
+
+
+    float marchingValue = center - Shell;
+
+
     
     return float4(gradient, marchingValue);
 }

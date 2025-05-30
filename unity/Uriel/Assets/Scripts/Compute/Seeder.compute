@@ -1,0 +1,11 @@
+#pragma kernel Build
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+RWTexture3D<float> Field;
+
+[numthreads(8, 8, 8)]
+void Build(uint3 id : SV_DispatchThreadID)
+{
+    
+}

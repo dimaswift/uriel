@@ -13,16 +13,17 @@ MonoBehaviour:
   m_Name: Vase
   m_EditorClassIdentifier: 
   sculpt:
-    shell: -29.1
-    radius: 1.78
-    transitionWidth: 3.39
-    flipNormals: 1
-    invertTriangles: 0
-    ellipsoidScale: {x: 64, y: 64, z: 64}
+    shell: -4073
+    radius: 41.9
+    innerRadius: 0.89
+    transitionWidth: 118
+    flipNormals: 0
+    invertTriangles: 1
+    ellipsoidScale: {x: 16.7, y: 4.63, z: -3.17}
     radialSymmetryCount: 6
-    core: {x: 128, y: 128, z: 128}
-    coreStrength: 0.0525
-    coreRadius: -776.6
+    core: {x: 103.7, y: 155.3, z: 128}
+    coreStrength: -0.0927
+    coreRadius: -1.05
     scale: 0.01
   budget: 20000000
   resolution: 256
