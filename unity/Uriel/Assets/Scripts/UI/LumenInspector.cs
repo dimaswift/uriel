@@ -164,7 +164,7 @@ namespace Uriel.UI
             
             frequencySlider.RegisterValueChangedCallback(evt => UpdatePhotonValue(() => {
                 var photon = Lumen.photons[currentPhotonIndex];
-                photon.frequency = evt.newValue;
+                photon.frequency = Mathf.RoundToInt(evt.newValue);
                 Lumen.photons[currentPhotonIndex] = photon;
             }));
             

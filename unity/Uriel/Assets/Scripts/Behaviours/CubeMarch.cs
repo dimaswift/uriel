@@ -32,11 +32,11 @@ namespace Uriel.Behaviours
         private int constructKernel, clearKernel;
         
         private void Initialize((int, int, int) dims, int budget, 
-            ComputeShader compute, RenderTexture field, RenderTexture thresholdField)
+            ComputeShader computeSource, RenderTexture field, RenderTexture thresholdField)
         {
             grids = dims;
             triangleBudget = budget;
-            this.compute = compute;
+            compute = Object.Instantiate(computeSource);
             constructKernel = compute.FindKernel("Construct");
             clearKernel = compute.FindKernel("Clear");
             compute.SetTexture(constructKernel, "Field", field);
@@ -88,6 +88,7 @@ namespace Uriel.Behaviours
             compute.SetFloat("CoreRadius", sculpt.coreRadius);
             compute.SetFloat("InnerRadius", sculpt.innerRadius);
             compute.SetFloat("Scale", sculpt.scale);
+            compute.SetFloat("Shrink", sculpt.shrink);
             compute.SetBuffer(constructKernel, "TriangleTable", triangleTable);
             compute.SetInt("FlipNormals", sculpt.flipNormals ? 1 : 0);
             compute.SetInt("RadialSymmetryCount", sculpt.radialSymmetryCount);
@@ -146,6 +147,7 @@ namespace Uriel.Behaviours
 
         private void ReleaseMesh()
         {
+            Object.Destroy(compute);
             vertexBuffer.Dispose();
             indexBuffer.Dispose();
             Object.Destroy(mesh);

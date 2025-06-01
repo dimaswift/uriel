@@ -23,6 +23,7 @@ float3 Core;
 float CoreStrength;
 float CoreRadius;
 float InnerRadius;
+float Shrink;
 
 float3 TransformPoint(float3 p)
 {
@@ -45,9 +46,10 @@ float core(uint3 pos)
 float ellipsoidFalloff(uint x, uint y, uint z)
 {
     float3 center = float3(Dims.x, Dims.y, Dims.z) * 0.5;
-    float3 scaledPos = (float3(x,y,z) - center) / EllipsoidScale;
+
+    float3 scaledPos = (float3(x,y,z)) / (EllipsoidScale);
     
-    float dist = length(scaledPos);
+    float dist = distance(center, scaledPos);
 
     float innerRadius = Radius - TransitionWidth;  // Start of transition
     float outerRadius = Radius;                     // End of transition
@@ -62,9 +64,9 @@ float ellipsoidFalloff(uint x, uint y, uint z)
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
     const float field = Field[uint3(x,y,z)];
-    float threshold = ThresholdField[uint3(x,y,z)];
+    float threshold = ThresholdField[uint3(x,y,z) + Core];
     const float falloff = ellipsoidFalloff(x,y,z);
-    return ((field - threshold)  * falloff + core(uint3(x,y,z)));
+    return ((field - threshold * CoreRadius)  * falloff);
 }
 
 float4 VoxelValueWithGradient(uint3 i)
@@ -96,7 +98,7 @@ void WriteVertex(uint offset, float3 p, float3 n)
 {
     uint addr_p = offset * SIZEOF_FLOAT3 * 2;
     uint addr_n = addr_p + SIZEOF_FLOAT3;
-    VertexBuffer.Store3(addr_p, asuint(p));
+    VertexBuffer.Store3(addr_p, asuint(p + n * Shrink));
     VertexBuffer.Store3(addr_n, asuint(n));
 }
 
@@ -191,6 +193,7 @@ void Construct(uint3 id : SV_DispatchThreadID)
         WriteIndices(vidx, uint3(vidx, vidx + 1, vidx + 2));
     }
 }
+
 
 [numthreads(64, 1, 1)]
 void Clear(uint id : SV_DispatchThreadID)

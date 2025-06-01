@@ -10,7 +10,7 @@ namespace Uriel.Domain
         public Matrix4x4 transform;
         public uint iterations;
         public Solid type;
-        public float frequency;
+        public int frequency;
         public float amplitude;
         public float phase;
         public float radius;

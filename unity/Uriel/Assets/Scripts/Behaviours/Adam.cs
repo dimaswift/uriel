@@ -45,20 +45,7 @@ namespace Uriel.Behaviours
                 vel = Vector3.zero;
             }
 
-            if (Input.GetKey(KeyCode.Z))
-            {
-                var p = lumen.photons[0];
-                p.frequency += Time.deltaTime;
-                lumen.photons[0] = p;
-            }
-
-            if (Input.GetKey(KeyCode.X))
-            {
-                var p = lumen.photons[0];
-                p.frequency -= Time.deltaTime;
-                lumen.photons[0] = p;
-            }
-
+          
             if (Input.GetKey(KeyCode.P))
             {
                 var p = lumen.photons[0];

@@ -26,6 +26,7 @@ namespace Uriel.Domain
         [Range(-0.1f, 0.1f)] public float coreStrength;
         public float coreRadius;
         public float scale;
-        
+        public float shrink;
+
     }
 }

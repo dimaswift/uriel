@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
-  m_Name: Adam
+  m_Name: Eve
   m_EditorClassIdentifier: 
   updateTransform: 1
   photons:
@@ -33,9 +33,9 @@ MonoBehaviour:
       e33: 1
     iterations: 1
     type: 3
-    frequency: 8
-    amplitude: 105184
-    phase: 8.6
-    radius: 2.56
-    density: 1.84
-    scale: 1.25
+    frequency: 2401
+    amplitude: 166692
+    phase: 43.96
+    radius: 0.74
+    density: -2.98
+    scale: 0.08

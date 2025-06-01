@@ -10,22 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b38492fabd444578861324cac6f354ed, type: 3}
-  m_Name: Vase
+  m_Name: Eve
   m_EditorClassIdentifier: 
   sculpt:
-    shell: -4073
-    radius: 41.9
-    innerRadius: 0.89
-    transitionWidth: 118
-    flipNormals: 0
-    invertTriangles: 1
-    ellipsoidScale: {x: 16.7, y: 4.63, z: -3.17}
+    shell: -3
+    radius: 59.7
+    innerRadius: -0.3
+    transitionWidth: 7469
+    flipNormals: 1
+    invertTriangles: 0
+    ellipsoidScale: {x: 1, y: 1, z: 1}
     radialSymmetryCount: 6
-    core: {x: 103.7, y: 155.3, z: 128}
-    coreStrength: -0.0927
-    coreRadius: -1.05
+    core: {x: 0, y: 0, z: 0}
+    coreStrength: -0.0386
+    coreRadius: -6.25
     scale: 0.01
+    shrink: -0.01
   budget: 20000000
-  resolution: 256
+  resolution: 128
   shells:
   - {x: -86.8, y: -14.8, z: 17.1, w: 4.5}

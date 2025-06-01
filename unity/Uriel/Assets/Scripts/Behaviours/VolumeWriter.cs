@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using Uriel.Domain;
 using Uriel.Utils;
+using Object = UnityEngine.Object;
 
 namespace Uriel.Behaviours
 {
@@ -15,6 +16,7 @@ namespace Uriel.Behaviours
         private ComputeShader compute;
         private Vector3Int groups;
         private PhotonBuffer photonBuffer;
+        
         
         public VolumeWriter(ComputeShader compute, PhotonBuffer photonBuffer, int x, int y, int z)
         {
@@ -31,7 +33,7 @@ namespace Uriel.Behaviours
             this.photonBuffer = photonBuffer;
             dimensions = new Vector3Int(x, y, z);
             groups = compute.GetGroups(dimensions, 0);
-            this.compute = compute;
+            this.compute = Object.Instantiate(compute);
             var desc = new RenderTextureDescriptor(dimensions.x, dimensions.y, 0)
             {
                 dimension = TextureDimension.Tex3D,
@@ -46,6 +48,7 @@ namespace Uriel.Behaviours
 
         public void Run(float scale)
         {
+            
             compute.SetFloat(ShaderProps.Scale, scale);
             photonBuffer.LinkComputeKernel(compute);
             compute.SetInts(ShaderProps.Dims, dimensions);
@@ -55,6 +58,10 @@ namespace Uriel.Behaviours
         
         public void Dispose()
         {
+            if (compute)
+            {
+                Object.Destroy(compute);
+            }
             if (texture != null)
             {
                 texture.Release();

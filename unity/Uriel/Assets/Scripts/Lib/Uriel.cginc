@@ -11,7 +11,7 @@ struct Photon
     float4x4 transform;
     uint iterations;
     uint type;
-    float frequency;
+    int frequency;
     float amplitude;
     float phase;
     float radius;

@@ -20,8 +20,11 @@ namespace Uriel.Behaviours
         private VolumeWriter fieldVolumeWriter;
         private VolumeWriter thresholdVolumeWriter;
         
+        
+        
         private void Start()
         {
+    
             STLExporter.OnExportProgress += OnExportProgress;
             STLExporter.OnExportCompleted += OnExportCompleted;
             fieldVolumeWriter = new VolumeWriter(volumeCompute, fieldBuffer, config.resolution);
