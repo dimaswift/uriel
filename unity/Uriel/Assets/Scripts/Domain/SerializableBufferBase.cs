@@ -31,6 +31,8 @@ namespace Uriel.Domain
         {
         }
 
+        public abstract int GetBufferHash();
+
         public abstract bool CreateBuffer();
 
         protected abstract string GetName();

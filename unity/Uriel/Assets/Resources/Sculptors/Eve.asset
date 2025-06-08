@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Eve
   m_EditorClassIdentifier: 
   sculpt:
-    shell: -3
-    radius: 59.7
+    shell: 6.22
+    radius: 79.4
     innerRadius: -0.3
     transitionWidth: 7469
     flipNormals: 1
@@ -27,6 +27,6 @@ MonoBehaviour:
     scale: 0.01
     shrink: -0.01
   budget: 20000000
-  resolution: 128
+  resolution: 256
   shells:
   - {x: -86.8, y: -14.8, z: 17.1, w: 4.5}

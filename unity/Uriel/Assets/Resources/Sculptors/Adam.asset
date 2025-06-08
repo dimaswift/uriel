@@ -13,20 +13,20 @@ MonoBehaviour:
   m_Name: Adam
   m_EditorClassIdentifier: 
   sculpt:
-    shell: -3
-    radius: 64.5
-    innerRadius: -0.32
-    transitionWidth: 12054
+    shell: -60
+    radius: 117.8
+    innerRadius: 3.47
+    transitionWidth: 17141
     flipNormals: 1
     invertTriangles: 0
     ellipsoidScale: {x: 1, y: 1, z: 1}
     radialSymmetryCount: 6
     core: {x: 0, y: 0, z: 0}
-    coreStrength: -0.0723
-    coreRadius: -17.64
+    coreStrength: 0.014
+    coreRadius: 16.8
     scale: 0.01
-    shrink: -0.005
-  budget: 5000000
-  resolution: 128
+    shrink: 0
+  budget: 1000000
+  resolution: 256
   shells:
   - {x: -86.8, y: -14.8, z: 17.1, w: 4.5}

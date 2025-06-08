@@ -30,6 +30,8 @@ namespace Uriel.Behaviours
         private GraphicsBuffer vertexBuffer;
         private GraphicsBuffer indexBuffer;
         private int constructKernel, clearKernel;
+
+        private int currentSculptHash;
         
         private void Initialize((int, int, int) dims, int budget, 
             ComputeShader computeSource, RenderTexture field, RenderTexture thresholdField)
@@ -119,6 +121,7 @@ namespace Uriel.Behaviours
         {
             triangleTable.Dispose();
             counterBuffer.Dispose();
+            shellBuffer.Dispose();
         }
 
 

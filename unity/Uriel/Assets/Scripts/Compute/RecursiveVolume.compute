@@ -1,0 +1,47 @@
+#pragma kernel Run
+
+#include "Assets/Scripts/Lib/Uriel.cginc"
+
+RWTexture3D<float> _Field;
+Texture3D<float> _Core;
+
+uint3 _Dims;
+float _Scale;
+uint3 _CoreDimensions;
+
+float sampleFieldAt(uint3 pos)
+{
+    float ux = float(pos.x - float(_Dims.x) * 0.5) / _Dims.x;
+    float uy = float(pos.y - float(_Dims.y) * 0.5) / _Dims.y;
+    float uz = float(pos.z - float(_Dims.z) * 0.5) / _Dims.z;
+    const float3 uvPos = float3(ux, uy, uz) * _Scale;
+    Photon photon = _PhotonBuffer[0];
+    float density = 0.0;
+    
+    for (uint x = 0; x < _CoreDimensions.x; x++)
+    {
+        for (uint y = 0; y < _CoreDimensions.y; y++)
+        {
+            for (uint z = 0; z < _CoreDimensions.z; z++)
+            {
+                float coreDensity = _Core[uint3(x,y,z)];
+                if (coreDensity <= 0)
+                {
+                  //  continue;
+                }
+                float coreX = float(x - float(_CoreDimensions.x - 1) * 0.5);
+                float coreY = float(y - float(_CoreDimensions.y - 1) * 0.5);
+                float coreZ = float(z - float(_CoreDimensions.z - 1) * 0.5);
+                photon.phase = coreDensity * 180;
+                density += sampleField(uvPos, float3(coreX, coreY, coreZ), photon, 1);
+            }
+        }
+    }
+    return density;
+}
+
+[numthreads(4, 4, 4)]
+void Run(uint3 id : SV_DispatchThreadID)
+{
+    _Field[id] = sampleFieldAt(id);
+}

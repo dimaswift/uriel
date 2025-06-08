@@ -53,8 +53,7 @@ float ellipsoidFalloff(uint x, uint y, uint z)
 
     float innerRadius = Radius - TransitionWidth;  // Start of transition
     float outerRadius = Radius;                     // End of transition
-   
-
+    
     float falloff = smoothstep(outerRadius, innerRadius, dist);
 
     return falloff;
@@ -64,9 +63,9 @@ float ellipsoidFalloff(uint x, uint y, uint z)
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
     const float field = Field[uint3(x,y,z)];
-    float threshold = ThresholdField[uint3(x,y,z) + Core];
+    float threshold = ThresholdField[uint3(x,y,z)];
     const float falloff = ellipsoidFalloff(x,y,z);
-    return ((field - threshold * CoreRadius)  * falloff);
+    return (field * threshold * falloff);
 }
 
 float4 VoxelValueWithGradient(uint3 i)
@@ -85,12 +84,9 @@ float4 VoxelValueWithGradient(uint3 i)
     
     // Calculate gradient from the original field (this gives us correct normals)
     const float3 gradient = float3(v_px - v_nx, v_py - v_ny, v_pz - v_nz);
-
-
+    
     float marchingValue = center - Shell;
 
-
-    
     return float4(gradient, marchingValue);
 }
 
@@ -127,21 +123,22 @@ void Construct(uint3 id : SV_DispatchThreadID)
 {
     if (any(id + 1 >= Dims.xyz)) return;
 
+    uint i = 0;
     float4 samples[8];
-    for (uint i = 0; i < 8; i++)
+    for (i = 0; i < 8; i++)
         samples[i] = VoxelValueWithGradient(id + CubeVertex(i));
 
     // Build selector based on marching value
     // Bit is set if vertex is outside the range (positive marching value)
     uint selector = 0;
-    for (int i = 0; i < 8; i++)
+    for (i = 0; i < 8; i++)
         selector |= (samples[i].w > 0) << i;
     
     if (selector == 0 || selector == 0xff) return;
     
     float3 vertices[12];
     float3 normals[12];
-    for (int i = 0; i < 12; i++)
+    for (i = 0; i < 12; i++)
     {
         uint2 pair = EdgeVertexPair(i);
         float4 sample1 = samples[pair.x];
@@ -161,7 +158,7 @@ void Construct(uint3 id : SV_DispatchThreadID)
     }
     
     const uint2 tri_data = TriangleTable[selector];
-    for (int i = 0; i < 15; i += 3)
+    for (i = 0; i < 15; i += 3)
     {
         uint e3;
         uint e2;
@@ -182,7 +179,6 @@ void Construct(uint3 id : SV_DispatchThreadID)
             if (e1 == 15) return;
         }
         
-        
         const uint count = Counter.IncrementCounter();
         if (count >= MaxTriangle) return;
 
@@ -193,7 +189,6 @@ void Construct(uint3 id : SV_DispatchThreadID)
         WriteIndices(vidx, uint3(vidx, vidx + 1, vidx + 2));
     }
 }
-
 
 [numthreads(64, 1, 1)]
 void Clear(uint id : SV_DispatchThreadID)

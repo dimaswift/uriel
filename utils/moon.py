@@ -12,8 +12,8 @@ ts = load.timescale()
 # CONFIG
 LAT, LON = 52.9823, 36.1408        
 TZ = 'Russia/Moscow'
-START = datetime(2025, 5, 1)
-END = datetime(2026, 5, 1)
+START = datetime(2025, 6, 1)
+END = datetime(2025, 7, 1)
 STEP_HOURS = 1
 
 LUNAR_EPOCH = 694566337  # Jan 4, 1992 23:05:37 UTC (solar eclipse)
@@ -94,7 +94,7 @@ def main():
         'moon_culmination': culmination
     })
     print(df.head())
-    df.to_csv('E:/moon_table.csv')
+    df.to_csv('moon_table.csv')
     
 if __name__ == '__main__':
     main()

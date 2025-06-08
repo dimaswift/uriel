@@ -1,25 +1,26 @@
 using System;
-using System.IO;
 using UnityEngine;
 using Uriel.Domain;
 using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
-    public class Sculptor : MonoBehaviour
+    public class Core : MonoBehaviour
     {
         [SerializeField] private string exportPath = "Assets/Exports/";
         [SerializeField] private PhotonBuffer fieldBuffer;
-        [SerializeField] private PhotonBuffer thresholdBuffer;
+        [SerializeField] private PhotonBuffer coreBuffer;
         [SerializeField] private bool runInUpdate;
         [SerializeField] private SculptorConfig config;
-        [SerializeField] private ComputeShader cubeMarchCompute, volumeCompute;
+        [SerializeField] private ComputeShader cubeMarchCompute, volumeCompute, recursiveVolumeCompute;
         [SerializeField] private MeshFilter meshFilter;
 
-        private CubeMarch cubeMarch;
-        private VolumeWriter fieldVolumeWriter;
-        private VolumeWriter thresholdVolumeWriter;
+        [SerializeField] private RenderTexture coreTexture;
+        [SerializeField] private RenderTexture fieldTexture;
         
+        private CubeMarch cubeMarch;
+        private RecursiveVolumeWriter fieldVolumeWriter;
+        private VolumeWriter coreVolumeWriter;
         
         
         private void Start()
@@ -27,8 +28,9 @@ namespace Uriel.Behaviours
     
             STLExporter.OnExportProgress += OnExportProgress;
             STLExporter.OnExportCompleted += OnExportCompleted;
-            fieldVolumeWriter = new VolumeWriter(volumeCompute, fieldBuffer, config.resolution);
-            thresholdVolumeWriter = new VolumeWriter(volumeCompute, thresholdBuffer, config.resolution);
+            coreVolumeWriter = new VolumeWriter(volumeCompute, coreBuffer, 8, FilterMode.Point);
+            fieldVolumeWriter = new RecursiveVolumeWriter(recursiveVolumeCompute, fieldBuffer, coreVolumeWriter.Texture, config.resolution);
+           
             cubeMarch = new CubeMarch(
                     config.resolution, 
                     config.resolution, 
@@ -36,18 +38,21 @@ namespace Uriel.Behaviours
                     config.budget, 
                     cubeMarchCompute,
                     fieldVolumeWriter.Texture,
-                    thresholdVolumeWriter.Texture);
+                    null);
             
             meshFilter.mesh = cubeMarch.Mesh;
             fieldBuffer.LinkMaterial(meshFilter.GetComponent<MeshRenderer>().material);
+
+            coreTexture = coreVolumeWriter.Texture;
+            fieldTexture = fieldVolumeWriter.Texture;
         }
 
         private void Update()
         {
             if (runInUpdate)
             {
+                coreVolumeWriter.Run(config.sculpt.innerRadius);
                 fieldVolumeWriter.Run(config.sculpt.innerRadius);
-                thresholdVolumeWriter.Run(config.sculpt.innerRadius);
                 cubeMarch.Run(config.sculpt, config.shells);
             }
             
@@ -107,7 +112,7 @@ namespace Uriel.Behaviours
             STLExporter.OnExportCompleted -= OnExportCompleted;
             cubeMarch?.Dispose();
             fieldVolumeWriter?.Dispose();
-            thresholdVolumeWriter?.Dispose();
+            coreVolumeWriter?.Dispose();
         }
     }
 }

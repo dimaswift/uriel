@@ -39,5 +39,15 @@ namespace Uriel.Domain
                 }
             }
         }
+
+        public override int GetBufferHash()
+        {
+            var h = 0;
+            foreach (var photon in photons)
+            {
+                h += photon.GetHashCode();
+            }
+            return h;
+        }
     }
 }

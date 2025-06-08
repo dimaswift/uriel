@@ -4,6 +4,8 @@ namespace Uriel.Domain
 {
     public static class ShaderProps
     {
+        public static readonly int CoreDimensions = Shader.PropertyToID("_CoreDimensions");
+        public static readonly int Core = Shader.PropertyToID("_Core");
         public static readonly int InvertTriangles = Shader.PropertyToID("_InvertTriangles");
         public static readonly int CutoffRadius = Shader.PropertyToID("_CutoffRadius");
         public static readonly int Dims = Shader.PropertyToID("_Dims");

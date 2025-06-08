@@ -23,5 +23,16 @@ namespace Uriel.Domain
                 mods[i] = mod;
             }
         }
+
+        public override int GetBufferHash()
+        {
+            var h = 0;
+            foreach (var mod in mods)
+            {
+                h += mod.GetHashCode();
+            }
+
+            return h;
+        }
     }
 }

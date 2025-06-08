@@ -27,6 +27,6 @@ namespace Uriel.Domain
         public float coreRadius;
         public float scale;
         public float shrink;
-
+        
     }
 }
