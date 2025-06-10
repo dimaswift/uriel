@@ -8,8 +8,8 @@ from skyfield.almanac import find_discrete, risings_and_settings
 from skyfield.data import hipparcos
 from skyfield.positionlib import Apparent
 
-# Custom epoch: January 1, 2000, 00:00:00 UTC (Y2K epoch)
-CUSTOM_EPOCH = datetime(2000, 1, 1, 0, 0, 0, tzinfo=utc)
+# Custom epoch: January 4, 1992, 23:05:37 UTC 694566337
+CUSTOM_EPOCH = datetime(1992, 1, 4, 23, 5, 37, tzinfo=utc)
 UNIX_EPOCH = datetime(1970, 1, 1, 0, 0, 0, tzinfo=utc)
 CUSTOM_EPOCH_OFFSET = int((CUSTOM_EPOCH - UNIX_EPOCH).total_seconds())
 
@@ -249,7 +249,7 @@ class CelestialEphemerisGenerator:
         
         return culminations_found
     
-    def generate_ephemeris(self, celestial_body, start_date, end_date, time_step_hours=1):
+    def generate_ephemeris(self, celestial_body, start_date, end_date, time_step_seconds=60):
         """
         Generate ephemeris data for a celestial body.
         
@@ -257,7 +257,7 @@ class CelestialEphemerisGenerator:
             celestial_body: 'sun', 'moon', or planet name
             start_date: datetime object (will be converted to UTC if naive)
             end_date: datetime object (will be converted to UTC if naive)
-            time_step_hours: time step in hours
+            time_step_seconds: time step in seconds
             
         Returns:
             List of ephemeris records
@@ -270,7 +270,7 @@ class CelestialEphemerisGenerator:
             
         records = []
         current_time = start_date
-        time_delta = timedelta(hours=time_step_hours)
+        time_delta = timedelta(seconds=time_step_seconds)
         
         # Get the celestial object
         if celestial_body.lower() == 'sun':
@@ -285,8 +285,8 @@ class CelestialEphemerisGenerator:
         prev_altitude = None
         prev_time = None
         
-        print(f"Generating ephemeris from {start_date} to {end_date} with {time_step_hours}h steps...")
-        total_steps = int((end_date - start_date).total_seconds() / (time_step_hours * 3600))
+        print(f"Generating ephemeris from {start_date} to {end_date} with {time_step_seconds}s steps...")
+        total_steps = int((end_date - start_date).total_seconds() / (time_step_seconds))
         step_count = 0
         
         while current_time <= end_date:
@@ -302,19 +302,19 @@ class CelestialEphemerisGenerator:
             if prev_altitude is not None:
                 event = self.detect_rise_set_events(prev_altitude, altitude_deg)
                 
-                # If we detected a rise or set event, find the exact time
-                if event in [EVENT_RISE, EVENT_SET]:
-                    exact_event = self.find_exact_event_time(
-                        body, celestial_body, prev_time, current_time, event, precision_minutes=1
-                    )
+                # # If we detected a rise or set event, find the exact time
+                # if event in [EVENT_RISE, EVENT_SET]:
+                #     exact_event = self.find_exact_event_time(
+                #         body, celestial_body, prev_time, current_time, event, precision_minutes=1
+                #     )
                     
-                    if exact_event:
-                        # Insert the exact event record
-                        records.append(exact_event)
+                #     if exact_event:
+                #         # Insert the exact event record
+                #         records.append(exact_event)
             
             # Create regular record
             record = position_data.copy()
-            record['event'] = EVENT_NONE  # Regular records don't have events (except exact ones)
+            record['event'] = event  # Regular records don't have events (except exact ones)
             record['distance_event'] = DISTANCE_EVENT_NONE
             
             records.append(record)
@@ -358,8 +358,8 @@ class CelestialEphemerisGenerator:
             csvfile.write(f"# Celestial Body: {celestial_body}\n")
             csvfile.write(f"# Observer Location: {self.observer_lat:.6f}°, {self.observer_lon:.6f}° (elevation: {self.observer_elevation}m)\n")
             csvfile.write(f"# Time Range: {start_date.strftime('%Y-%m-%d %H:%M:%S')} to {end_date.strftime('%Y-%m-%d %H:%M:%S')} UTC\n")
-            csvfile.write(f"# Time Step: {time_step_hours} hour(s) with precise rise/set events\n")
-            csvfile.write(f"# Custom Epoch: January 1, 2000 00:00:00 UTC (offset from Unix: {CUSTOM_EPOCH_OFFSET} seconds)\n")
+            csvfile.write(f"# Time Step: {time_step_hours} seconds(s) with precise rise/set events\n")
+            csvfile.write(f"# Custom Epoch: January 4, 1992 23:05:37 UTC (offset from Unix: {CUSTOM_EPOCH_OFFSET} seconds)\n")
             csvfile.write(f"# Total Records: {len(records)}\n")
             csvfile.write(f"#\n")
             csvfile.write(f"# Event Codes: 0=None, 1=Rise, 2=Set, 3=Culmination\n")
@@ -367,7 +367,7 @@ class CelestialEphemerisGenerator:
             csvfile.write(f"# Planet IDs: Mercury=1, Venus=2, Mars=4, Jupiter=5, Saturn=6, Uranus=7, Neptune=8, Sun=10, Moon=11\n")
             csvfile.write(f"#\n")
             csvfile.write(f"# Field Descriptions:\n")
-            csvfile.write(f"# timestamp: Seconds since custom epoch (Jan 1, 2000 UTC)\n")
+            csvfile.write(f"# timestamp: Seconds since custom epoch\n")
             csvfile.write(f"# phase: Moon phase (0.0=new, 1.0=full) or 0.0 for other bodies\n")
             csvfile.write(f"# distance_km: Distance from Earth in kilometers\n")
             csvfile.write(f"# azimuth_deg: Azimuth angle in degrees (0=North, 90=East)\n")
@@ -504,9 +504,9 @@ def main():
     
     # Generate ephemeris for multiple bodies
     celestial_bodies = ['moon']
-    start_date = datetime(2025, 6, 1, 0, 0, 0)  # Will be converted to UTC
-    end_date = datetime(2025, 6, 7, 23, 59, 59)  # Will be converted to UTC
-    time_step = 1  # hours
+    start_date = datetime(2025, 6, 9, 0, 0, 0)  # Will be converted to UTC
+    end_date = datetime(2025, 7, 9, 0, 0, 0)  # Will be converted to UTC
+    time_step = 60  # secs
     
     for body in celestial_bodies:
         print(f"\n{'='*80}")

@@ -2,7 +2,7 @@
 // EphemerisReader.h
 #ifndef EPHEMERIS_READER_H
 #define EPHEMERIS_READER_H
-
+#include "ephemeris.h"
 #include <Arduino.h>
 #include <SD.h>
 
@@ -32,33 +32,6 @@
 #define PLANET_MOON 11
 
 
-#pragma pack(push, 1)
-// Header structure (32 bytes, must match C code)
-struct EphemerisHeader {
-    uint32_t magic;              // Magic number for file identification
-    uint32_t version;            // File format version
-    uint32_t record_count;       // Number of records in file
-    uint32_t record_size;        // Size of each record in bytes
-    uint32_t start_timestamp;    // First timestamp in dataset
-    uint32_t end_timestamp;      // Last timestamp in dataset  
-    uint32_t time_step_seconds;  // Time step between regular records
-    uint32_t reserved;           // Reserved for future use
-};
-
-// Binary record structure (28 bytes, must match C code)
-struct EphemerisRecord {
-    uint32_t timestamp;          // Seconds since custom epoch
-    float phase;                 // Moon phase (0.0-1.0)
-    float distance_km;           // Distance from observer in km
-    float azimuth_deg;           // Azimuth in degrees
-    float altitude_deg;          // Altitude in degrees
-    uint8_t event;               // Rise/set/culmination event
-    uint8_t distance_event;      // Apogee/perigee event
-    uint8_t closest_planet_id;   // ID of closest planet
-    uint8_t reserved;            // Padding for alignment
-    float angular_distance_deg;  // Angular distance to closest planet
-};
-#pragma pack(pop)
 
 class EphemerisReader {
 private:
@@ -92,7 +65,7 @@ public:
     // Information methods
     uint32_t getStartTime() { return header.start_timestamp; }
     uint32_t getEndTime() { return header.end_timestamp; }
-    uint32_t getTimeStep() { return header.time_step_seconds; }
+    float getTimeStep() { return header.time_step_seconds; }
     uint32_t getRecordCount() { return header.record_count; }
     
     // Utility methods
@@ -123,14 +96,21 @@ bool EphemerisReader::begin(const char *filename) {
     Serial.print(F("Opening file: "));
     Serial.println(filename);
     
-    // // Check if file exists
-    // if (!SD.exists(filename)) {
-    //     Serial.println(F("Error: File does not exist"));
-    //     return false;
-    // }
+    // Check if file exists
+    if (!SD.exists(filename)) {
+        Serial.println(F("Error: File does not exist"));
+        return false;
+    }
     
     // Open the binary file
     data_file = SD.open(filename, FILE_READ);
+
+    int c = 0;
+    while(!data_file && c < 10) { 
+        c++;
+        delay(10);
+    }
+
     if (!data_file) {
         Serial.println(F("Error: Cannot open file"));
         return false;
@@ -168,10 +148,10 @@ bool EphemerisReader::begin(const char *filename) {
 }
 
 void EphemerisReader::end() {
-    // if (data_file) {
-    //     data_file.close();
-    // }
-    // cache_valid = false;
+    if (data_file) {
+        data_file.close();
+    }
+    cache_valid = false;
 }
 
 bool EphemerisReader::readHeader() {
@@ -253,14 +233,15 @@ bool EphemerisReader::readHeader() {
     
     // Calculate expected file size
     uint32_t expected_size = sizeof(EphemerisHeader) + 
-                            (header.record_count * header.record_size) +
-                            (((header.record_count + 9) / 10) * 8);  // Index size from C code
+                            (header.record_count * header.record_size);  // Index size from C code
     
     Serial.print(F("Expected file size: "));
     Serial.print(expected_size);
     Serial.print(F(", Actual: "));
     Serial.println(data_file.size());
     
+
+
     return true;
 }
 
@@ -273,7 +254,7 @@ uint32_t EphemerisReader::calculateFileOffset(uint32_t timestamp) {
         aligned_timestamp = header.start_timestamp;
     }
     
-    uint32_t time_steps = (aligned_timestamp - header.start_timestamp) / header.time_step_seconds;
+    uint32_t time_steps = ((aligned_timestamp - header.start_timestamp) / header.time_step_seconds) + 1;
     
     // Calculate file position
     uint32_t file_offset = sizeof(EphemerisHeader) + (time_steps * sizeof(EphemerisRecord));
@@ -348,10 +329,20 @@ bool EphemerisReader::findRecord(uint32_t timestamp, EphemerisRecord *record) {
     // Try direct calculation first (for regular hourly records)
     uint32_t file_offset = calculateFileOffset(timestamp);
     EphemerisRecord temp_record;
-    
+    Serial.print(F("Offset: "));
+    Serial.println(file_offset);
+
     if (readRecordAt(file_offset, &temp_record)) {
-        if (temp_record.timestamp == timestamp) {
-            *record = temp_record;
+        if(timestamp > temp_record.timestamp) {
+                Serial.print(F("Timestamp is ahead: "));
+                Serial.println(timestamp - temp_record.timestamp);
+            }
+           
+            else {
+                 Serial.print(F("Timestamp is behind: "));
+                Serial.println(temp_record.timestamp - timestamp);
+            }
+        *record = temp_record;
             
             // Update cache
             cache_timestamp = timestamp;
@@ -359,11 +350,10 @@ bool EphemerisReader::findRecord(uint32_t timestamp, EphemerisRecord *record) {
             cache_valid = true;
             
             return true;
-        }
     }
     
     // If direct calculation didn't work, search nearby (for precise event records)
-    if (searchNearTimestamp(timestamp, record, 10)) {
+    if (searchNearTimestamp(timestamp, record, 300)) {
         // Update cache
         cache_timestamp = timestamp;
         cache_record = *record;

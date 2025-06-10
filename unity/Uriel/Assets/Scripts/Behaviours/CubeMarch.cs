@@ -12,8 +12,8 @@ namespace Uriel.Behaviours
         public Mesh Mesh => mesh;
 
         public CubeMarch(int x, int y, int z, int budget, ComputeShader compute, 
-            RenderTexture field, RenderTexture thresholdField)
-          => Initialize((x, y, z), budget, compute, field, thresholdField);
+            RenderTexture field)
+          => Initialize((x, y, z), budget, compute, field);
 
         public void Dispose()
           => ReleaseAll();
@@ -34,7 +34,7 @@ namespace Uriel.Behaviours
         private int currentSculptHash;
         
         private void Initialize((int, int, int) dims, int budget, 
-            ComputeShader computeSource, RenderTexture field, RenderTexture thresholdField)
+            ComputeShader computeSource, RenderTexture field)
         {
             grids = dims;
             triangleBudget = budget;
@@ -42,7 +42,6 @@ namespace Uriel.Behaviours
             constructKernel = compute.FindKernel("Construct");
             clearKernel = compute.FindKernel("Clear");
             compute.SetTexture(constructKernel, "Field", field);
-            compute.SetTexture(constructKernel, "ThresholdField", thresholdField);
             AllocateBuffers();
             AllocateMesh(3 * triangleBudget);
         }

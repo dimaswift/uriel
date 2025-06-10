@@ -1,0 +1,137 @@
+
+#pragma kernel Run
+
+Texture3D<float> _Layer_0;
+Texture3D<float> _Layer_1;
+Texture3D<float> _Layer_2;
+Texture3D<float> _Layer_3;
+
+RWTexture3D<float> _Result;
+
+uint3 _Dims;
+
+int3 _Offset_0;
+int3 _Offset_1;
+int3 _Offset_2;
+int3 _Offset_3;
+
+float _Falloff_0;
+float _Falloff_1;
+float _Falloff_2;
+float _Falloff_3;
+
+uint _Operation_0; // 0=multiply, 1=add, 2=subtract
+uint _Operation_1;
+uint _Operation_2;
+uint _Operation_3;
+
+int _LayerCount;
+
+// Calculate falloff based on distance from center of the layer application area
+float CalculateFalloff(float3 currentPos, float3 layerCenter, uint3 dimensions, float falloffStrength)
+{
+    // Calculate distance from the center of where the layer is applied
+    float distance = length(currentPos - layerCenter);
+    
+    // Calculate max distance (diagonal of the texture)
+    float maxDistance = length((float3)dimensions) * 0.5;
+    
+    // Normalize distance (0 = center, 1 = edge)
+    float normalizedDistance = saturate(distance / maxDistance);
+    
+    // Apply falloff curve - closer to center = stronger effect
+    // falloffStrength controls how much the effect diminishes at edges
+    float falloff = lerp(1.0, falloffStrength, normalizedDistance);
+    
+    return falloff;
+}
+
+// Apply the specified operation between current value and layer value
+float ApplyOperation(float currentValue, float layerValue, uint operation)
+{
+    switch(operation)
+    {
+        case 0: // Multiply
+            return currentValue * layerValue;
+        case 1: // Add
+            return currentValue + layerValue;
+    case 2: // Subtract
+            
+            return layerValue > 0 ? currentValue - layerValue : currentValue;
+        default:
+            return currentValue;
+    }
+}
+
+// Check if a 3D position is within texture bounds
+bool IsInBounds(int3 pos, uint3 dimensions)
+{
+    return all(pos >= 0) && all(pos < (int3)dimensions);
+}
+
+[numthreads(4, 4, 4)]
+void Run(uint3 id : SV_DispatchThreadID)
+{
+    // Early exit if outside texture bounds
+    if (any(id >= _Dims))
+        return;
+
+    
+    // Start with base texture value
+    float result = _Layer_0[id];
+    float3 currentPos = (float3)id;
+    
+    if (_LayerCount > 1)
+    {
+        int3 samplePos = (int3)id + _Offset_1;
+        if (IsInBounds(samplePos, _Dims))
+        {
+            float layerValue = _Layer_1[samplePos];
+            
+            // Calculate center of layer application (considering offset)
+            float3 layerCenter = (float3)_Dims * 0.5 + (float3)_Offset_1;
+            float falloff = CalculateFalloff(currentPos, layerCenter, _Dims, _Falloff_1);
+            
+            // Apply falloff to layer value
+            layerValue *= falloff;
+            
+            // Apply operation
+            result = ApplyOperation(result, layerValue, _Operation_1);
+        }
+    }
+    
+    if (_LayerCount > 2)
+    {
+        int3 samplePos = (int3)id + _Offset_2;
+        if (IsInBounds(samplePos, _Dims))
+        {
+            float layerValue = _Layer_2[samplePos];
+            
+            float3 layerCenter = (float3)_Dims * 0.5 + (float3)_Offset_2;
+            float falloff = CalculateFalloff(currentPos, layerCenter, _Dims, _Falloff_2);
+            
+            layerValue *= falloff;
+            result = ApplyOperation(result, layerValue, _Operation_2);
+        }
+    }
+    //
+    // if (_LayerCount > 3)
+    // {
+    //     int3 samplePos = (int3)id + _Offset_3;
+    //     if (IsInBounds(samplePos, _Dims))
+    //     {
+    //         float layerValue = _Layer_3[samplePos];
+    //         
+    //         float3 layerCenter = (float3)_Dims * 0.5 + (float3)_Offset_3;
+    //         float falloff = CalculateFalloff(currentPos, layerCenter, _Dims, _Falloff_3);
+    //         
+    //         layerValue *= falloff;
+    //         result = ApplyOperation(result, layerValue, _Operation_3);
+    //     }
+    // }
+    
+    // Clamp result to prevent overflow/underflow
+   // result = saturate(result);
+    
+    _Result[id] = result;
+}

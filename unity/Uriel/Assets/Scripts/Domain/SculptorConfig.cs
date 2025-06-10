@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Uriel.Behaviours;
 
 namespace Uriel.Domain
 {
@@ -7,8 +8,10 @@ namespace Uriel.Domain
     {
         public Sculpt sculpt;
         public int budget = 64;
-        public int resolution = 64;
+        public Vector3Int resolution = new Vector3Int(64,64,64);
         public Vector4[] shells;
+        public  FieldParameters[] layers;
+        public  CombineParameter[] combines;
     }
 
     [System.Serializable]

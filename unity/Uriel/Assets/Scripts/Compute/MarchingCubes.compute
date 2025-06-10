@@ -9,7 +9,6 @@ RWByteAddressBuffer IndexBuffer;
 RWStructuredBuffer<uint> Counter;
 StructuredBuffer<uint2> TriangleTable;
 Texture3D<float> Field;
-Texture3D<float> ThresholdField;  // New: per-voxel threshold values
 uint3 Dims;
 uint MaxTriangle;
 float Scale;
@@ -63,9 +62,8 @@ float ellipsoidFalloff(uint x, uint y, uint z)
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
     const float field = Field[uint3(x,y,z)];
-    float threshold = ThresholdField[uint3(x,y,z)];
-    const float falloff = ellipsoidFalloff(x,y,z);
-    return (field * threshold * falloff);
+    //const float falloff = ellipsoidFalloff(x,y,z);
+    return field;
 }
 
 float4 VoxelValueWithGradient(uint3 i)

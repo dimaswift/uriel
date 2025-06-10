@@ -69,6 +69,7 @@ namespace Uriel.Domain
             
             computeShader.SetBuffer(kernelIndex, BufferId, buffer);
             computeShader.SetInt(CountId, buffer.count);
+
         }
 
 

@@ -13,20 +13,38 @@ MonoBehaviour:
   m_Name: Adam
   m_EditorClassIdentifier: 
   sculpt:
-    shell: -60
-    radius: 117.8
-    innerRadius: 3.47
-    transitionWidth: 17141
+    shell: -43
+    radius: 23.5
+    innerRadius: 0.52
+    transitionWidth: 114.8
     flipNormals: 1
     invertTriangles: 0
     ellipsoidScale: {x: 1, y: 1, z: 1}
     radialSymmetryCount: 6
     core: {x: 0, y: 0, z: 0}
-    coreStrength: 0.014
-    coreRadius: 16.8
+    coreStrength: -0.040943466
+    coreRadius: 59.9
     scale: 0.01
     shrink: 0
-  budget: 1000000
-  resolution: 256
+  budget: 5000000
+  resolution: {x: 512, y: 512, z: 512}
   shells:
   - {x: -86.8, y: -14.8, z: 17.1, w: 4.5}
+  layers:
+  - scale: 2.18
+    fieldType: 0
+    ellipsoidRadii: {x: 65.9, y: 67.5, z: 79.4}
+    rectangleSize: {x: 0, y: 0, z: 0}
+    donutParams: {x: 0, y: 0}
+  - scale: 0.92
+    fieldType: 5
+    ellipsoidRadii: {x: 160.1, y: 160.1, z: 160.1}
+    rectangleSize: {x: 256, y: 32.2, z: 256}
+    donutParams: {x: 84.8, y: 35.39}
+  combines:
+  - offset: {x: 0, y: 0, z: 0}
+    falloff: 6.53
+    operation: 1
+  - offset: {x: 0, y: 0, z: 0}
+    falloff: 0.38
+    operation: 1

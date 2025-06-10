@@ -22,8 +22,7 @@
 #define MAX_OBJECTS 32
 #define MAX_NAME_LENGTH 64
 #define CONSTELLATION_LENGTH 32
-#define EPOCH_START 694584840UL
-#define BIRTH_OFFSET 26048
+#define EPOCH_START 694566337UL
 
 typedef struct {
  uint16_t year;
@@ -34,89 +33,58 @@ typedef struct {
  uint8_t second;
 } DS1302Time;
 
-/**
- * Data structure representing an astronomical body's ephemeris data
- */
+
+
+// Header structure (32 bytes, must match C code)
+struct EphemerisHeader {
+    uint32_t magic;              // Magic number for file identification
+    uint32_t version;            // File format version
+    uint32_t record_count;       // Number of records in file
+    uint32_t record_size;        // Size of each record in bytes
+    uint32_t start_timestamp;    // First timestamp in dataset
+    uint32_t end_timestamp;      // Last timestamp in dataset  
+    uint32_t time_step_seconds;  // Time step between regular records
+    uint32_t reserved;           // Reserved for future use
+};
+#pragma pack(push, 1)
+// Binary record structure (28 bytes, must match C code)
+struct EphemerisRecord {
+    uint32_t timestamp;          // Seconds since custom epoch
+    float phase;                 // Moon phase (0.0-1.0)
+    float distance_km;           // Distance from observer in km
+    float azimuth_deg;           // Azimuth in degrees
+    float altitude_deg;          // Altitude in degrees
+    uint8_t event;               // Rise/set/culmination event
+    uint8_t distance_event;      // Apogee/perigee event
+    uint8_t closest_planet_id;   // ID of closest planet
+    uint8_t reserved;            // Padding for alignment
+    float angular_distance_deg;  // Angular distance to closest planet
+};
+#pragma pack(pop)
+
 typedef struct {
-    uint32_t epoch_seconds;                  // Julian date
-    double position[3];         // X, Y, Z position (AU)
-    double ra_dec[2];           // RA, Dec (radians)
-    double magnitude;           // V-band magnitude
-    double phase;               // Phase
-    double angular_size;        // Angular size
-    double physical_size;       // Physical size
-    double albedo;              // Albedo
-    double sun_dist;            // Distance from Sun
-    double earth_dist;          // Distance from Earth
-    double sun_ang_dist;        // Angular distance from Sun
-    double theta_edo;           // Elongation parameter
-    double ecliptic[3];         // eclLng, eclDist, eclLat
-    char constellation[32];     // Constellation name
-} EphemerisPoint;
-
-/**
- * Collection of ephemeris data points
- */
-typedef struct {
-    EphemerisPoint *points;  // Array of data points
-    int count;                    // Number of data points in the array
-    char object_name[64];         // Name of the astronomical object
-} EphemerisData;
-
-// Constants
-
-// DS1302 time structure
-
-// New indexed binary format structures
-typedef struct {
-    char magic[4];              // "IDX4" magic identifier for indexed format
-    uint32_t version;           // Format version (currently 1)
-    uint32_t object_count;      // Number of celestial objects
-    uint32_t start_time;            // First Date in dataset
-    uint32_t end_time;              // Last Date in dataset
-    uint32_t time_step;           // Time step between data points (in days)
-    uint32_t time_points;       // Number of time points per object
-    uint32_t data_start_offset; // Offset where actual data begins
-    uint32_t reserved[4];       // Reserved for future use
-} IndexedHeader;
-
-// Object metadata (sorted by distance from Sun)
-typedef struct {
-    char name[MAX_NAME_LENGTH]; // Object name
-    uint8_t object_id;          // 0-based ID (0=Mercury, 1=Venus, etc.)
-    double avg_sun_distance;    // Average distance from Sun (for sorting)
-    uint32_t data_offset;       // Offset to this object's data block
-    uint32_t reserved;
-} ObjectIndex;
-
-// Compact binary data point (no variable-length strings)
-typedef struct {
-    uint32_t epoch_seconds;
-    float position[3];          // Using float to save space
-    float ra_dec[2];
-    float magnitude;
-    float phase;
-    float angular_size;
-    float physical_size;
-    float albedo;
-    float sun_dist;
-    float earth_dist;
-    float sun_ang_dist;
-    float theta_edo;
-    float ecliptic[3];
-    uint8_t constellation_id;   // ID instead of string (0-87 for constellations)
-} CompactPoint;
-
-
-int de430_load_point_by_time(const char *filename, const DS1302Time *ds_time, 
-                             const char *object_name, EphemerisPoint *result);
+    uint16_t magic;          // 0xCELE for "CELEstial"
+    uint16_t length;         // Should be sizeof(EphemerisRecord)
+    EphemerisRecord data;
+    uint16_t checksum;       // Simple checksum for validation
+} CelestialPacket;
 
 uint32_t ds1302_to_epoch_seconds(const DS1302Time *ds_time);
 uint32_t unix_to_epoch_seconds(uint32_t unix_timestamp);
 uint32_t epoch_seconds_to_unix(uint32_t epoch_seconds);
+uint16_t calculateChecksum(const EphemerisRecord* rec);
 
 static inline bool is_leap_year(int year) {
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+uint16_t calculateChecksum(const EphemerisRecord* rec) {
+    uint16_t sum = 0;
+    uint8_t* bytes = (uint8_t*)rec;
+    for (int i = 0; i < sizeof(EphemerisRecord); i++) {
+        sum += bytes[i];
+    }
+    return sum;
 }
 
 uint32_t ds1302_to_epoch_seconds(const DS1302Time *ds_time) {
@@ -163,8 +131,8 @@ uint32_t ds1302_to_epoch_seconds(const DS1302Time *ds_time) {
         ds_time->minute * 60UL +         // Minutes to seconds
         ds_time->second;                 // Seconds
 
-    total_seconds -= BIRTH_OFFSET;
-    return total_seconds;
+    
+    return total_seconds + 3260;
 }
 
 uint32_t unix_to_epoch_seconds(uint32_t unix_timestamp) {
@@ -195,8 +163,8 @@ int epoch_seconds_to_ds1302(uint32_t epoch_seconds, DS1302Time *ds_time) {
     static const uint8_t days_in_month[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     
     // Extract time of day
-    uint32_t seconds_in_day = (epoch_seconds + BIRTH_OFFSET) % 86400UL;
-    uint32_t total_days = (epoch_seconds + BIRTH_OFFSET) / 86400UL;
+    uint32_t seconds_in_day = (epoch_seconds) % 86400UL;
+    uint32_t total_days = (epoch_seconds) / 86400UL;
     Serial.println(total_days);
     ds_time->hour = seconds_in_day / 3600UL;
     ds_time->minute = (seconds_in_day % 3600UL) / 60UL;

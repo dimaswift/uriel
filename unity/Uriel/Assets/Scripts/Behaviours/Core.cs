@@ -29,16 +29,15 @@ namespace Uriel.Behaviours
             STLExporter.OnExportProgress += OnExportProgress;
             STLExporter.OnExportCompleted += OnExportCompleted;
             coreVolumeWriter = new VolumeWriter(volumeCompute, coreBuffer, 8, FilterMode.Point);
-            fieldVolumeWriter = new RecursiveVolumeWriter(recursiveVolumeCompute, fieldBuffer, coreVolumeWriter.Texture, config.resolution);
+            fieldVolumeWriter = new RecursiveVolumeWriter(recursiveVolumeCompute, fieldBuffer, coreVolumeWriter.Texture, config.resolution.x);
            
             cubeMarch = new CubeMarch(
-                    config.resolution, 
-                    config.resolution, 
-                    config.resolution,
+                    config.resolution.x, 
+                    config.resolution.y, 
+                    config.resolution.z,
                     config.budget, 
                     cubeMarchCompute,
-                    fieldVolumeWriter.Texture,
-                    null);
+                    fieldVolumeWriter.Texture);
             
             meshFilter.mesh = cubeMarch.Mesh;
             fieldBuffer.LinkMaterial(meshFilter.GetComponent<MeshRenderer>().material);

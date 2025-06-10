@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Uriel.Domain;
 using Uriel.Utils;
 
@@ -9,45 +11,71 @@ namespace Uriel.Behaviours
     public class Sculptor : MonoBehaviour
     {
         [SerializeField] private string exportPath = "Assets/Exports/";
-        [SerializeField] private PhotonBuffer fieldBuffer;
-        [SerializeField] private PhotonBuffer thresholdBuffer;
+        [SerializeField] private PhotonBuffer[] layerBuffers;
+        [SerializeField] private bool updateDistanceFields;
         [SerializeField] private bool runInUpdate;
         [SerializeField] private SculptorConfig config;
-        [SerializeField] private ComputeShader cubeMarchCompute, volumeCompute;
+        [SerializeField] private ComputeShader cubeMarchCompute, distanceFieldCompute, combineCompute;
         [SerializeField] private MeshFilter meshFilter;
 
         private CubeMarch cubeMarch;
-        private VolumeWriter fieldVolumeWriter;
+        private DistanceFieldGenerator[] generators;
+        private Combine combine;
         private VolumeWriter thresholdVolumeWriter;
-        
-        
+
+        [SerializeField] private RenderTexture l0, l1, res;
         
         private void Start()
         {
     
             STLExporter.OnExportProgress += OnExportProgress;
             STLExporter.OnExportCompleted += OnExportCompleted;
-            fieldVolumeWriter = new VolumeWriter(volumeCompute, fieldBuffer, config.resolution);
-            thresholdVolumeWriter = new VolumeWriter(volumeCompute, thresholdBuffer, config.resolution);
+
+            generators = new DistanceFieldGenerator[layerBuffers.Length];
+            
+            List<RenderTexture> layerTextures = new();
+            for (int i = 0; i < generators.Length; i++)
+            {
+                var gen = new DistanceFieldGenerator(distanceFieldCompute, config.resolution, config.layers[i]);
+                generators[i] = gen;
+                layerTextures.Add(gen.Field);
+                layerBuffers[i].LinkComputeKernel(gen.ComputeInstance);
+            }
+
+            combine = new Combine(combineCompute, layerTextures.ToArray());
+            
             cubeMarch = new CubeMarch(
-                    config.resolution, 
-                    config.resolution, 
-                    config.resolution,
+                    config.resolution.x, 
+                    config.resolution.y, 
+                    config.resolution.z,
                     config.budget, 
                     cubeMarchCompute,
-                    fieldVolumeWriter.Texture,
-                    thresholdVolumeWriter.Texture);
+                    combine.Result);
             
             meshFilter.mesh = cubeMarch.Mesh;
-            fieldBuffer.LinkMaterial(meshFilter.GetComponent<MeshRenderer>().material);
+
+            l0 = generators[0].Field;
+            l1 = generators[1].Field;
+            
+            res = combine.Result;
         }
 
         private void Update()
         {
             if (runInUpdate)
             {
-                fieldVolumeWriter.Run(config.sculpt.innerRadius);
-                thresholdVolumeWriter.Run(config.sculpt.innerRadius);
+                if (updateDistanceFields)
+                {
+                    for (int i = 0; i < config.layers.Length; i++)
+                    {
+                        generators[i].Run(config.layers[i]);
+                        combine.UpdateLayer(i, config.combines[i]);
+                    }
+                
+                    combine.Run();
+                }
+               
+                
                 cubeMarch.Run(config.sculpt, config.shells);
             }
             
@@ -64,21 +92,16 @@ namespace Uriel.Behaviours
                 Debug.LogWarning("No mesh to export");
                 return;
             }
-
-            string fileName = $"procedural_mesh_{System.DateTime.Now:yyyyMMdd_HHmmss}.stl";
-            string fullPath = System.IO.Path.Combine(exportPath, fileName);
-
             try
             {
-                // Export with optimization
                 await STLExporter.ExportMeshToSTLAsync(
                     name: Guid.NewGuid().ToString().Substring(0, 5).ToUpper(),
                     mesh: cubeMarch.Mesh,
-                    binary: true, // Binary STL is smaller and faster
-                    optimizeVertices: true // Remove duplicate vertices
+                    binary: true,
+                    optimizeVertices: true
                 );
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogError($"Export failed: {ex.Message}");
             }
@@ -96,17 +119,20 @@ namespace Uriel.Behaviours
             Debug.Log($"Export completed!\n" +
                       $"File: {filePath}\n" +
                       $"Triangles: {originalTriangles} -> {finalTriangles} ({efficiency:F1}% used)\n" +
-                      $"File size: {new System.IO.FileInfo(filePath).Length / 1024f:F1} KB");
+                      $"File size: {new FileInfo(filePath).Length / 1024f:F1} KB");
         }
-
-        // Alternative: Synchronous export for immediate use
-
+        
         private void OnDestroy()
         {
             STLExporter.OnExportProgress -= OnExportProgress;
             STLExporter.OnExportCompleted -= OnExportCompleted;
             cubeMarch?.Dispose();
-            fieldVolumeWriter?.Dispose();
+
+            foreach (var generator in generators)
+            {
+                generator.Dispose();
+            }
+            
             thresholdVolumeWriter?.Dispose();
         }
     }
