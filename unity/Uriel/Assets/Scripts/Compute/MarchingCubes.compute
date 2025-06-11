@@ -11,18 +11,11 @@ StructuredBuffer<uint2> TriangleTable;
 Texture3D<float> Field;
 uint3 Dims;
 uint MaxTriangle;
-float Scale;
-float Radius;     // Base range (can be scaled by threshold texture)
-float Shell;
-float TransitionWidth;
 uint FlipNormals;     // 0 = normal, 1 = flip normals
 uint InvertTriangles; 
-float3 EllipsoidScale;
-float3 Core;
-float CoreStrength;
-float CoreRadius;
-float InnerRadius;
+
 float Shrink;
+float Shell;
 
 float3 TransformPoint(float3 p)
 {
@@ -35,35 +28,9 @@ uint EdgeIndexFromTriangleTable(uint2 data, uint index)
                                data.y >> ((index - 8) * 4));
 }
 
-float core(uint3 pos)
-{
-    const float coreDistance = length(pos - Core);
-    const float coreGlow = exp(-coreDistance * CoreStrength) * CoreRadius;
-    return coreGlow;
-}
-
-float ellipsoidFalloff(uint x, uint y, uint z)
-{
-    float3 center = float3(Dims.x, Dims.y, Dims.z) * 0.5;
-
-    float3 scaledPos = (float3(x,y,z)) / (EllipsoidScale);
-    
-    float dist = distance(center, scaledPos);
-
-    float innerRadius = Radius - TransitionWidth;  // Start of transition
-    float outerRadius = Radius;                     // End of transition
-    
-    float falloff = smoothstep(outerRadius, innerRadius, dist);
-
-    return falloff;
-}
-
-
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
-    const float field = Field[uint3(x,y,z)];
-    //const float falloff = ellipsoidFalloff(x,y,z);
-    return field;
+    return  Field[uint3(x,y,z)];
 }
 
 float4 VoxelValueWithGradient(uint3 i)
@@ -116,12 +83,15 @@ uint2 EdgeVertexPair(uint index)
     return uint2(v1, v2);
 }
 
-[numthreads(4, 4, 4)]
+[numthreads(8, 8, 1)]
 void Construct(uint3 id : SV_DispatchThreadID)
 {
     if (any(id + 1 >= Dims.xyz)) return;
 
-    uint i = 0;
+    uint i;
+
+    
+    
     float4 samples[8];
     for (i = 0; i < 8; i++)
         samples[i] = VoxelValueWithGradient(id + CubeVertex(i));

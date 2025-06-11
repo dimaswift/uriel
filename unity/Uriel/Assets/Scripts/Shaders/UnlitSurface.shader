@@ -42,7 +42,7 @@ Shader "Uriel/UnlitSurface"
             
             fixed4 frag(const v2f id) : SV_Target  
             {
-                const float value = sampleField(id.world_pos);
+                const float value = sampleField(id.world_pos, unity_ObjectToWorld);
                 const float3 finalColor = sampleGradient(value);
                 return float4(finalColor, 1);  
             }  

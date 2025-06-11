@@ -26,11 +26,11 @@ MonoBehaviour:
     coreRadius: 59.9
     scale: 1
     shrink: 0
-  budget: 5000000
-  resolution: {x: 128, y: 128, z: 128}
+  budget: 100000
+  resolution: {x: 64, y: 64, z: 64}
   field:
     scale: 0
     fieldType: 0
-    ellipsoidRadii: {x: 1, y: 1, z: 1}
+    ellipsoidRadii: {x: 1.28, y: 1, z: 1}
     rectangleSize: {x: 0.49, y: 0.49, z: 0.49}
     donutParams: {x: 1, y: 1}

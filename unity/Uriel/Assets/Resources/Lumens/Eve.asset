@@ -32,10 +32,35 @@ MonoBehaviour:
       e32: 0
       e33: 1
     iterations: 1
-    type: 5
-    frequency: 118
-    amplitude: 22.3
-    phase: 1.85
-    radius: 8.63
-    density: 15.1
-    scale: 4.79
+    type: 4
+    frequency: 15
+    amplitude: -39.7
+    phase: 47.3
+    radius: 0.57
+    density: 167.8
+    scale: -6.64
+  - transform:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    iterations: 1
+    type: 4
+    frequency: 64
+    amplitude: -276.2
+    phase: 51
+    radius: 0.49
+    density: 98.5
+    scale: 1.98

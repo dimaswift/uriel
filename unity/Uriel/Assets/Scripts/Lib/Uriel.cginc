@@ -152,6 +152,103 @@ float map(float value, float min1, float max1, float min2, float max2)
     return  perc * (max2 - min2) + min2;
 }
 
+float sampleMatrix(const float3 pos, Photon photon, const float4x4 transform)
+{
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+   
+    float rad = photon.radius;
+  
+    for (int x = -1; x <= 1; x++)
+    {
+       
+        for (int y = -1; y <= 1; y++)
+        {
+          
+            for (int z = -1; z <= 1; z++)
+            {
+                const float3 p = float3(x,y,z);
+                float3 transformed = p;
+                float dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+                d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+            }
+        }
+    }
+    return d;
+}
+
+float sampleOctahedron(const float3 pos, Photon photon, const float4x4 transform)
+{
+    float d = 0.0;
+    const float3 p0 = float3(1.0f, 0.0f, 0.0f);
+    const float3 p1 = float3(-1.0f, 0.0f, 0.0f);
+    const float3 p2 = float3(0.0f, 1.0f, 0.0f);
+    const float3 p3 = float3(0.0f, -1.0f, 0.0f);
+    const float3 p4 = float3(0.0f, 0.0f, 1.0f);
+    const float3 p5 = float3(0.0f, 0.0f, -1.0f);
+
+    
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float3 transformed = p0;
+    float rad = photon.radius;
+    
+    float dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+
+    transformed = p1;
+    dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+    
+    transformed = p2;
+    dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+
+    transformed = p3;
+    dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+
+    transformed = p4;
+    dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+
+    transformed = p5;
+    dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+    
+    return d;
+}
+
+float sampleTetrahedral(const float3 pos, Photon photon, const float4x4 transform)
+{
+    float d = 0.0;
+    const float3 p0 = float3(0.35355339, 0.35355339, 0.35355339);
+    const float3 p1 = float3(0.35355339, -0.35355339, -0.35355339);
+    const float3 p2 = float3(-0.35355339, 0.35355339, -0.35355339);
+    const float3 p3 = float3(-0.35355339, -0.35355339, 0.35355339);
+    
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float3 transformed = p0;
+    float rad = photon.radius;
+    
+    float dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+
+    transformed = p1;
+    dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+    
+    transformed = p2;
+    dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+
+    transformed = p3;
+    dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+    
+    return d;
+}
+
+
 float sampleField(const float3 pos, const float3 vertex,
     const Photon photon, const float4x4 transform, Modulation m = DEFAULT_MOD)
 {
@@ -193,6 +290,8 @@ float sampleField(const float3 pos, float4x4 transform, const Photon photon, Mod
     return density; 
 }
 
+
+
 float sampleField(float3 pos, float4x4 transform, Modulation m = DEFAULT_MOD)
 {
     float density = 0.0;
@@ -203,6 +302,16 @@ float sampleField(float3 pos, float4x4 transform, Modulation m = DEFAULT_MOD)
     }
     
     return density; 
+}
+
+float sampleField(float3 pos, Modulation m = DEFAULT_MOD)
+{
+    float4x4 i = float4x4(
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        0,0,0,1);
+    return sampleField(pos, i, m);
 }
 
 float sampleMandelbrot(float3 pos, float2 plane_coord, uint iterations,
@@ -250,6 +359,17 @@ float rayMarchField(float3 origin, float4x4 transform, float3 dir, float length,
         total_density += sin(smoothstep(min, max, density * frequency)  * amplitude);
     }
     return total_density;
+}
+
+float rayMarchField(float3 origin, float3 dir, float length, uint steps, float min, float max,
+    float depth, float frequency, float amplitude, Modulation m = DEFAULT_MOD)
+{
+    float4x4 i = float4x4(
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        0,0,0,1);
+    return rayMarchField(origin, i, dir, length, steps, min, max, depth, frequency, amplitude, m);   
 }
 
 float3x3 createRotationMatrix(float latitudeDegrees, float longitudeDegrees)  

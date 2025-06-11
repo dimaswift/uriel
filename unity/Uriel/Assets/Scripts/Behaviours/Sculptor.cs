@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 using Uriel.Domain;
 using Uriel.Utils;
@@ -22,9 +23,11 @@ namespace Uriel.Behaviours
         private DistanceFieldGenerator generator;
         private Combine combine;
         private VolumeWriter thresholdVolumeWriter;
-        
+       
+       
         private void Start()
         {
+            
             STLExporter.OnExportProgress += OnExportProgress;
             STLExporter.OnExportCompleted += OnExportCompleted;
 
@@ -51,9 +54,9 @@ namespace Uriel.Behaviours
             if (runInUpdate)
             {
                 generator.Run(config.field, transform.localToWorldMatrix.inverse);
-                cubeMarch.Run(config.sculpt);
+           
             }
-
+            cubeMarch.Run(config.sculpt);
             //meshFilter.transform.localScale =
             //    new Vector3(64f / config.resolution.x, 64f / config.resolution.x, 64f / config.resolution.x);
             if (Input.GetKeyDown(KeyCode.S) &&  runInUpdate)

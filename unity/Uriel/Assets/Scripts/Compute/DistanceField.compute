@@ -159,24 +159,24 @@ float sampleFieldAt(uint3 pos)
     switch (_Type)
     {
         case 0: // Interference field
-
-            float s = sdBox(p, _RectangleSize);
-
-            if (p.x > _RectangleSize.x * 0.5 || p.y > _RectangleSize.y * 0.5 || p.z > _RectangleSize.z * 0.5 || p.x < -_RectangleSize.x * 0.5 || p.y < -_RectangleSize.y * 0.5 || p.z < -_RectangleSize.z * 0.5)
-            {
-                return 0;
-            }
-
-        
-            return sampleField(p, _Transform) * ellipsoidFalloff(p);
             
-
+           
+    
         case 1: // Ellipsoid
             return sdEllipsoid(p, _EllipsoidRadii);
             
         case 2: // Rectangle/Box
-            return sdBox(p, _RectangleSize * 0.5);
-            
+            if (p.x > _RectangleSize.x * 0.5 || p.y > _RectangleSize.y * 0.5
+              || p.z > _RectangleSize.z * 0.5 || p.x < -_RectangleSize.x * 0.5
+              || p.y < -_RectangleSize.y * 0.5 || p.z < -_RectangleSize.z * 0.5)
+            {
+                return 0;
+            }
+            float t = sampleMatrix(p, _PhotonBuffer[0], _Transform);
+        
+            float o = sampleMatrix(p, _PhotonBuffer[1], _Transform);
+            return lerp(t, o, _EllipsoidRadii.x);
+        
         case 3: // Donut/Torus
             return sdTorus(p, _DonutParams);
             
