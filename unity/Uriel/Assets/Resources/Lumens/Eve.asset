@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
   m_Name: Eve
   m_EditorClassIdentifier: 
-  updateTransform: 1
+  updateTransform: 0
   photons:
   - transform:
       e00: 1
@@ -33,9 +33,9 @@ MonoBehaviour:
       e33: 1
     iterations: 1
     type: 5
-    frequency: 249
-    amplitude: 5.8
-    phase: 43.7
-    radius: 12.02
-    density: 1.14
-    scale: -0.03
+    frequency: 118
+    amplitude: 22.3
+    phase: 1.85
+    radius: 8.63
+    density: 15.1
+    scale: 4.79

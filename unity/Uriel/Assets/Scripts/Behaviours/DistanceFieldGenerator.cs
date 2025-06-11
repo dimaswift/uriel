@@ -140,14 +140,14 @@ namespace Uriel.Behaviours
             Field.Create();
         }
         
-        private void GenerateField(Vector3Int dimensions, FieldParameters parameters)
+        private void GenerateField(Vector3Int dimensions, FieldParameters parameters, Matrix4x4 transform)
         {
             // Set shader parameters
             computeShader.SetTexture(kernelIndex, FieldPropertyId, Field);
             computeShader.SetInts(DimsPropertyId, dimensions.x, dimensions.y, dimensions.z);
             computeShader.SetFloat(ScalePropertyId, parameters.scale);
             computeShader.SetInt(TypePropertyId, (int)parameters.fieldType);
-            
+            computeShader.SetMatrix("_Transform", transform);
             // Set shape parameters
             computeShader.SetVector(EllipsoidRadiiPropertyId, parameters.ellipsoidRadii);
             computeShader.SetVector(RectangleSizePropertyId, parameters.rectangleSize);
@@ -170,12 +170,12 @@ namespace Uriel.Behaviours
         /// <summary>
         /// Regenerate the field with new parameters
         /// </summary>
-        public void Run(FieldParameters parameters)
+        public void Run(FieldParameters parameters, Matrix4x4 transform)
         {
             if (Field != null)
             {
                 Vector3Int dimensions = new Vector3Int(Field.width, Field.height, Field.volumeDepth);
-                GenerateField(dimensions, parameters);
+                GenerateField(dimensions, parameters, transform);
             }
         }
         
@@ -204,25 +204,6 @@ namespace Uriel.Behaviours
             }
         }
         
-        /// <summary>
-        /// Create a new field with different dimensions
-        /// </summary>
-        public void Resize(Vector3Int newDimensions, FieldParameters parameters = default)
-        {
-            if (parameters.Equals(default(FieldParameters)))
-                parameters = FieldParameters.Default;
-                
-            // Clean up old texture
-            if (Field != null)
-            {
-                Field.Release();
-                Object.DestroyImmediate(Field);
-            }
-            
-            // Create new field
-            CreateFieldTexture(newDimensions);
-            GenerateField(newDimensions, parameters);
-        }
         
         /// <summary>
         /// Copy current field values to a new RenderTexture

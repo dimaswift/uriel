@@ -52,7 +52,7 @@ namespace Uriel.Behaviours
             {
                 coreVolumeWriter.Run(config.sculpt.innerRadius);
                 fieldVolumeWriter.Run(config.sculpt.innerRadius);
-                cubeMarch.Run(config.sculpt, config.shells);
+                cubeMarch.Run(config.sculpt);
             }
             
             if (Input.GetKeyDown(KeyCode.S))

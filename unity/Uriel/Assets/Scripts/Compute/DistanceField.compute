@@ -18,6 +18,7 @@ uint _Type;
 float3 _EllipsoidRadii; // x, y, z radii for ellipsoid
 float3 _RectangleSize;  // width, height, depth for rectangle
 float2 _DonutParams;    // x = major radius, y = minor radius
+float4x4 _Transform;
 
 // Utility functions
 float length2(float3 p) { return dot(p, p); }
@@ -137,20 +138,39 @@ float3 opTwist(float3 p, float k)
     return float3(mul(m, p.xz), p.y);
 }
 
+float ellipsoidFalloff(float3 pos)
+{
+    float3 scaledPos = (pos) / (_EllipsoidRadii);
+    float innerRadius = _DonutParams.x - _DonutParams.y;  // Start of transition
+    float outerRadius = _DonutParams.x;                     // End of transition
+    float falloff = smoothstep(outerRadius, innerRadius, length(scaledPos));
+    return falloff;
+}
+
 float sampleFieldAt(uint3 pos)
 {
     // Convert to centered coordinates
-    float ux = float(pos.x - float(_Dims.x) * 0.5);
-    float uy = float(pos.y - float(_Dims.y) * 0.5);
-    float uz = float(pos.z - float(_Dims.z) * 0.5);
+    float ux = float(pos.x - float(_Dims.x) * 0.5) / _Dims.x;
+    float uy = float(pos.y - float(_Dims.y) * 0.5) / _Dims.x;
+    float uz = float(pos.z - float(_Dims.z) * 0.5) / _Dims.x;
     
-    float3 p = float3(ux, uy, uz) * _Scale;
+    float3 p = float3(ux, uy, uz);
     
     switch (_Type)
     {
         case 0: // Interference field
-            return sampleField(p);
+
+            float s = sdBox(p, _RectangleSize);
+
+            if (p.x > _RectangleSize.x * 0.5 || p.y > _RectangleSize.y * 0.5 || p.z > _RectangleSize.z * 0.5 || p.x < -_RectangleSize.x * 0.5 || p.y < -_RectangleSize.y * 0.5 || p.z < -_RectangleSize.z * 0.5)
+            {
+                return 0;
+            }
+
+        
+            return sampleField(p, _Transform) * ellipsoidFalloff(p);
             
+
         case 1: // Ellipsoid
             return sdEllipsoid(p, _EllipsoidRadii);
             

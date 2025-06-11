@@ -11,38 +11,26 @@ namespace Uriel.Behaviours
     public class Sculptor : MonoBehaviour
     {
         [SerializeField] private string exportPath = "Assets/Exports/";
-        [SerializeField] private PhotonBuffer[] layerBuffers;
+        [SerializeField] private PhotonBuffer buffer;
         [SerializeField] private bool updateDistanceFields;
         [SerializeField] private bool runInUpdate;
         [SerializeField] private SculptorConfig config;
-        [SerializeField] private ComputeShader cubeMarchCompute, distanceFieldCompute, combineCompute;
+        [SerializeField] private ComputeShader cubeMarchCompute, distanceFieldCompute;
         [SerializeField] private MeshFilter meshFilter;
-
+      
         private CubeMarch cubeMarch;
-        private DistanceFieldGenerator[] generators;
+        private DistanceFieldGenerator generator;
         private Combine combine;
         private VolumeWriter thresholdVolumeWriter;
-
-        [SerializeField] private RenderTexture l0, l1, res;
         
         private void Start()
         {
-    
             STLExporter.OnExportProgress += OnExportProgress;
             STLExporter.OnExportCompleted += OnExportCompleted;
 
-            generators = new DistanceFieldGenerator[layerBuffers.Length];
-            
-            List<RenderTexture> layerTextures = new();
-            for (int i = 0; i < generators.Length; i++)
-            {
-                var gen = new DistanceFieldGenerator(distanceFieldCompute, config.resolution, config.layers[i]);
-                generators[i] = gen;
-                layerTextures.Add(gen.Field);
-                layerBuffers[i].LinkComputeKernel(gen.ComputeInstance);
-            }
-
-            combine = new Combine(combineCompute, layerTextures.ToArray());
+            generator = new DistanceFieldGenerator(distanceFieldCompute, config.resolution, config.field);
+          
+            buffer.LinkComputeKernel(generator.ComputeInstance);
             
             cubeMarch = new CubeMarch(
                     config.resolution.x, 
@@ -50,36 +38,25 @@ namespace Uriel.Behaviours
                     config.resolution.z,
                     config.budget, 
                     cubeMarchCompute,
-                    combine.Result);
+                    generator.Field);
             
             meshFilter.mesh = cubeMarch.Mesh;
-
-            l0 = generators[0].Field;
-            l1 = generators[1].Field;
             
-            res = combine.Result;
+            generator.Run(config.field, transform.localToWorldMatrix.inverse);
+            cubeMarch.Run(config.sculpt);
         }
 
         private void Update()
         {
             if (runInUpdate)
             {
-                if (updateDistanceFields)
-                {
-                    for (int i = 0; i < config.layers.Length; i++)
-                    {
-                        generators[i].Run(config.layers[i]);
-                        combine.UpdateLayer(i, config.combines[i]);
-                    }
-                
-                    combine.Run();
-                }
-               
-                
-                cubeMarch.Run(config.sculpt, config.shells);
+                generator.Run(config.field, transform.localToWorldMatrix.inverse);
+                cubeMarch.Run(config.sculpt);
             }
-            
-            if (Input.GetKeyDown(KeyCode.S))
+
+            //meshFilter.transform.localScale =
+            //    new Vector3(64f / config.resolution.x, 64f / config.resolution.x, 64f / config.resolution.x);
+            if (Input.GetKeyDown(KeyCode.S) &&  runInUpdate)
             {
                 ExportCurrentMesh();
             }
@@ -127,12 +104,7 @@ namespace Uriel.Behaviours
             STLExporter.OnExportProgress -= OnExportProgress;
             STLExporter.OnExportCompleted -= OnExportCompleted;
             cubeMarch?.Dispose();
-
-            foreach (var generator in generators)
-            {
-                generator.Dispose();
-            }
-            
+            generator?.Dispose();
             thresholdVolumeWriter?.Dispose();
         }
     }

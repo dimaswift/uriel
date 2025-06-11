@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c1b1267a804cc69a669f74ae42ea98, type: 3}
   m_Name: Adam
   m_EditorClassIdentifier: 
-  updateTransform: 1
+  updateTransform: 0
   photons:
   - transform:
       e00: 1
@@ -33,9 +33,9 @@ MonoBehaviour:
       e33: 1
     iterations: 1
     type: 5
-    frequency: 358
-    amplitude: 1.02
-    phase: 98
-    radius: 34.2
-    density: 16.8
-    scale: 0.06
+    frequency: 659
+    amplitude: -1
+    phase: 270.4
+    radius: 8.57
+    density: 2.84
+    scale: 1.45

@@ -26,7 +26,7 @@ float Shrink;
 
 float3 TransformPoint(float3 p)
 {
-    return (p + 0.5 - Dims / 2) * Scale;
+    return (p + 0.5 - Dims / 2) * (2.0 / Dims.x);
 }
 
 uint EdgeIndexFromTriangleTable(uint2 data, uint index)

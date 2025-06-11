@@ -11,7 +11,6 @@ namespace Uriel.Domain
         
         public void UpdateTransform(Matrix4x4 m)
         {
-            if (!updateTransform) return;
             for (int i = 0; i < photons.Count; i++)
             {
                 Photon p = photons[i];

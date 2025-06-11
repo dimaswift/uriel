@@ -13,20 +13,24 @@ MonoBehaviour:
   m_Name: Eve
   m_EditorClassIdentifier: 
   sculpt:
-    shell: 6.22
-    radius: 79.4
-    innerRadius: -0.3
-    transitionWidth: 7469
-    flipNormals: 1
-    invertTriangles: 0
+    shell: 0.15
+    radius: -21.6
+    innerRadius: 1.23
+    transitionWidth: 117
+    flipNormals: 0
+    invertTriangles: 1
     ellipsoidScale: {x: 1, y: 1, z: 1}
     radialSymmetryCount: 6
     core: {x: 0, y: 0, z: 0}
-    coreStrength: -0.0386
-    coreRadius: -6.25
-    scale: 0.01
-    shrink: -0.01
-  budget: 20000000
-  resolution: 256
-  shells:
-  - {x: -86.8, y: -14.8, z: 17.1, w: 4.5}
+    coreStrength: -0.040943466
+    coreRadius: 59.9
+    scale: 1
+    shrink: 0
+  budget: 5000000
+  resolution: {x: 128, y: 128, z: 128}
+  field:
+    scale: 0
+    fieldType: 0
+    ellipsoidRadii: {x: 1, y: 1, z: 1}
+    rectangleSize: {x: 0.49, y: 0.49, z: 0.49}
+    donutParams: {x: 1, y: 1}

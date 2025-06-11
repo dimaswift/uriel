@@ -24,7 +24,6 @@ namespace Uriel.Behaviours
         private ComputeShader compute;
         private ComputeBuffer triangleTable;
         private ComputeBuffer counterBuffer;
-        private ComputeBuffer shellBuffer;
 
         private Mesh mesh;
         private GraphicsBuffer vertexBuffer;
@@ -52,28 +51,8 @@ namespace Uriel.Behaviours
             ReleaseMesh();
         }
 
-        public void Run(Sculpt sculpt, Vector4[] shells)
+        public void Run(Sculpt sculpt)
         {
-            if (shellBuffer == null || shellBuffer.count != shells.Length)
-            {
-                if (shellBuffer != null) shellBuffer.Release();
-
-                if (shells.Length > 0)
-                {
-                    shellBuffer = new ComputeBuffer(shells.Length, sizeof(float) * 4);
-                    compute.SetBuffer(constructKernel, "Shells", shellBuffer);
-                }
-                
-               
-            }
-
-            if (shellBuffer != null)
-            {
-                shellBuffer.SetData(shells);
-            }
-          
-            compute.SetInt("ShellCount", shells.Length);
-            
             counterBuffer.SetCounterValue(0);
             
             var scale = 1f / grids.x;
@@ -120,10 +99,8 @@ namespace Uriel.Behaviours
         {
             triangleTable.Dispose();
             counterBuffer.Dispose();
-            shellBuffer.Dispose();
         }
-
-
+        
         private void AllocateMesh(int vertexCount)
         {
             mesh = new Mesh();

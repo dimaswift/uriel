@@ -13,38 +13,24 @@ MonoBehaviour:
   m_Name: Adam
   m_EditorClassIdentifier: 
   sculpt:
-    shell: -43
-    radius: 23.5
-    innerRadius: 0.52
-    transitionWidth: 114.8
-    flipNormals: 1
-    invertTriangles: 0
+    shell: 3.06
+    radius: -21.6
+    innerRadius: 1.23
+    transitionWidth: 117
+    flipNormals: 0
+    invertTriangles: 1
     ellipsoidScale: {x: 1, y: 1, z: 1}
     radialSymmetryCount: 6
     core: {x: 0, y: 0, z: 0}
     coreStrength: -0.040943466
     coreRadius: 59.9
-    scale: 0.01
+    scale: 1
     shrink: 0
   budget: 5000000
-  resolution: {x: 512, y: 512, z: 512}
-  shells:
-  - {x: -86.8, y: -14.8, z: 17.1, w: 4.5}
-  layers:
-  - scale: 2.18
+  resolution: {x: 64, y: 64, z: 64}
+  field:
+    scale: 0
     fieldType: 0
-    ellipsoidRadii: {x: 65.9, y: 67.5, z: 79.4}
-    rectangleSize: {x: 0, y: 0, z: 0}
-    donutParams: {x: 0, y: 0}
-  - scale: 0.92
-    fieldType: 5
-    ellipsoidRadii: {x: 160.1, y: 160.1, z: 160.1}
-    rectangleSize: {x: 256, y: 32.2, z: 256}
-    donutParams: {x: 84.8, y: 35.39}
-  combines:
-  - offset: {x: 0, y: 0, z: 0}
-    falloff: 6.53
-    operation: 1
-  - offset: {x: 0, y: 0, z: 0}
-    falloff: 0.38
-    operation: 1
+    ellipsoidRadii: {x: 1, y: 1, z: 1}
+    rectangleSize: {x: 0.495, y: 0.495, z: 0.495}
+    donutParams: {x: 1, y: 1}
