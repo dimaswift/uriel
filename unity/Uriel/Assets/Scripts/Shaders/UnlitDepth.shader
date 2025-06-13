@@ -4,7 +4,7 @@ Shader "Uriel/UnlitDepth"
     {  
         _Threshold ("Threshold", Range(0.0, 10.0)) = 1
         _Multiplier ("Multiplier", Range(0.0, 10.0)) = 1
-       
+        _Blend ("Blend", Range(0.0, 1.0)) = 1
     }  
     SubShader  
     {  
@@ -19,6 +19,8 @@ Shader "Uriel/UnlitDepth"
             #include "Assets/Scripts/Lib/Uriel.cginc"
             #include "Assets/Scripts/Lib/Gradient.cginc"
 
+            float _Blend;
+            
             struct appdata_t  
             {  
                 float4 vertex : POSITION;
@@ -42,10 +44,18 @@ Shader "Uriel/UnlitDepth"
             
             fixed4 frag(const v2f id) : SV_Target  
             {
-                const float value = sampleField(id.world_pos);
+                float4x4 m = float4x4(
+                     1,0,0,0,
+                     0,1,0,0,
+                     0,0,1,0,
+                     0,0,0,1);
+                 float t = sampleMatrix(id.world_pos, _PhotonBuffer[0], m);
+        
+                float o = sampleMatrix(id.world_pos, _PhotonBuffer[1], m);
+                float value = lerp(t, o, _Blend);
                 const float3 c = hsv2rgb(value * _Threshold, 1, 1);
                 const float grey = (c.r + c.g + c.b) / 3.0;
-                return float4(c, 1) * _Multiplier;  
+                return float4(grey,grey,grey, 1) * _Multiplier;  
             }  
             
             ENDCG  

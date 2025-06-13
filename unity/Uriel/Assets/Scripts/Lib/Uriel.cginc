@@ -152,6 +152,24 @@ float map(float value, float min1, float max1, float min2, float max2)
     return  perc * (max2 - min2) + min2;
 }
 
+float sampleCube(const float3 pos, Photon photon)
+{
+    float d = 0.0;
+    for (int x = -1; x <= 1; x++)
+    {
+        for (int y = -1; y <= 1; y++)
+        {
+            for (int z = -1; z <= 1; z++)
+            {
+                const float3 p = float3(x,y,z);
+                const float dist = saturate(distance(pos * photon.scale, p) * photon.radius);
+                d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+            }
+        }
+    }
+    return d;
+}
+
 float sampleMatrix(const float3 pos, Photon photon, const float4x4 transform)
 {
     float d = 0.0;
@@ -173,6 +191,299 @@ float sampleMatrix(const float3 pos, Photon photon, const float4x4 transform)
                 d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
             }
         }
+    }
+    return d;
+}
+
+
+
+float sampleDragonCurve3D(const float3 pos, Photon photon, const float4x4 transform) {
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float rad = photon.radius;
+    
+    // Simplified 3D dragon curve using Lindenmayer system approach
+    const int iterations = 4;
+    float3 points[16];
+    int pointCount = 0;
+    
+    // Start with simple L-shape
+    points[pointCount++] = float3(0, 0, 0);
+    points[pointCount++] = float3(1, 0, 0);
+    points[pointCount++] = float3(1, 1, 0);
+    
+    // Dragon curve iterations in 3D
+    for (int iter = 0; iter < iterations && pointCount < 16; iter++) {
+        float scale = pow(0.7, iter);
+        float3 center = float3(0.5, 0.5, iter * 0.2);
+        
+        // Add spiral component
+        for (int i = 0; i < 3 && pointCount < 16; i++) {
+            float angle = float(i + iter * 3) * 0.785; // 45 degrees
+            float3 spiral = float3(
+                cos(angle) * scale,
+                sin(angle) * scale,
+                iter * 0.2
+            );
+            points[pointCount++] = center + spiral;
+        }
+    }
+    
+    for (int i = 0; i < pointCount; i++) {
+        float dist = saturate(distance(pos * photon.scale, points[i] + offset * photon.scale) * rad);
+        d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+    }
+    return d;
+}
+
+float sampleFractalTree(const float3 pos, Photon photon, const float4x4 transform) {
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float rad = photon.radius;
+    
+    // 3-level branching tree
+    float3 branches[26];
+    int branchCount = 0;
+    
+    // Trunk
+    branches[branchCount++] = float3(0, 0, 0);
+    
+    // Level 1 branches
+    float3 directions[8] = {
+        float3(0.707, 0, 0.707),   float3(-0.707, 0, 0.707),
+        float3(0, 0.707, 0.707),   float3(0, -0.707, 0.707),
+        float3(0.5, 0.5, 0.707),   float3(-0.5, 0.5, 0.707),
+        float3(0.5, -0.5, 0.707),  float3(-0.5, -0.5, 0.707)
+    };
+    
+    for (int i = 0; i < 8 && branchCount < 26; i++) {
+        branches[branchCount++] = directions[i] * 0.6;
+        
+        // Level 2 sub-branches
+        for (int j = 0; j < 2 && branchCount < 26; j++) {
+            float angle = float(j) * 1.047; // 60 degrees
+            float3 rotated = float3(
+                directions[i].x * cos(angle) - directions[i].y * sin(angle),
+                directions[i].x * sin(angle) + directions[i].y * cos(angle),
+                directions[i].z
+            );
+            branches[branchCount++] = directions[i] * 0.6 + rotated * 0.3;
+        }
+    }
+    
+    for (int i = 0; i < branchCount; i++) {
+        float dist = saturate(distance(pos * photon.scale, branches[i] + offset * photon.scale) * rad);
+        float branchWeight = 1.0 / (1.0 + float(i / 8)); // Smaller branches have less weight
+        d += sin(dist * photon.frequency + photon.phase) * photon.amplitude * branchWeight;
+    }
+    return d;
+}
+
+float sampleApollonian(const float3 pos, Photon photon, const float4x4 transform) {
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float rad = photon.radius;
+    
+    // Base configuration: 4 mutually tangent spheres
+    float4 spheres[12] = {
+        // Format: (x, y, z, radius)
+        float4(0, 0, 0.5, 0.5),           // Top
+        float4(0, 0, -0.5, 0.5),          // Bottom
+        float4(0.866, 0, 0, 0.5),         // Right
+        float4(-0.433, 0.75, 0, 0.5),     // Left front
+        float4(-0.433, -0.75, 0, 0.5),    // Left back
+        
+        // Smaller spheres (next iteration)
+        float4(0.289, 0.25, 0.25, 0.167),
+        float4(0.289, -0.25, 0.25, 0.167),
+        float4(-0.144, 0.25, 0.25, 0.167),
+        float4(-0.144, -0.25, 0.25, 0.167),
+        float4(0.289, 0.25, -0.25, 0.167),
+        float4(0.289, -0.25, -0.25, 0.167),
+        float4(-0.144, 0, 0, 0.167)
+    };
+    
+    for (int i = 0; i < 12; i++) {
+        float3 p = spheres[i].xyz;
+        float sphereRad = spheres[i].w;
+        float dist = saturate(distance(pos * photon.scale, p + offset * photon.scale) * rad);
+        d += sin(dist * photon.frequency + photon.phase) * photon.amplitude * sphereRad;
+    }
+    return d;
+}
+
+float sampleMandelbulb(const float3 pos, Photon photon, const float4x4 transform) {
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float rad = photon.radius;
+    
+    const int numSamples = 8;
+    const float power = 8.0;
+    
+    for (int i = 0; i < numSamples; i++) {
+        float theta = (float(i) / float(numSamples)) * 2.0 * 3.14159;
+        
+        // Sample points around mandelbulb surface
+        for (int j = 0; j < numSamples; j++) {
+            float phi = (float(j) / float(numSamples)) * 3.14159;
+            
+            float r = 0.8; // Approximate surface distance
+            float x = r * sin(phi) * cos(theta);
+            float y = r * sin(phi) * sin(theta);
+            float z = r * cos(phi);
+            
+            float3 p = float3(x, y, z);
+            float dist = saturate(distance(pos * photon.scale, p + offset * photon.scale) * rad);
+            d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+        }
+    }
+    return d;
+}
+
+float sampleMengerSponge(const float3 pos, Photon photon, const float4x4 transform) {
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float rad = photon.radius;
+    
+    const int iterations = 3;
+    static float scales[4] = {1.0, 0.333, 0.111, 0.037};
+    
+    for (int iter = 0; iter < iterations + 1; iter++) {
+        float scale = scales[iter];
+        
+        // Generate 20 points (27 - 7 removed middle points)
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    // Skip the middle cross pattern
+                    int centerCount = (x == 0 ? 1 : 0) + (y == 0 ? 1 : 0) + (z == 0 ? 1 : 0);
+                    if (centerCount >= 2) continue;
+                    
+                    float3 p = float3(x, y, z) * scale;
+                    float dist = saturate(distance(pos * photon.scale, p + offset * photon.scale) * rad);
+                    d += sin(dist * photon.frequency + photon.phase) * photon.amplitude * scale;
+                }
+            }
+        }
+    }
+    return d;
+}
+
+float sampleSierpinski(const float3 pos, Photon photon, const float4x4 transform) {
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float rad = photon.radius;
+    
+    // Base tetrahedron vertices
+    float3 tetraVertices[4] = {
+        float3(1, 1, 1),
+        float3(1, -1, -1),
+        float3(-1, 1, -1),
+        float3(-1, -1, 1)
+    };
+    
+    // Multiple scales for fractal effect
+    float scales[3] = {1.0, 0.5, 0.25};
+    
+    for (int scale = 0; scale < 3; scale++) {
+        for (int v = 0; v < 4; v++) {
+            float3 p = tetraVertices[v] * scales[scale];
+            float dist = saturate(distance(pos * photon.scale, p + offset * photon.scale) * rad);
+            d += sin(dist * photon.frequency + photon.phase) * photon.amplitude * scales[scale];
+        }
+    }
+    return d;
+}
+
+float sampleDoubleHelix(const float3 pos, Photon photon, const float4x4 transform) {
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float rad = photon.radius;
+    
+    const int numTurns = photon.iterations;
+    const int pointsPerTurn = 8;
+    const int totalPoints = numTurns * pointsPerTurn;
+    
+    for (int i = 0; i < totalPoints; i++) {
+        float t = float(i) / float(totalPoints - 1);
+        float angle = t * 2.0 * 3.14159 * numTurns;
+        float y = (t - 0.5) * photon.density; // -1 to 1
+        
+        // First helix
+        float3 point1 = float3(cos(angle) * 0.5, y, sin(angle) * 0.5);
+        // Second helix (180° offset)
+        float3 point2 = float3(cos(angle + 3.14159) * 0.5, y, sin(angle + 3.14159) * 0.5);
+        
+        float dist1 = saturate(distance(pos * photon.scale, point1 + offset * photon.scale) * rad);
+        float dist2 = saturate(distance(pos * photon.scale, point2 + offset * photon.scale) * rad);
+        
+        d += sin(dist1 * photon.frequency + photon.phase) * photon.amplitude;
+        d += sin(dist2 * photon.frequency + photon.phase) * photon.amplitude;
+    }
+    return d;
+}
+
+float sampleFibonacci(const float3 pos, Photon photon, const float4x4 transform) {
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float rad = photon.radius;
+    
+    const float goldenAngle = 2.399963; // 2π * (1 - 1/φ)
+    const int numPoints = 21; // Fibonacci number
+    
+    for (int i = 0; i < numPoints; i++) {
+        float y = 1.0 - (i / float(numPoints - 1)) * 2.0; // y from 1 to -1
+        float radius = sqrt(1.0 - y * y);
+        float theta = goldenAngle * i;
+        
+        float3 p = float3(cos(theta) * radius, y, sin(theta) * radius);
+        float3 transformed = p;
+        float dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+        d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+    }
+    return d;
+}
+
+
+float sampleBCC(const float3 pos, Photon photon, const float4x4 transform) {
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float rad = photon.radius;
+    
+    // BCC: 8 corners + 1 center
+    float3 points[9] = {
+        float3(-1,-1,-1), float3(1,-1,-1), float3(-1,1,-1), float3(1,1,-1),
+        float3(-1,-1,1), float3(1,-1,1), float3(-1,1,1), float3(1,1,1),
+        float3(0,0,0) // Body center
+    };
+    
+    for (int i = 0; i < 9; i++) {
+        float3 transformed = points[i];
+        float dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+        d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
+    }
+    return d;
+}
+
+float sampleFCC(const float3 pos, Photon photon, const float4x4 transform) {
+    float d = 0.0;
+    float3 offset = float3(transform[0][3], transform[1][3], transform[2][3]);
+    float rad = photon.radius;
+    
+    // FCC lattice points: 8 corners + 6 face centers
+    float3 points[14] = {
+        // Corners
+        float3(-1,-1,-1), float3(1,-1,-1), float3(-1,1,-1), float3(1,1,-1),
+        float3(-1,-1,1), float3(1,-1,1), float3(-1,1,1), float3(1,1,1),
+        // Face centers
+        float3(0,-1,0), float3(0,1,0), float3(-1,0,0), 
+        float3(1,0,0), float3(0,0,-1), float3(0,0,1)
+    };
+    
+    for (int i = 0; i < 14; i++) {
+        float3 transformed = points[i];
+        float dist = saturate(distance(pos * photon.scale, transformed + offset * photon.scale) * rad);
+        d += sin(dist * photon.frequency + photon.phase) * photon.amplitude;
     }
     return d;
 }

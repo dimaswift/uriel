@@ -3,149 +3,180 @@
 
 #include "Assets/Scripts/Lib/Uriel.cginc"
 
+#define SHAPE_CUBE 0
+#define SHAPE_SPHERE 1
+#define SHAPE_CYLINDER 2
+#define SHAPE_CAPSULE 3
+
+struct SculptOperation {  
+    static const uint ADD = 0;  
+    static const uint SUBTRACT = 1;  
+    static const uint INTERSECT = 2;  
+};
+
+struct SculptSolid {
+    float4x4 invTransform;   // inverse transform to local space
+    float    scale;          // used for signed distance control
+    int      type;           // shape ID: 0 = box, 1 = sphere, 2 = tetra, etc.
+    int      op;             // blend op: 0 = add, 1 = subtract, 2 = intersect
+    float    feather;        // for smooth blending
+};
+
+StructuredBuffer<SculptSolid> _Solids;
+int _SolidCount;
 RWTexture3D<float> _Field;
 uint3 _Dims;
 float _Scale;
 
-//0 - interference field
-//1 - ellipsoid
-//2 - rectangle
-//3 - donut
-// other known distance field shapes
-uint _Type;
-
-// Shape parameters
-float3 _EllipsoidRadii; // x, y, z radii for ellipsoid
-float3 _RectangleSize;  // width, height, depth for rectangle
-float2 _DonutParams;    // x = major radius, y = minor radius
+float2 _Blend;
 float4x4 _Transform;
 
-// Utility functions
-float length2(float3 p) { return dot(p, p); }
-float length8(float3 p) { return pow(dot(p, p * p * p), 1.0 / 8.0); }
-
-// Distance function for ellipsoid
-float sdEllipsoid(float3 p, float3 r)
+float3 transformPoint(float4x4 m, float3 p)
 {
-    float k0 = length(p / r);
-    float k1 = length(p / (r * r));
-    return k0 * (k0 - 1.0) / k1;
+    float4 worldPoint = float4(p, 1.0);
+    float4 localPoint = mul(m, worldPoint);
+    return localPoint.xyz;
 }
 
-// Alternative simpler ellipsoid (less accurate but faster)
-float sdEllipsoidSimple(float3 p, float3 r)
+// Distance functions for different shapes
+float cubeDistance(float3 localPos)
 {
-    return (length(p / r) - 1.0) * min(min(r.x, r.y), r.z);
+    // For a unit cube centered at origin with extents [-0.5, 0.5]
+    float3 absPos = abs(localPos);
+    float3 outsideDistance = max(absPos - 0.5, 0.0);
+    float outsideDist = length(outsideDistance);
+    
+    // Inside distance (negative when inside)
+    float insideDist = max(max(absPos.x, absPos.y), absPos.z) - 0.5;
+    
+    return max(outsideDist, insideDist);
 }
 
-// Distance function for rounded box/rectangle
-float sdRoundedBox(float3 p, float3 b, float r)
+float sphereDistance(float3 localPos)
 {
-    float3 q = abs(p) - b;
-    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;
+    // For a unit sphere centered at origin with radius 0.5
+    return length(localPos) - 0.5;
 }
 
-// Distance function for box/rectangle (sharp edges)
-float sdBox(float3 p, float3 b)
+float cylinderDistance(float3 localPos)
 {
-    float3 q = abs(p) - b;
-    return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+    // For a unit cylinder along Y axis, radius 0.5, height 1.0 (from -0.5 to 0.5)
+    float2 xzPos = localPos.xz;
+    float radialDist = length(xzPos) - 0.5;
+    float heightDist = abs(localPos.y) - 0.5;
+    
+    float outsideDist = length(max(float2(radialDist, heightDist), 0.0));
+    float insideDist = max(radialDist, heightDist);
+    
+    return max(outsideDist, insideDist);
 }
 
-// Distance function for torus/donut
-float sdTorus(float3 p, float2 t)
+float capsuleDistance(float3 localPos)
 {
-    float2 q = float2(length(p.xz) - t.x, p.y);
-    return length(q) - t.y;
+    // For a unit capsule along Y axis, radius 0.5, height 1.0
+    float yPos = localPos.y;
+    yPos = max(abs(yPos) - 0.25, 0.0) * sign(yPos); // Clamp to cylinder part
+    
+    float2 offset = float2(length(localPos.xz), yPos);
+    return length(offset) - 0.5;
 }
 
-// Distance function for vertical torus (donut standing up)
-float sdTorusVertical(float3 p, float2 t)
+// Get distance based on shape type
+float getShapeDistance(float3 localPos, int shapeType)
 {
-    float2 q = float2(length(p.xy) - t.x, p.z);
-    return length(q) - t.y;
+    switch(shapeType)
+    {
+    case SHAPE_CUBE:
+        return cubeDistance(localPos);
+    case SHAPE_SPHERE:
+        return sphereDistance(localPos);
+    case SHAPE_CYLINDER:
+        return cylinderDistance(localPos);
+    case SHAPE_CAPSULE:
+        return capsuleDistance(localPos);
+    default:
+        return cubeDistance(localPos);
+    }
 }
 
-// Distance function for sphere
-float sdSphere(float3 p, float r)
+float calculateMask(float distance, float thickness)
 {
-    return length(p) - r;
+    if (distance <= 0.0)
+        return 1.0;
+    if (distance >= thickness)
+        return 0.0;
+    return smoothstep(1.0, 0.0, distance / thickness);
 }
 
-// Distance function for cylinder
-float sdCylinder(float3 p, float h, float r)
+float calculateMaskLinear(float distance, float thickness)
 {
-    float2 d = abs(float2(length(p.xz), p.y)) - float2(r, h);
-    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+    return saturate(1.0 - distance / thickness);
 }
 
-// Distance function for capsule
-float sdCapsule(float3 p, float3 a, float3 b, float r)
+float calculateMaskExponential(float distance, float thickness, float falloffPower)
 {
-    float3 pa = p - a, ba = b - a;
-    float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-    return length(pa - ba * h) - r;
+    if (distance <= 0.0)
+        return 1.0;
+    
+    float normalizedDist = saturate(distance / thickness);
+    return pow(1.0 - normalizedDist, falloffPower);
 }
 
-// Distance function for cone
-float sdCone(float3 p, float2 c, float h)
+// Combine multiple masks
+float combineMasks(float mask1, float mask2, int combineMode)
 {
-    float2 q = h * float2(c.x / c.y, -1.0);
-    float2 w = float2(length(p.xz), p.y);
-    float2 a = w - q * clamp(dot(w, q) / dot(q, q), 0.0, 1.0);
-    float2 b = w - q * float2(clamp(w.x / q.x, 0.0, 1.0), 1.0);
-    float k = sign(q.y);
-    float d = min(dot(a, a), dot(b, b));
-    float s = max(k * (w.x * q.y - w.y * q.x), k * (w.y - q.y));
-    return sqrt(d) * sign(s);
+    // Combine modes:
+    // 0 = Union (max)
+    // 1 = Intersection (min)
+    // 2 = Subtract (mask1 - mask2)
+    // 3 = Additive (mask1 + mask2, clamped)
+    
+    switch(combineMode)
+    {
+    case 0: return max(mask1, mask2);           // Union
+    case 1: return min(mask1, mask2);           // Intersection
+    case 2: return saturate(mask1 - mask2);     // Subtract
+    case 3: return saturate(mask1 + mask2);     // Additive
+    default: return max(mask1, mask2);
+    }
 }
 
-// Boolean operations
-float opUnion(float d1, float d2) { return min(d1, d2); }
-float opSubtraction(float d1, float d2) { return max(-d1, d2); }
-float opIntersection(float d1, float d2) { return max(d1, d2); }
-
-// Smooth boolean operations
-float opSmoothUnion(float d1, float d2, float k)
+float evaluateSolidField(float3 p, SculptSolid solid)
 {
-    float h = clamp(0.5 + 0.5 * (d2 - d1) / k, 0.0, 1.0);
-    return lerp(d2, d1, h) - k * h * (1.0 - h);
+    float4x4 worldToLocal = solid.invTransform;
+
+    float3 localPos = transformPoint(worldToLocal, p);
+
+    float distance = getShapeDistance(localPos, solid.type);
+
+    float shapeMask = calculateMask(distance, solid.feather);
+    
+    return shapeMask * solid.scale;
 }
 
-float opSmoothSubtraction(float d1, float d2, float k)
+float sculptField(float3 p)
 {
-    float h = clamp(0.5 - 0.5 * (d2 + d1) / k, 0.0, 1.0);
-    return lerp(d2, -d1, h) + k * h * (1.0 - h);
+    float result = 0.0;
+
+    for (int i = 0; i < _SolidCount; i++)
+    {
+        float f = evaluateSolidField(p, _Solids[i]);
+        SculptSolid s = _Solids[i];
+        if (s.op == 0) { // add
+            result = max(result, f);
+        }
+        else if (s.op == 1) { // subtract
+            result = result * (1.0 - f);
+        }
+        else if (s.op == 2) { // intersect
+            result = min(result, f);
+        }
+    }
+
+    return result;
 }
 
-float opSmoothIntersection(float d1, float d2, float k)
-{
-    float h = clamp(0.5 - 0.5 * (d2 - d1) / k, 0.0, 1.0);
-    return lerp(d2, d1, h) + k * h * (1.0 - h);
-}
 
-// Domain operations
-float3 opRepeat(float3 p, float3 c)
-{
-    return fmod(p + 0.5 * c, c) - 0.5 * c;
-}
-
-float3 opTwist(float3 p, float k)
-{
-    float c = cos(k * p.y);
-    float s = sin(k * p.y);
-    float2x2 m = float2x2(c, -s, s, c);
-    return float3(mul(m, p.xz), p.y);
-}
-
-float ellipsoidFalloff(float3 pos)
-{
-    float3 scaledPos = (pos) / (_EllipsoidRadii);
-    float innerRadius = _DonutParams.x - _DonutParams.y;  // Start of transition
-    float outerRadius = _DonutParams.x;                     // End of transition
-    float falloff = smoothstep(outerRadius, innerRadius, length(scaledPos));
-    return falloff;
-}
 
 float sampleFieldAt(uint3 pos)
 {
@@ -156,66 +187,28 @@ float sampleFieldAt(uint3 pos)
     
     float3 p = float3(ux, uy, uz);
     
-    switch (_Type)
+    Photon photon = _PhotonBuffer[0];
+    float t = 0.0;
+    switch (photon.type)
     {
-        case 0: // Interference field
-            
-           
-    
-        case 1: // Ellipsoid
-            return sdEllipsoid(p, _EllipsoidRadii);
-            
-        case 2: // Rectangle/Box
-            if (p.x > _RectangleSize.x * 0.5 || p.y > _RectangleSize.y * 0.5
-              || p.z > _RectangleSize.z * 0.5 || p.x < -_RectangleSize.x * 0.5
-              || p.y < -_RectangleSize.y * 0.5 || p.z < -_RectangleSize.z * 0.5)
-            {
-                return 0;
-            }
-            float t = sampleMatrix(p, _PhotonBuffer[0], _Transform);
-        
-            float o = sampleMatrix(p, _PhotonBuffer[1], _Transform);
-            return lerp(t, o, _EllipsoidRadii.x);
-        
-        case 3: // Donut/Torus
-            return sdTorus(p, _DonutParams);
-            
-        case 4: // Sphere
-            return sdSphere(p, _EllipsoidRadii.x); // Use first radius component
-            
-        case 5: // Rounded Box
-            return sdRoundedBox(p, _RectangleSize * 0.5, _DonutParams.y); // Use minor radius for rounding
-            
-        case 6: // Cylinder
-            return sdCylinder(p, _RectangleSize.y * 0.5, _EllipsoidRadii.x);
-            
-        case 7: // Capsule (vertical)
-            return sdCapsule(p, float3(0, -_RectangleSize.y * 0.5, 0), float3(0, _RectangleSize.y * 0.5, 0), _EllipsoidRadii.x);
-            
-        case 8: // Cone
-            return sdCone(p, float2(_EllipsoidRadii.x, _EllipsoidRadii.y), _RectangleSize.y);
-            
-        case 9: // Vertical Torus
-            return sdTorusVertical(p, _DonutParams);
-            
-        case 10: // Union of sphere and box
-            return opUnion(sdSphere(p, _EllipsoidRadii.x), sdBox(p - float3(0, _RectangleSize.y, 0), _RectangleSize * 0.3));
-            
-        case 11: // Smooth union of sphere and box
-            return opSmoothUnion(sdSphere(p, _EllipsoidRadii.x), sdBox(p - float3(0, _RectangleSize.y, 0), _RectangleSize * 0.3), 0.1);
-            
-        case 12: // Subtraction (sphere with box hole)
-            return opSubtraction(sdBox(p, _RectangleSize * 0.3), sdSphere(p, _EllipsoidRadii.x));
-            
-        case 13: // Repeated spheres
-            return sdSphere(opRepeat(p, _RectangleSize), _EllipsoidRadii.x * 0.3);
-            
-        case 14: // Twisted box
-            return sdBox(opTwist(p, 0.1), _RectangleSize * 0.5);
-            
+        case 0:
+            t = sampleTetrahedral(p, photon, _Transform);
+        break;
+        case 1:
+            t = sampleOctahedron(p, photon, _Transform);
+        break;
+        case 2:
+            t = sampleDragonCurve3D(p, photon, _Transform);
+        break;
         default:
-            return 0.0;
+            break;
     }
+ 
+    float alpha = lerp(t, _Blend.x, _Blend.y);
+    
+    alpha *= sculptField(p);
+
+    return alpha;
 }
 
 [numthreads(4, 4, 4)]

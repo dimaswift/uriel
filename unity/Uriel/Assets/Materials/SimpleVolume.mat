@@ -118,7 +118,7 @@ Material:
     - _Amplitude: 0.072
     - _AmplitudeInversed: -1.3
     - _AmplitudeSquared: -0.38
-    - _Blend: 0
+    - _Blend: 0.007
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
     - _ClearCoatMask: 0
@@ -155,7 +155,7 @@ Material:
     - _Min: -2.49
     - _MinColor: 0
     - _Mode: 0.333
-    - _Multiplier: 1.95
+    - _Multiplier: 0.51
     - _NormalDelta: 0.0128
     - _NormalStrength: 1.267
     - _OcclusionStrength: 1
@@ -201,7 +201,7 @@ Material:
     - _StepSize: 0.0435
     - _Steps: 65.3
     - _Surface: 0
-    - _Threshold: 0.52
+    - _Threshold: 0.01
     - _ThresholdThin: 0.01
     - _UseLight: 0
     - _WaveAmplitude: 0.0248

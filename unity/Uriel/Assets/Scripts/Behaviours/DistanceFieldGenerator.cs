@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
+using Uriel.Domain;
 
 namespace Uriel.Behaviours
 {
@@ -96,6 +99,8 @@ namespace Uriel.Behaviours
         private static readonly int EllipsoidRadiiPropertyId = Shader.PropertyToID("_EllipsoidRadii");
         private static readonly int RectangleSizePropertyId = Shader.PropertyToID("_RectangleSize");
         private static readonly int DonutParamsPropertyId = Shader.PropertyToID("_DonutParams");
+
+        private ComputeBuffer solidsBuffer;
         
         public DistanceFieldGenerator(ComputeShader compute, Vector3Int dimensions, FieldParameters parameters = default)
         {
@@ -140,14 +145,17 @@ namespace Uriel.Behaviours
             Field.Create();
         }
         
-        private void GenerateField(Vector3Int dimensions, FieldParameters parameters, Matrix4x4 transform)
+        private void GenerateField(Vector3Int dimensions, FieldParameters parameters, 
+            Matrix4x4 transform, List<SculptSolid> solids)
         {
             // Set shader parameters
+            SetSculptSolids(solids);
             computeShader.SetTexture(kernelIndex, FieldPropertyId, Field);
             computeShader.SetInts(DimsPropertyId, dimensions.x, dimensions.y, dimensions.z);
             computeShader.SetFloat(ScalePropertyId, parameters.scale);
             computeShader.SetInt(TypePropertyId, (int)parameters.fieldType);
             computeShader.SetMatrix("_Transform", transform);
+            
             // Set shape parameters
             computeShader.SetVector(EllipsoidRadiiPropertyId, parameters.ellipsoidRadii);
             computeShader.SetVector(RectangleSizePropertyId, parameters.rectangleSize);
@@ -170,15 +178,36 @@ namespace Uriel.Behaviours
         /// <summary>
         /// Regenerate the field with new parameters
         /// </summary>
-        public void Run(FieldParameters parameters, Matrix4x4 transform)
+        public void Run(FieldParameters parameters, Matrix4x4 transform, List<SculptSolid> solids)
         {
             if (Field != null)
             {
                 Vector3Int dimensions = new Vector3Int(Field.width, Field.height, Field.volumeDepth);
-                GenerateField(dimensions, parameters, transform);
+                GenerateField(dimensions, parameters, transform, solids);
             }
         }
-        
+
+        public void SetSculptSolids(List<SculptSolid> solids)
+        {
+            if (solidsBuffer != null && solidsBuffer.count != solids.Count)
+            {
+                solidsBuffer.Release();
+                solidsBuffer = null;
+            }
+
+            if (solidsBuffer != null)
+            {
+                solidsBuffer.SetData(solids);
+                return;
+            }
+
+            solidsBuffer = new ComputeBuffer(solids.Count, Marshal.SizeOf(typeof(SculptSolid)));
+            
+            computeShader.SetBuffer(kernelIndex, "_Solids", solidsBuffer);
+            computeShader.SetInt("_SolidCount", solidsBuffer.count);
+            solidsBuffer.SetData(solids);
+            
+        }
         
         /// <summary>
         /// Update only the scale parameter and regenerate

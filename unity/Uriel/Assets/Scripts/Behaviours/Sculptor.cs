@@ -18,13 +18,17 @@ namespace Uriel.Behaviours
         [SerializeField] private SculptorConfig config;
         [SerializeField] private ComputeShader cubeMarchCompute, distanceFieldCompute;
         [SerializeField] private MeshFilter meshFilter;
-      
+        [SerializeField] private Transform bounds;
+        [SerializeField] private Transform innerShell;
+        [SerializeField] private RenderTexture texture;
         private CubeMarch cubeMarch;
         private DistanceFieldGenerator generator;
         private Combine combine;
         private VolumeWriter thresholdVolumeWriter;
-       
-       
+
+        private List<SculptSolidBehaviour> solids = new();
+        private List<SculptSolid> solidsBuffer = new();
+        
         private void Start()
         {
             
@@ -44,8 +48,24 @@ namespace Uriel.Behaviours
                     generator.Field);
             
             meshFilter.mesh = cubeMarch.Mesh;
-            
-            generator.Run(config.field, transform.localToWorldMatrix.inverse);
+            texture = generator.Field;
+            Run();
+        }
+
+        private void CollectSolids()
+        {
+            solidsBuffer.Clear();
+            GetComponentsInChildren(solids);
+            foreach (var solid in solids)
+            {
+                solidsBuffer.Add(solid.GetSolid());
+            }
+        }
+
+        private void Run()
+        {
+            CollectSolids();
+            generator.Run(config.field, transform.localToWorldMatrix.inverse, solidsBuffer);
             cubeMarch.Run(config.sculpt);
         }
 
@@ -53,10 +73,11 @@ namespace Uriel.Behaviours
         {
             if (runInUpdate)
             {
-                generator.Run(config.field, transform.localToWorldMatrix.inverse);
-           
+
+                Run();
+
             }
-            cubeMarch.Run(config.sculpt);
+           
             //meshFilter.transform.localScale =
             //    new Vector3(64f / config.resolution.x, 64f / config.resolution.x, 64f / config.resolution.x);
             if (Input.GetKeyDown(KeyCode.S) &&  runInUpdate)
