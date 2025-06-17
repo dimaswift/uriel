@@ -7,11 +7,25 @@ namespace Uriel.Behaviours
 {
     public class VolumeMesh : MonoBehaviour
     {
+        public bool Selected
+        {
+            get => selected;
+            set
+            {
+                meshRenderer.sharedMaterial = value ? selectedMaterial : regularMaterial;
+                selected = value;
+            }
+        }
+
+        public Bounds Bounds
+        {
+            get => meshRenderer.bounds;
+        }
+        
         public string ID => id;
         public string DisplayName { get; set; } = "Volume Field";
         public Mesh GeneratedMesh => marchingCubes?.Mesh;
-        public bool IsActive { get; set; }
-
+        
         [SerializeField] private int budget = 1000000;
         [SerializeField] private bool initOnAwake;
         [SerializeField] private bool runInUpdate;
@@ -21,17 +35,26 @@ namespace Uriel.Behaviours
         [SerializeField] private ComputeShader marchingCubesCompute;
         [SerializeField] private MeshFilter meshFilter;
         [SerializeField] private WaveEmitter waveEmitter;
+        [SerializeField] private Material selectedMaterial;
+        [SerializeField] private Material regularMaterial;
         private MarchingCubes marchingCubes;
-        
         private readonly List<SculptSolidBehaviour> solids = new();
         private readonly List<SculptSolid> solidsBuffer = new();
+
+        private bool selected;
+        
+      
+        private MeshRenderer meshRenderer;
         
         private void Awake()
         {
+            meshRenderer = meshFilter.GetComponent<MeshRenderer>();
             if (initOnAwake)
             {
                 Initialize(budget, config, waveEmitter);
             }
+
+            Selected = false;
         }
 
         private void Update()

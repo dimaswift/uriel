@@ -26,7 +26,6 @@ namespace Uriel.Domain
     public class StudioState
     {
         public List<VolumeFieldSnapshot> volumeFields = new ();
-        public string activeVolumeFieldId;
         public DateTime lastSaved;
     }
     
@@ -48,8 +47,6 @@ namespace Uriel.Domain
                 var snapshot = field.CreateSnapshot();
                 currentState.volumeFields.Add(snapshot);
             }
-            
-            currentState.activeVolumeFieldId = studio.SelectedVolume?.ID;
             
             // Save to file (implement your preferred serialization)
             SaveToFile(currentState);

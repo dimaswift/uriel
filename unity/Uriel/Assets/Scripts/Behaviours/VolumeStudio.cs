@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
@@ -22,32 +23,21 @@ namespace Uriel.Behaviours
         public CommandHistory CommandHistory { get; private set; } = new ();
         public StateManager StateManager { get; private set; } = new ();
 
-        // Event
-        public event Action<VolumeMesh> OnSelectedVolumeChanged;
-        public event Action<VolumeMesh> OnVolumeAdded;
-        public event Action<VolumeMesh> OnVolumeRemoved;
-
         // Properties
         public IReadOnlyList<VolumeMesh> Volumes => volumes.AsReadOnly();
-
+        private readonly HashSet<VolumeMesh> selection = new();
+        private VolumeMesh lastSelection;
         private bool exportInProgress;
         private ProgressBar progressBar;
         private Button exportButton;
-
-        public VolumeMesh SelectedVolume
-        {
-            get
-            {
-                if (volumes.Count == 0) return null;
-                if (selectedVolume < 0 || selectedVolume >= volumes.Count) return null;
-                return volumes[selectedVolume];
-            }
-        }
+        private Camera cam;
+        private bool moving;
+        private Vector3 moveStartPoint;
+        private readonly Dictionary<VolumeMesh, Vector3> moveClickPoints = new();
         
-        private int selectedVolume;
-
         private void Awake()
         {
+            cam = Camera.main;
             Dispatcher.Init();
             STLExporter.OnExportProgress += OnExportProgress;
             STLExporter.OnExportCompleted += OnExportCompleted;
@@ -76,41 +66,47 @@ namespace Uriel.Behaviours
 
         private  void OnExportProgress(float v)
         {
-            Dispatcher.Instance.Enqueue(() =>  progressBar.value = v * 100);
+            Dispatcher.Instance.Enqueue(() => progressBar.value = v * 100);
         }
 
         public async void ExportSelectedMesh()
         {
-            if (exportInProgress)
+            if (exportInProgress || selection.Count == 0)
             {
-                return;
-            }
-            
-            if (SelectedVolume?.GeneratedMesh == null)
-            {
-                Debug.LogWarning("No mesh to export");
                 return;
             }
             exportButton.SetEnabled(false);
             exportInProgress = true;
             progressBar.visible = true;
-            progressBar.title = "Exporting STL...";
-            try
+            int progress = 0;
+            foreach (var vol in selection)
             {
-                await STLExporter.ExportMeshToSTLAsync(
-                    name: Guid.NewGuid().ToString().Substring(0, 5).ToUpper(),
-                    mesh: SelectedVolume?.GeneratedMesh,
-                    binary: true,
-                    optimizeVertices: true
-                );
+                progress++;
+                if (vol?.GeneratedMesh == null)
+                {
+                    continue;
+                }
+
+                progressBar.value = 0;
+                progressBar.title = $"Exporting STL {progress}/{selection.Count}";
+                try
+                {
+                    await STLExporter.ExportMeshToSTLAsync(
+                        name: Guid.NewGuid().ToString().Substring(0, 5).ToUpper(),
+                        mesh: vol.GeneratedMesh,
+                        binary: true,
+                        optimizeVertices: true
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Export failed: {ex.Message}");
+                   
+                }
             }
-            catch (Exception ex)
-            {
-                exportButton.SetEnabled(true);
-                Debug.LogError($"Export failed: {ex.Message}");
-                exportInProgress = false;
-                progressBar.visible = false;
-            }
+            exportButton.SetEnabled(true);
+            exportInProgress = false;
+            progressBar.visible = false;
         }
         
         private void BindUI()
@@ -126,7 +122,7 @@ namespace Uriel.Behaviours
             var createVolumeBtn = buttons.Q<Button>("CreateVolume");
             createVolumeBtn.RegisterCallback<ClickEvent>(c =>
             {
-                CreateVolume();
+                CreateVolume(config.volumeMeshPrefab);
             });
 
             progressBar = root.Q<ProgressBar>("ProgressBar");
@@ -191,6 +187,49 @@ namespace Uriel.Behaviours
                 volume.ChangeResolution(config.triangleBudget);
             }
         }
+
+        private Vector3 GetPlanePointer()
+        {
+            var ray = cam.ScreenPointToRay(Input.mousePosition);
+            var plane = new Plane(Vector3.up, Vector3.zero);
+            if (plane.Raycast(ray, out var dist))
+            {
+                return ray.GetPoint(dist);
+            }
+
+            return Vector3.zero;
+        }
+
+        private void BeginMove()
+        {
+            moveClickPoints.Clear();
+            foreach (var vol in selection)
+            {
+                moveClickPoints.Add(vol, vol.transform.position);
+            }
+            moving = selection.Count > 0;
+            moveStartPoint = GetPlanePointer();
+        }
+
+        private void HandleMoving()
+        {
+            var mouse = GetPlanePointer();
+            var mouseDelta = mouse - moveStartPoint;
+            foreach (var volumeMesh in moveClickPoints)
+            {
+                volumeMesh.Key.transform.position = volumeMesh.Value + mouseDelta;
+            }
+        }
+
+        private void DeleteSelected()
+        {
+            foreach (var vol in selection)
+            {
+                volumes.RemoveAll(v => v == vol);
+                Destroy(vol.gameObject);
+            }
+            selection.Clear();
+        }
         
         private void Update()
         {
@@ -202,9 +241,112 @@ namespace Uriel.Behaviours
             {
                 volume.RegenerateVolume();
             }
+            
+            if (!moving && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonUp(0)))
+            {
+                HandleSelection(Input.GetMouseButtonUp(0));
+            }
+
+            if (!moving && Input.GetMouseButton(0) && Input.mousePositionDelta.magnitude > 0.1f)
+            {
+                BeginMove();
+            }
+            
+            if (Input.GetKeyDown(KeyCode.Delete))
+            {
+                DeleteSelected();
+            }
+            
+            if (Input.GetKey(KeyCode.LeftCommand) && Input.GetKeyDown(KeyCode.D))
+            {
+                DuplicateSelected();
+            }
+            
+            if (Input.GetMouseButtonUp(0))
+            {
+                moving = false;
+                lastSelection = null;
+            }
+
+            if (moving)
+            {
+                HandleMoving();
+            }
+            
             HandleInput();
         }
 
+        private void DuplicateSelected()
+        {
+            foreach (var vol in selection)
+            {
+                CreateVolume(vol);
+            }
+        }
+
+        private void ClearSelection()
+        {
+            lastSelection = null;
+            foreach (var vol in selection)
+            {
+                vol.Selected = false;
+            }
+            selection.Clear();
+        }
+
+        private bool IsMouseOverVolume(out VolumeMesh result)
+        {
+            var ray = cam.ScreenPointToRay(Input.mousePosition);
+            float closestDist = float.MaxValue;
+            VolumeMesh hit = null;
+            foreach (var volume in volumes)
+            {
+                if (volume.Bounds.IntersectRay(ray, out var dist) && dist < closestDist)
+                {
+                    hit = volume;
+                    closestDist = dist;
+                }
+            }
+            result = hit;
+            return hit != null;
+        }
+
+        private void HandleSelection(bool mouseUp)
+        {
+            if (!IsMouseOverVolume(out var hit))
+            {
+                ClearSelection();
+                return;
+            }
+
+            if (hit == lastSelection)
+            {
+                return;
+            }
+            if (Input.GetKey(KeyCode.LeftCommand))
+            {
+                if (!mouseUp)
+                {
+                    ToggleVolumeSelection(hit);
+                }
+            }
+            else
+            {
+                if (!hit.Selected)
+                {
+                    ClearSelection();
+                    ToggleVolumeSelection(hit);
+                }
+                else 
+                {
+                    if (mouseUp)
+                    {
+                        ToggleVolumeSelection(hit);
+                    }
+                }
+            }
+        }
+        
         private void HandleInput()
         {
             // Undo/Redo
@@ -241,22 +383,20 @@ namespace Uriel.Behaviours
             return emitter;
         }
         
-        public VolumeMesh CreateVolume()
+        public VolumeMesh CreateVolume(VolumeMesh source)
         {
             if (waveEmitters.Count == 0)
             {
                 return null;
             }
-            GameObject go = Instantiate(config.volumeMeshPrefab.gameObject);
+            GameObject go = Instantiate(source.gameObject);
             VolumeMesh mesh = go.GetComponent<VolumeMesh>() ?? go.AddComponent<VolumeMesh>();
             
             mesh.DisplayName = $"VOL_{volumes.Count}";;
             mesh.Initialize(config.triangleBudget, config.@default.marchingCubes, waveEmitters[0]);
             mesh.transform.SetParent(transform);
             volumes.Add(mesh);
-            SetActiveVolume(mesh);
             
-            OnVolumeAdded?.Invoke(mesh);
             return mesh;
         }
 
@@ -265,9 +405,7 @@ namespace Uriel.Behaviours
             if (volumes.Contains(mesh))
             {
                 volumes.Remove(mesh);
-                
-                OnVolumeRemoved?.Invoke(mesh);
-                
+
                 if (mesh != null)
                 {
                     DestroyImmediate(mesh.gameObject);
@@ -275,10 +413,22 @@ namespace Uriel.Behaviours
             }
         }
 
-        public void SetActiveVolume(VolumeMesh volume)
+        public void ToggleVolumeSelection(VolumeMesh volume)
         {
-            selectedVolume = volumes.FindIndex(v => v == volume);
-            OnSelectedVolumeChanged?.Invoke(SelectedVolume);
+
+            if (volume.Selected)
+            {
+                volume.Selected = false;
+                selection.Remove(volume);
+                lastSelection = null;
+                return;
+            }
+            
+            if (selection.Add(volume))
+            {
+                volume.Selected = true;
+                lastSelection = volume;
+            }
         }
 
         public void ExecuteCommand(ICommand command)

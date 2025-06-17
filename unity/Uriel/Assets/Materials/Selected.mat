@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Normal
+  m_Name: Selected
   m_Shader: {fileID: 4800000, guid: ee7e4c9a5f6364b688a332c67fc32cca, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -130,8 +130,8 @@ Material:
     - _BlendOp: 0
     - _BumpScale: 1
     - _ClearCoat: 1
-    - _ClearCoatMask: 0.325
-    - _ClearCoatSmoothness: 0.235
+    - _ClearCoatMask: 1
+    - _ClearCoatSmoothness: 0.843
     - _ColorScale: 3.39
     - _ColorShape: 4
     - _Cull: 0
@@ -164,7 +164,7 @@ Material:
     - _Max: 3
     - _MaxColor: 0.086
     - _MaxDisplacement: -1.1
-    - _Metallic: 0.981
+    - _Metallic: 0.764
     - _Min: -0.56
     - _MinColor: 0
     - _MinDisplacement: -2.56
@@ -206,7 +206,7 @@ Material:
     - _Shell: 34.9
     - _Shininess: 85
     - _Sign: 1
-    - _Smoothness: 0.448
+    - _Smoothness: 0.547
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SpecularMultiplier: 3.94
@@ -240,7 +240,7 @@ Material:
     - _Z: 2
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.6981132, g: 0.6981132, b: 0.6981132, a: 1}
+    - _BaseColor: {r: 0, g: 1, b: 0.11084986, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorPos: {r: 0.15, g: 1.58, b: 0.25, a: 0.92}
     - _Color_0: {r: 0.2971698, g: 0.5244031, b: 1, a: 1}

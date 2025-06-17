@@ -45,25 +45,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b96475f4a3818f42b0f3fec61a2adb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  budget: 1000000
   initOnAwake: 0
   runInUpdate: 0
   id: 030499d2-80ee-44b0-a6f5-c989688a7003
   state: {fileID: 0}
   config:
-    field:
-      resolution: {x: 64, y: 64, z: 64}
-      saturate: 1
-    marchingCubes:
-      budget: 1000000
-      resolution: {x: 64, y: 64, z: 64}
-      shell: 0.1
-      flipNormals: 0
-      invertTriangles: 1
-      shrink: 0
-      blend: {x: 0.5, y: 0.5}
+    shell: 0.1
+    flipNormals: 0
+    invertTriangles: 1
+    shrink: 0
+    blend: {x: 0.5, y: 0.5}
+    phase: 0
   marchingCubesCompute: {fileID: 7200000, guid: 9f19ed91e8aa34430ac0ea80fb20eead, type: 3}
   meshFilter: {fileID: 8433266003008559593}
   waveEmitter: {fileID: 0}
+  selectedMaterial: {fileID: 2100000, guid: ad68c9aa5f7db43e3960cadc56af78e0, type: 2}
+  regularMaterial: {fileID: 2100000, guid: acc1a20c84e336049b9115ea50d97141, type: 2}
 --- !u!1 &8483801212570997206
 GameObject:
   m_ObjectHideFlags: 0

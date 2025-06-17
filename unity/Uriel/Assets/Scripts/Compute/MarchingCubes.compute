@@ -156,7 +156,7 @@ float evaluateSolidField(float3 p, SculptSolid solid)
 
 float3 TransformPoint(float3 p)
 {
-    return (p + 0.5 - Dims / 2) * (2.0 / Dims.x);
+    return (p + 0.5 - Dims / 2) * (1.0 / Dims.x);
 }
 
 uint EdgeIndexFromTriangleTable(uint2 data, uint index)
@@ -167,13 +167,12 @@ uint EdgeIndexFromTriangleTable(uint2 data, uint index)
 
 float sampleMask(uint3 id)
 {
+    float v = Field[id];
     float ux = float(id.x - float(Dims.x) * 0.5) / Dims.x;
     float uy = float(id.y - float(Dims.y) * 0.5) / Dims.x;
     float uz = float(id.z - float(Dims.z) * 0.5) / Dims.x;
     
     float3 p = float3(ux, uy, uz);
-    
-    float alpha = 1.0;
     
     for (int k = 0; k < SolidCount; k++)
     {
@@ -181,34 +180,32 @@ float sampleMask(uint3 id)
         SculptSolid s = Solids[k];
         switch (s.op)
         {
-        case 0:
-            alpha += f;
-            break;
-        case 1:
-            alpha *= f;
-            break;
-        case 2:
-            alpha = max(f, alpha);
-            break;
-        case 3:
-            alpha = lerp(alpha, f, s.lerp);
-            break;
-        case 4:
-            alpha = f > 0 ? 1.0 : 0;
-            break;
-        default:
-               
+            case 0:
+                v += lerp(f, v, s.lerp) * s.exp;
+                break;
+            case 1:
+                v *= lerp(f, v, s.lerp) * s.exp;
+                break;
+            case 2:
+                v = max(v, f * s.lerp) * s.exp;
+                break;
+            case 3:
+                v = min(v, f * s.lerp) * s.exp;
+                break;
+            case 4:
+                v = lerp(f, v, s.lerp) * s.exp;
+                break;
+            default:
+                   
                 break;
         }
     }
-    return alpha;
+    return v;
 }
 
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
-    float t = Field[uint3(x,y,z)];
-    t *= sampleMask(uint3(x,y,z));
-    return t;
+    return sampleMask(uint3(x,y,z));
 }
 
 float4 VoxelValueWithGradient(uint3 i)

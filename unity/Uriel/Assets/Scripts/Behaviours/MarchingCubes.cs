@@ -120,7 +120,7 @@ namespace Uriel.Behaviours
             compute.SetBuffer(clearKernel, "Counter", counterBuffer);
             compute.DispatchThreads(clearKernel, 1024, 1, 1);
 
-            var ext = new Vector3(dims.x, dims.y, dims.z);
+            var ext = new Vector3(1f / dims.x, 1f  / dims.y, 1f  / dims.z) * dims.x;
             mesh.bounds = new Bounds(Vector3.zero, ext);
         }
         
@@ -199,8 +199,8 @@ namespace Uriel.Behaviours
         private void ReleaseMesh()
         {
             Object.Destroy(compute);
-            vertexBuffer.Dispose();
-            indexBuffer.Dispose();
+            vertexBuffer?.Dispose();
+            indexBuffer?.Dispose();
             Object.Destroy(mesh);
         }
         
