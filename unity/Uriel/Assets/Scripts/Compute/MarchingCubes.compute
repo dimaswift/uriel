@@ -4,6 +4,25 @@
 #define SIZEOF_UINT 4
 #define SIZEOF_FLOAT3 12
 
+#define SHAPE_CUBE 0
+#define SHAPE_SPHERE 1
+#define SHAPE_CYLINDER 2
+#define SHAPE_CAPSULE 3
+
+
+struct SculptSolid
+{
+    float4x4 invTransform;
+    float scale;    
+    int type; 
+    int op;
+    float feather;
+    float exp;
+    float lerp;
+    int priority;
+};
+
+StructuredBuffer<SculptSolid> Solids;
 RWByteAddressBuffer VertexBuffer;
 RWByteAddressBuffer IndexBuffer;
 RWStructuredBuffer<uint> Counter;
@@ -11,11 +30,129 @@ StructuredBuffer<uint2> TriangleTable;
 Texture3D<float> Field;
 uint3 Dims;
 uint MaxTriangle;
-uint FlipNormals;     // 0 = normal, 1 = flip normals
+uint FlipNormals;
 uint InvertTriangles; 
-
+float2 Blend;
 float Shrink;
 float Shell;
+int SolidCount;
+float Phase;
+
+float3 transformPoint(float4x4 m, float3 p)
+{
+    float4 worldPoint = float4(p, 1.0);
+    float4 localPoint = mul(m, worldPoint);
+    return localPoint.xyz;
+}
+
+// Distance functions for different shapes
+float cubeDistance(float3 localPos)
+{
+    // For a unit cube centered at origin with extents [-0.5, 0.5]
+    float3 absPos = abs(localPos);
+    float3 outsideDistance = max(absPos - 0.5, 0.0);
+    float outsideDist = length(outsideDistance);
+    
+    // Inside distance (negative when inside)
+    float insideDist = max(max(absPos.x, absPos.y), absPos.z) - 0.5;
+    
+    return max(outsideDist, insideDist);
+}
+
+float sphereDistance(float3 localPos)
+{
+    // For a unit sphere centered at origin with radius 0.5
+    return length(localPos) - 0.5;
+}
+
+float cylinderDistance(float3 localPos)
+{
+    // For a unit cylinder along Y axis, radius 0.5, height 1.0 (from -0.5 to 0.5)
+    float2 xzPos = localPos.xz;
+    float radialDist = length(xzPos) - 0.5;
+    float heightDist = abs(localPos.y) - 0.5;
+    
+    float outsideDist = length(max(float2(radialDist, heightDist), 0.0));
+    float insideDist = max(radialDist, heightDist);
+    
+    return max(outsideDist, insideDist);
+}
+
+float capsuleDistance(float3 localPos)
+{
+    // For a unit capsule along Y axis, radius 0.5, height 1.0
+    float yPos = localPos.y;
+    yPos = max(abs(yPos) - 0.25, 0.0) * sign(yPos); // Clamp to cylinder part
+    
+    float2 offset = float2(length(localPos.xz), yPos);
+    return length(offset) - 0.5;
+}
+
+// Get distance based on shape type
+float getShapeDistance(float3 localPos, int shapeType)
+{
+    switch(shapeType)
+    {
+    case SHAPE_CUBE:
+        return cubeDistance(localPos);
+    case SHAPE_SPHERE:
+        return sphereDistance(localPos);
+    case SHAPE_CYLINDER:
+        return cylinderDistance(localPos);
+    case SHAPE_CAPSULE:
+        return capsuleDistance(localPos);
+    default:
+        return cubeDistance(localPos);
+    }
+}
+
+float calculateMask(float distance, float thickness)
+{
+    if (distance <= 0.0)
+        return 1.0;
+    if (distance >= thickness)
+        return 0.0;
+    return smoothstep(1.0, 0.0, distance / thickness);
+}
+
+float calculateMaskLinear(float distance, float thickness)
+{
+    return saturate(1.0 - distance / thickness);
+}
+
+float calculateMaskExponential(float distance, float thickness, float falloffPower)
+{
+    if (distance <= 0.0)
+        return 1.0;
+    
+    float normalizedDist = saturate(distance / thickness);
+    return pow(1.0 - normalizedDist, falloffPower);
+}
+
+float combineMasks(float mask1, float mask2, int combineMode)
+{
+    switch(combineMode)
+    {
+    case 0: return max(mask1, mask2);           // Union
+    case 1: return min(mask1, mask2);           // Intersection
+    case 2: return saturate(mask1 - mask2);     // Subtract
+    case 3: return saturate(mask1 + mask2);     // Additive
+    default: return max(mask1, mask2);
+    }
+}
+
+float evaluateSolidField(float3 p, SculptSolid solid)
+{
+    float4x4 worldToLocal = solid.invTransform;
+
+    float3 localPos = transformPoint(worldToLocal, p);
+
+    float distance = getShapeDistance(localPos, solid.type);
+
+    float shapeMask = calculateMask(distance, solid.feather);
+    
+    return shapeMask * solid.scale;
+}
 
 float3 TransformPoint(float3 p)
 {
@@ -28,9 +165,50 @@ uint EdgeIndexFromTriangleTable(uint2 data, uint index)
                                data.y >> ((index - 8) * 4));
 }
 
+float sampleMask(uint3 id)
+{
+    float ux = float(id.x - float(Dims.x) * 0.5) / Dims.x;
+    float uy = float(id.y - float(Dims.y) * 0.5) / Dims.x;
+    float uz = float(id.z - float(Dims.z) * 0.5) / Dims.x;
+    
+    float3 p = float3(ux, uy, uz);
+    
+    float alpha = 1.0;
+    
+    for (int k = 0; k < SolidCount; k++)
+    {
+        float f = evaluateSolidField(p, Solids[k]);
+        SculptSolid s = Solids[k];
+        switch (s.op)
+        {
+        case 0:
+            alpha += f;
+            break;
+        case 1:
+            alpha *= f;
+            break;
+        case 2:
+            alpha = max(f, alpha);
+            break;
+        case 3:
+            alpha = lerp(alpha, f, s.lerp);
+            break;
+        case 4:
+            alpha = f > 0 ? 1.0 : 0;
+            break;
+        default:
+               
+                break;
+        }
+    }
+    return alpha;
+}
+
 float sampleFieldVoxel(uint x, uint y, uint z)
 {
-    return  Field[uint3(x,y,z)];
+    float t = Field[uint3(x,y,z)];
+    t *= sampleMask(uint3(x,y,z));
+    return t;
 }
 
 float4 VoxelValueWithGradient(uint3 i)
@@ -51,7 +229,7 @@ float4 VoxelValueWithGradient(uint3 i)
     const float3 gradient = float3(v_px - v_nx, v_py - v_ny, v_pz - v_nz);
     
     float marchingValue = center - Shell;
-
+    
     return float4(gradient, marchingValue);
 }
 
@@ -89,15 +267,22 @@ void Construct(uint3 id : SV_DispatchThreadID)
     if (any(id + 1 >= Dims.xyz)) return;
 
     uint i;
+    
+    float totalAlpha = 0;
+    
+    for (i = 0; i < 8; i++)
+    {
+        float a = sampleMask(id + CubeVertex(i));
+        totalAlpha += a;
+    }
 
-    
-    
+    if (totalAlpha == 0) return;
+
     float4 samples[8];
+    
     for (i = 0; i < 8; i++)
         samples[i] = VoxelValueWithGradient(id + CubeVertex(i));
 
-    // Build selector based on marching value
-    // Bit is set if vertex is outside the range (positive marching value)
     uint selector = 0;
     for (i = 0; i < 8; i++)
         selector |= (samples[i].w > 0) << i;

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 227b7e2fe85b43fb99504eb464b8f21c, type: 3}
+  m_Name: Adam
+  m_EditorClassIdentifier: 
+  triangleBudget: 0
+  resolution: {x: 512, y: 512, z: 512}
+  default:
+    field:
+      saturate: 1
+    marchingCubes:
+      shell: 0.1
+      flipNormals: 0
+      invertTriangles: 1
+      shrink: 0
+      blend: {x: 0.5, y: 0.5}
+      phase: 0
+  volumeMeshPrefab: {fileID: 3170965333970312374, guid: 48230854c936e42958bac6f3633fc60d, type: 3}
+  waveEmitterPrefab: {fileID: 2042722840801966343, guid: 78ac65718405f46aaa59d6393a787d74, type: 3}

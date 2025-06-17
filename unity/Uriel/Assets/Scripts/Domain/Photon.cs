@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Uriel.Domain
 {
+
+
+    
     [StructLayout(LayoutKind.Sequential)]  
     [System.Serializable]
     public struct Photon

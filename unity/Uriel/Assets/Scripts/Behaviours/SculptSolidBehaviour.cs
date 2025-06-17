@@ -5,22 +5,32 @@ namespace Uriel.Behaviours
 {
     public class SculptSolidBehaviour : MonoBehaviour
     {
-        [SerializeField] private float scale = 1f;
-        [Range(0f, 0.5f)] [SerializeField] private float feather = 0.1f;
-        [SerializeField] private SculptOperation operation;
-        [SerializeField] private SculptSolidType type;
-        
+        [SerializeField] private SculptSolid solid = SculptSolid.Default;
         public SculptSolid GetSolid()
         {
-    
-            return new SculptSolid()
+            var m = new Matrix4x4();
+            m.SetTRS(transform.localPosition, transform.localRotation, transform.localScale);
+            solid.invTransform = m.inverse;
+            return solid;
+        }
+
+        public SculptSolidState GetState()
+        {
+            return new SculptSolidState()
             {
-                invTransform = transform.localToWorldMatrix.inverse,
-                scale = scale,
-                type = type,
-                op = operation,
-                feather = feather
-            };  
+                solid = GetSolid(),
+                scale = transform.localScale,
+                position = transform.localPosition,
+                rotation = transform.localEulerAngles
+            };
+        }
+        
+        public void RestoreState(SculptSolidState state)
+        {
+            transform.localPosition = state.position;
+            transform.localScale = state.scale;
+            transform.localEulerAngles = state.rotation;
+            solid = state.solid;
         }
     }
 }

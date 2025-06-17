@@ -1,46 +1,66 @@
-
-
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Uriel.Domain;
 using Uriel.Utils;
+using Object = UnityEngine.Object;
 
 namespace Uriel.Behaviours 
 {
-    public class CubeMarch : System.IDisposable
+    [System.Serializable]
+    public struct MarchingCubesConfig
+    {
+        public float shell;
+        public bool flipNormals;
+        public bool invertTriangles;
+        public float shrink;
+        public Vector2 blend;
+        public float phase;
+        public static MarchingCubesConfig Default => new()
+        {
+            shrink = 0.0f,
+            flipNormals = false,
+            invertTriangles = true,
+            shell = 0.1f,
+            blend = new Vector2(0.5f, 0.5f)
+        };
+    }
+    
+    public class MarchingCubes : System.IDisposable
     {
         public Mesh Mesh => mesh;
 
-        public CubeMarch(int x, int y, int z, int budget, ComputeShader compute, 
-            RenderTexture field)
-          => Initialize((x, y, z), budget, compute, field);
+        public MarchingCubes(int budget, ComputeShader compute) => Initialize(budget, compute);
 
         public void Dispose()
           => ReleaseAll();
         
-        (int x, int y, int z) grids;
         int triangleBudget;
 
         private ComputeShader compute;
+        
         private ComputeBuffer triangleTable;
         private ComputeBuffer counterBuffer;
+        private ComputeBuffer solidsBuffer;
 
         private Mesh mesh;
         private GraphicsBuffer vertexBuffer;
         private GraphicsBuffer indexBuffer;
         private int constructKernel, clearKernel;
 
-        private int currentSculptHash;
+        private int currentHash;
+        private int solidsHash;
+  
         
-        private void Initialize((int, int, int) dims, int budget, 
-            ComputeShader computeSource, RenderTexture field)
+        private void Initialize(int budget, ComputeShader computeSource)
         {
-            grids = dims;
             triangleBudget = budget;
             compute = Object.Instantiate(computeSource);
             constructKernel = compute.FindKernel("Construct");
             clearKernel = compute.FindKernel("Clear");
-            compute.SetTexture(constructKernel, "Field", field);
+        
             AllocateBuffers();
             AllocateMesh(3 * triangleBudget);
         }
@@ -51,45 +71,88 @@ namespace Uriel.Behaviours
             ReleaseMesh();
         }
 
-        public void Run(Sculpt sculpt)
+        private int ComputeHash(MarchingCubesConfig config, WaveEmitter emitter, Vector3Int dims)
         {
+            return HashCode.Combine(
+                config.flipNormals, 
+                config.invertTriangles, 
+                config.blend, 
+                config.shell, 
+                config.phase, 
+                config.shrink, 
+                dims, 
+                emitter.LastHash + solidsHash);
+        }
+        
+        public void Run(MarchingCubesConfig config, WaveEmitter emitter)
+        {
+            if (mesh == null)
+            {
+                AllocateMesh(triangleBudget * 3);
+            }
+            var dims = new Vector3Int(emitter.Field.width, emitter.Field.height, emitter.Field.volumeDepth);
+            var newHash = ComputeHash(config, emitter, dims);
+            if (currentHash == newHash)
+            {
+                return;
+            }
+            currentHash = newHash;
+            compute.SetTexture(constructKernel, "Field", emitter.Field);
             counterBuffer.SetCounterValue(0);
             
-            var scale = 1f / grids.x;
-            compute.SetInts("Dims", grids);
+            compute.SetInts("Dims", dims);
             compute.SetInt("MaxTriangle", triangleBudget);
-            compute.SetFloat("Scale", scale);
-            compute.SetFloat("Shell", sculpt.shell);
-            compute.SetFloat("Radius", sculpt.radius);
-            compute.SetFloat("TransitionWidth", sculpt.transitionWidth);
-            compute.SetVector("EllipsoidScale", sculpt.ellipsoidScale);
-            compute.SetVector("Core", sculpt.core);
-            compute.SetFloat("CoreStrength", sculpt.coreStrength);
-            compute.SetFloat("CoreRadius", sculpt.coreRadius);
-            compute.SetFloat("InnerRadius", sculpt.innerRadius);
-            compute.SetFloat("Scale", sculpt.scale);
-            compute.SetFloat("Shrink", sculpt.shrink);
+            compute.SetFloat("Shell", config.shell);
+            compute.SetFloat("Phase", config.phase);
+            compute.SetFloat("Shrink", config.shrink);
+            compute.SetVector("Blend", config.blend);
+            compute.SetInt("FlipNormals", config.flipNormals ? 1 : 0);
+            compute.SetInt("InvertTriangles", config.invertTriangles ? 1 : 0);
+            
             compute.SetBuffer(constructKernel, "TriangleTable", triangleTable);
-            compute.SetInt("FlipNormals", sculpt.flipNormals ? 1 : 0);
-            compute.SetInt("RadialSymmetryCount", sculpt.radialSymmetryCount);
-            compute.SetInt("InvertTriangles", sculpt.invertTriangles ? 1 : 0);
             compute.SetBuffer(constructKernel, "VertexBuffer", vertexBuffer);
             compute.SetBuffer(constructKernel, "IndexBuffer", indexBuffer);
             compute.SetBuffer(constructKernel, "Counter", counterBuffer);
-            compute.DispatchThreads(constructKernel, grids);
-   
+            
+            compute.DispatchThreads(constructKernel, dims);
             compute.SetBuffer(clearKernel, "VertexBuffer", vertexBuffer);
             compute.SetBuffer(clearKernel, "IndexBuffer", indexBuffer);
             compute.SetBuffer(clearKernel, "Counter", counterBuffer);
             compute.DispatchThreads(clearKernel, 1024, 1, 1);
 
-            var ext = new Vector3(grids.x, grids.y, grids.z) * scale;
+            var ext = new Vector3(dims.x, dims.y, dims.z);
             mesh.bounds = new Bounds(Vector3.zero, ext);
         }
+        
+        public void SetSculptSolids(List<SculptSolid> solids)
+        {
+            if (solidsBuffer != null && solidsBuffer.count != solids.Count)
+            {
+                solidsBuffer.Release();
+                solidsBuffer = null;
+            }
 
+            solidsHash = 0;
+            foreach (var solid in solids)
+            {
+                solidsHash += solid.GetHashCode();
+            }
+            
+            if (solidsBuffer != null)
+            {
+                solidsBuffer.SetData(solids);
+                return;
+            }
+
+            solidsBuffer = new ComputeBuffer(solids.Count, Marshal.SizeOf(typeof(SculptSolid)));
+            
+            compute.SetBuffer(constructKernel, "Solids", solidsBuffer);
+            compute.SetInt("SolidCount", solidsBuffer.count);
+            solidsBuffer.SetData(solids);
+        }
+        
         private void AllocateBuffers()
         {
-           
             triangleTable = new ComputeBuffer(256, sizeof(ulong));
             triangleTable.SetData(TriangleTable);
             counterBuffer = new ComputeBuffer(1, 4, ComputeBufferType.Counter);
@@ -97,8 +160,9 @@ namespace Uriel.Behaviours
 
         private void ReleaseBuffers()
         {
-            triangleTable.Dispose();
-            counterBuffer.Dispose();
+            triangleTable?.Dispose();
+            counterBuffer?.Dispose();
+            solidsBuffer?.Dispose();
         }
         
         private void AllocateMesh(int vertexCount)
@@ -120,8 +184,16 @@ namespace Uriel.Behaviours
             mesh.SetSubMesh(0, new SubMeshDescriptor(0, vertexCount),
                              MeshUpdateFlags.DontRecalculateBounds);
 
-            vertexBuffer = mesh.GetVertexBuffer(0);
-            indexBuffer = mesh.GetIndexBuffer();
+            try
+            {
+                vertexBuffer = mesh.GetVertexBuffer(0);
+                indexBuffer = mesh.GetIndexBuffer();
+            }
+            catch (Exception e)
+            {
+                Object.DestroyImmediate(mesh);
+                mesh = null;
+            }
         }
 
         private void ReleaseMesh()

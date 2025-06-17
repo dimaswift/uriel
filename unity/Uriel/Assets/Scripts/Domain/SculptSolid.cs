@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -7,24 +8,65 @@ namespace Uriel.Domain
     {
         Box = 0,
         Sphere = 1,
-        Tetrahedron = 2
+        Cylinder = 2,
+        Capsule = 3
     }
     
     public enum SculptOperation
     {
         Add = 0,
-        Subtract = 1,
-        Intersect = 2
+        Multiply = 1,
+        Intersect = 2,
+        Interpolate = 3,
+        Cut = 4
     }
     
     [StructLayout(LayoutKind.Sequential)]
     [System.Serializable]
     public struct SculptSolid
     {
-        public Matrix4x4 invTransform;   // inverse transform to local space
-        public float    scale;          // used for signed distance control
-        public SculptSolidType      type;           // shape ID: 0 = box, 1 = sphere, 2 = tetra, etc.
-        public SculptOperation      op;             // blend op: 0 = add, 1 = subtract, 2 = intersect
-        public float    feather;        // for smooth blending
+        [HideInInspector] public Matrix4x4 invTransform; 
+        public float scale;
+        public SculptSolidType type;  
+        public SculptOperation op;
+        [Range(0f, 0.1f)] public float feather;
+        public float exp;
+        public float lerp;
+        public int priority;
+
+        public static SculptSolid Default => new()
+        {
+            scale = 1f,
+            feather = 0.1f
+        };
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public bool Equals(SculptSolid other)
+        {
+            return invTransform.Equals(other.invTransform) && scale.Equals(other.scale) 
+                                                           && type == other.type 
+                   && op == other.op && feather.Equals(other.feather) && exp.Equals(other.exp) 
+                   && lerp.Equals(other.lerp) && priority == other.priority;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(invTransform, scale, (int) type, (int) op, feather, exp, lerp, priority);
+        }
     }
+    
+    [System.Serializable]
+    public struct SculptSolidState
+    {
+        public SculptSolid solid;
+        public Vector3 position;
+        public Vector3 scale;
+        public Vector3 rotation;
+    }
+
+
 }

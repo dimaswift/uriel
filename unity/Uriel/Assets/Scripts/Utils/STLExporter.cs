@@ -339,6 +339,7 @@ namespace Uriel.Utils
             }
 
             var path = Path.Combine(directory, name + ".stl");
+            long size = 0;
             using (var writer = new BinaryWriter(File.Create(path)))
             {
                 // Header (80 bytes)
@@ -373,10 +374,13 @@ namespace Uriel.Utils
                     // Attribute byte count (unused)
                     writer.Write((ushort)0);
                 }
+                writer.Flush();
+                
             }
 
+            size = File.OpenRead(path).Length;
             OnExportProgress?.Invoke(1f);
-            OnExportCompleted?.Invoke(path, data.triangleCount, data.triangleCount);
+            OnExportCompleted?.Invoke(path, data.triangleCount, (int)size);
         }
         
         

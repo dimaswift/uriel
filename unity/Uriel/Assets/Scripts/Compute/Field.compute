@@ -1,0 +1,70 @@
+#pragma kernel Run
+
+
+struct WaveSource
+{
+    float3 position;
+    int frequency;
+    float amplitude;
+    float phase;
+    float radius;
+    float scale;
+};
+
+StructuredBuffer<WaveSource> _Sources;
+
+int _SourceCount;
+
+RWTexture3D<float> _Field;
+uint3 _Dims;
+
+bool _Saturate;
+
+float sampleSourceBuffer(const float3 pos)
+{
+    
+    float d = 0.0;
+    for (int i = 0; i < _SourceCount; i++)
+    {
+        WaveSource source = _Sources[i];
+        float3 p = source.position;
+        float dist = distance(pos * source.scale, p) * source.radius;
+        d += sin(dist * source.frequency + source.phase) * source.amplitude;
+    }
+    return d;
+}
+
+float sampleSourceBufferSaturated(const float3 pos)
+{
+    
+    float d = 0.0;
+    for (int i = 0; i < _SourceCount; i++)
+    {
+        WaveSource source = _Sources[i];
+        float3 p = source.position;
+        float dist = saturate(distance(pos * source.scale, p) * source.radius);
+        d += sin(dist * source.frequency + source.phase) * source.amplitude;
+    }
+    return d;
+}
+
+
+float sampleFieldAt(uint3 pos)
+{
+    float ux = float(pos.x - float(_Dims.x) * 0.5) / _Dims.x;
+    float uy = float(pos.y - float(_Dims.y) * 0.5) / _Dims.x;
+    float uz = float(pos.z - float(_Dims.z) * 0.5) / _Dims.x;
+    float3 p = float3(ux, uy, uz);
+    float t = _Saturate ? sampleSourceBufferSaturated(p) : sampleSourceBuffer(p);
+    return t;
+}
+
+[numthreads(4, 4, 4)]
+void Run(uint3 id : SV_DispatchThreadID)
+{
+    // Early exit if outside texture bounds
+    if (any(id >= _Dims))
+        return;
+        
+    _Field[id] = sampleFieldAt(id);
+}

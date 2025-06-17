@@ -8,3 +8,8 @@
 #unity-text-input {
     color: rgb(53, 53, 53);
 }
+
+.unity-progress-bar {
+    -unity-background-image-tint-color: rgb(0, 128, 11);
+    color: rgb(0, 58, 12);
+}
