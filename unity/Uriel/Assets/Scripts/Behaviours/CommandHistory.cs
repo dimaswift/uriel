@@ -1,18 +1,30 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Uriel.Behaviours
 {
+    public interface ISelectable
+    {
+        string ID { get; }
+        bool Selected { get; set; }
+        Bounds Bounds { get; }
+    }
+    
+    public interface IModifiable
+    {
+        string ID { get; }
+    }
+    
     public interface ICommand
     {
         void Execute();
         void Undo();
-        string Description { get; }
     }
 
     public class CommandHistory
     {
-        private Stack<ICommand> undoStack = new Stack<ICommand>();
-        private Stack<ICommand> redoStack = new Stack<ICommand>();
+        private readonly Stack<ICommand> undoStack = new Stack<ICommand>();
+        private readonly Stack<ICommand> redoStack = new Stack<ICommand>();
         private int maxHistorySize = 50;
 
         public event System.Action<bool, bool> OnHistoryChanged; // canUndo, canRedo

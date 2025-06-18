@@ -22,7 +22,7 @@ namespace Uriel.Domain
     }
     
     [StructLayout(LayoutKind.Sequential)]
-    [System.Serializable]
+    [Serializable]
     public struct SculptSolid
     {
         [HideInInspector] public Matrix4x4 invTransform; 
@@ -59,7 +59,7 @@ namespace Uriel.Domain
         }
     }
     
-    [System.Serializable]
+    [Serializable]
     public struct SculptSolidState
     {
         public SculptSolid solid;
@@ -67,6 +67,4 @@ namespace Uriel.Domain
         public Vector3 scale;
         public Vector3 rotation;
     }
-
-
 }

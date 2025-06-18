@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using Uriel.Behaviours;
 
 namespace Uriel.Domain
@@ -10,7 +9,7 @@ namespace Uriel.Domain
         public int triangleBudget;
         public Vector3Int resolution = new (64, 64, 64);
         public VolumeConfig @default = VolumeConfig.Default;
-        public VolumeMesh volumeMeshPrefab;
+        public Volume volumePrefab;
         public WaveEmitter waveEmitterPrefab;
     }
 }

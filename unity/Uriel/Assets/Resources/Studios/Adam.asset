@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 227b7e2fe85b43fb99504eb464b8f21c, type: 3}
   m_Name: Adam
   m_EditorClassIdentifier: 
-  triangleBudget: 0
-  resolution: {x: 512, y: 512, z: 512}
+  triangleBudget: 2024490
+  resolution: {x: 256, y: 256, z: 256}
   default:
     field:
       saturate: 1
@@ -24,5 +24,5 @@ MonoBehaviour:
       shrink: 0
       blend: {x: 0.5, y: 0.5}
       phase: 0
-  volumeMeshPrefab: {fileID: 3170965333970312374, guid: 48230854c936e42958bac6f3633fc60d, type: 3}
+  volumePrefab: {fileID: 3170965333970312374, guid: 48230854c936e42958bac6f3633fc60d, type: 3}
   waveEmitterPrefab: {fileID: 2042722840801966343, guid: 78ac65718405f46aaa59d6393a787d74, type: 3}

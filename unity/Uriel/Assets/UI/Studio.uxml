@@ -12,4 +12,9 @@
         </ui:VisualElement>
         <ui:ProgressBar value="77.1" title="Exporting..." name="ProgressBar" style="flex-direction: column; flex-wrap: nowrap; flex-grow: 0; overflow: hidden; visibility: visible; display: flex; position: absolute; bottom: 0%; right: 0; left: 0; -unity-background-image-tint-color: rgb(0, 103, 8); background-color: rgba(0, 101, 7, 0); -unity-slice-type: sliced;" />
     </ui:VisualElement>
+    <ui:VisualElement name="SavePanel" enabled="true" class="label" style="flex-grow: 1; position: absolute; left: 0%; top: 0%; right: 0%; bottom: 0%; background-color: rgba(0, 0, 0, 0.8); display: none;">
+        <ui:ListView name="Files" header-title="Projects" show-add-remove-footer="false" />
+        <ui:Button text="Create New" name="New" />
+        <ui:Button text="Load" name="Load" />
+    </ui:VisualElement>
 </ui:UXML>
