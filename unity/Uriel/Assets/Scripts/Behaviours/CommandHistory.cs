@@ -1,20 +1,8 @@
+using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Uriel.Behaviours
 {
-    public interface ISelectable
-    {
-        string ID { get; }
-        bool Selected { get; set; }
-        Bounds Bounds { get; }
-    }
-    
-    public interface IModifiable
-    {
-        string ID { get; }
-    }
-    
     public interface ICommand
     {
         void Execute();
@@ -23,11 +11,16 @@ namespace Uriel.Behaviours
 
     public class CommandHistory
     {
-        private readonly Stack<ICommand> undoStack = new Stack<ICommand>();
-        private readonly Stack<ICommand> redoStack = new Stack<ICommand>();
-        private int maxHistorySize = 50;
+        private readonly Stack<ICommand> undoStack = new ();
+        private readonly Stack<ICommand> redoStack = new ();
+        
+        private const int MaxHistorySize = 100;
 
-        public event System.Action<bool, bool> OnHistoryChanged; // canUndo, canRedo
+        public event Action OnHistoryChanged = () => {};
+        public event Action OnUndo = () => {};
+        public event Action OnRedo = () => {};
+        public event Action OnUndoOrRedo = () => {};
+
         
         public void ExecuteCommand(ICommand command)
         {
@@ -35,11 +28,10 @@ namespace Uriel.Behaviours
             undoStack.Push(command);
             redoStack.Clear();
             
-            // Limit history size
-            if (undoStack.Count > maxHistorySize)
+            if (undoStack.Count > MaxHistorySize)
             {
                 var tempStack = new Stack<ICommand>();
-                for (int i = 0; i < maxHistorySize - 1; i++)
+                for (int i = 0; i < MaxHistorySize - 1; i++)
                 {
                     tempStack.Push(undoStack.Pop());
                 }
@@ -50,7 +42,7 @@ namespace Uriel.Behaviours
                 }
             }
             
-            OnHistoryChanged?.Invoke(CanUndo, CanRedo);
+            OnHistoryChanged();
         }
 
         public void Undo()
@@ -60,7 +52,9 @@ namespace Uriel.Behaviours
                 var command = undoStack.Pop();
                 command.Undo();
                 redoStack.Push(command);
-                OnHistoryChanged?.Invoke(CanUndo, CanRedo);
+                OnHistoryChanged();
+                OnUndo();
+                OnUndoOrRedo();
             }
         }
 
@@ -71,7 +65,9 @@ namespace Uriel.Behaviours
                 var command = redoStack.Pop();
                 command.Execute();
                 undoStack.Push(command);
-                OnHistoryChanged?.Invoke(CanUndo, CanRedo);
+                OnHistoryChanged();
+                OnRedo();
+                OnUndoOrRedo();
             }
         }
 
@@ -82,7 +78,7 @@ namespace Uriel.Behaviours
         {
             undoStack.Clear();
             redoStack.Clear();
-            OnHistoryChanged?.Invoke(false, false);
+            OnHistoryChanged();
         }
     }
 

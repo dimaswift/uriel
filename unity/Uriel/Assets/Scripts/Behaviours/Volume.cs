@@ -6,14 +6,16 @@ using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
-    public class Volume : MonoBehaviour, ISelectable, IModifiable
+    public class Volume : MonoBehaviour, IMovable
     {
+        public event Action OnRestored = () => { };
+        public VolumeSnapshot Snapshot => snapshot;
         public bool Selected
         {
             get => selected;
             set
             {
-                meshRenderer.sharedMaterial = value ? selectedMaterial : regularMaterial;
+                selectionGizmo?.SetSelected(value);
                 selected = value;
             }
         }
@@ -23,34 +25,32 @@ namespace Uriel.Behaviours
             get => meshRenderer.bounds;
         }
         
-        public string ID => id;
+        public string ID => snapshot.id;
         public Mesh GeneratedMesh => marchingCubes?.Mesh;
         
-        [SerializeField] private int budget = 1000000;
         [SerializeField] private bool initOnAwake;
         [SerializeField] private bool runInUpdate;
-        [SerializeField] private string id = Id.Short;
-        [SerializeField] private MarchingCubesConfig config = MarchingCubesConfig.Default;
         [SerializeField] private ComputeShader marchingCubesCompute;
         [SerializeField] private MeshFilter meshFilter;
-        [SerializeField] private Material selectedMaterial;
-        [SerializeField] private Material regularMaterial;
+     
         [SerializeField] private WaveEmitter emitter;
+        [SerializeField] private VolumeSnapshot snapshot = new() { id = Id.Short };
+        [SerializeField] private SelectionGizmo selectionGizmo;
+        
         private MarchingCubes marchingCubes;
         private readonly List<SculptSolidBehaviour> solids = new();
         private readonly List<SculptSolid> solidsBuffer = new();
-        private readonly List<SculptSolidState> solidsStateBuffer = new();
-
+      
         private bool selected;
         
-        private MeshRenderer meshRenderer;
+         private MeshRenderer meshRenderer;
         
         private void Awake()
         {
             meshRenderer = meshFilter.GetComponent<MeshRenderer>();
             if (initOnAwake)
             {
-                Initialize(Id.Short, budget, config);
+                Restore(snapshot);
             }
             Selected = false;
         }
@@ -63,89 +63,79 @@ namespace Uriel.Behaviours
             }
         }
         
-        public void ChangeResolution(int triangleBudget)
+        public void InitializeMesh(MarchingCubesConfig configuration)
         {
-            budget = triangleBudget;
-            if (marchingCubes != null)
-            {
-                marchingCubes.Dispose();
-                marchingCubes = null;
-            }
-            marchingCubes = new MarchingCubes(budget, marchingCubesCompute);
-            meshFilter.mesh = marchingCubes.Mesh;
-        }
-        
-        public void Initialize(string newId, int triangleBudget, MarchingCubesConfig configuration)
-        {
-            id = newId;
-            name = $"VOL_{id}";
-            budget = triangleBudget;
-            if (marchingCubes != null)
+            if (marchingCubes != null && configuration.budget != marchingCubes.Budget)
             {
                 marchingCubes.Dispose();
                 marchingCubes = null;
             }
             
-            config = configuration;
-       
-            marchingCubes = new MarchingCubes(budget, marchingCubesCompute);
-            meshFilter.mesh = marchingCubes.Mesh;
+            if (marchingCubes == null)
+            {
+                marchingCubes = new MarchingCubes(configuration.budget, marchingCubesCompute);
+                meshFilter.mesh = marchingCubes.Mesh;
+            }
         }
 
+        public void Regenerate()
+        {
+            if (emitter == null)
+            {
+                return;
+            }
+            CollectSolids();
+            marchingCubes.SetSculptSolids(solidsBuffer);
+            marchingCubes.Run(snapshot.marchingCubes, emitter);
+        }
+        
         public void Regenerate(WaveEmitter waveEmitter)
         {
             emitter = waveEmitter;
             CollectSolids();
             marchingCubes.SetSculptSolids(solidsBuffer);
-            marchingCubes.Run(config, emitter);
+            marchingCubes.Run(snapshot.marchingCubes, emitter);
         }
 
         public VolumeSnapshot CreateSnapshot()
         {
             CollectSolids();
-            return new VolumeSnapshot
-            {
-                id = id,
+            return new VolumeSnapshot()
+            {   
                 position = transform.position,
-                rotation = transform.eulerAngles,
+                rotation = transform.localEulerAngles,
                 scale = transform.localScale,
-                solids = new List<SculptSolidState>(solidsStateBuffer)
+                solids = new List<SculptSolidState>(snapshot.solids),
+                id = snapshot.id,
+                marchingCubes = snapshot.marchingCubes
             };
         }
 
-        public void Restore(VolumeSnapshot snapshot)
+        public void Restore(VolumeSnapshot newSnapshot)
         {
-            id = snapshot.id;
-            transform.position = snapshot.position;
-            transform.eulerAngles = snapshot.rotation;
-            transform.localScale = snapshot.scale;
-            
-            LoadSolidStates(snapshot.solids);
+            snapshot = newSnapshot;
+            transform.position = newSnapshot.position;
+            transform.eulerAngles = newSnapshot.rotation;
+            transform.localScale = newSnapshot.scale;
+            InitializeMesh(snapshot.marchingCubes);
+            LoadSolidStates(newSnapshot.solids);
+            OnRestored();
         }
         
         private void CollectSolids()
         {
             solidsBuffer.Clear();
-            solidsStateBuffer.Clear();
+            snapshot.solids.Clear();
             GetComponentsInChildren(solids);
-
-            if (solids.Count == 0)
-            {
-                var solid = new GameObject("DefaultSolid").AddComponent<SculptSolidBehaviour>();
-                solid.transform.SetParent(transform);
-                solids.Add(solid);
-            }
-            
             foreach (var solid in solids)
             {
                 solidsBuffer.Add(solid.GetSolid());
-                solidsStateBuffer.Add(solid.GetState());
+                snapshot.solids.Add(solid.GetState());
             }
             solidsBuffer.Sort((s1, s2) => s1.priority.CompareTo(s2.priority));
         }
-
         
-        public void LoadSolidStates(List<SculptSolidState> solidStates)
+        private void LoadSolidStates(List<SculptSolidState> solidStates)
         {
             CollectSolids();
             while (solids.Count > solidStates.Count)
@@ -159,19 +149,32 @@ namespace Uriel.Behaviours
                 s.transform.SetParent(transform);
                 solids.Add(s);
             }
+            solidsBuffer.Clear();
             for (int i = 0; i < solidStates.Count; i++)
             {
                 var s = solidStates[i];
                 var b = solids[i];
                 b.RestoreState(s);
+                solidsBuffer.Add(s.solid);
             }
-            solidStates.Clear();
-            solidStates.AddRange(solidStates);
         }
 
         private void OnDestroy()
         {
             marchingCubes?.Dispose();
+        }
+
+        public Vector3 position
+        {
+            get
+            {
+                return transform.position;
+            }
+            set
+            {
+                snapshot.position = value;
+                transform.position = value;
+            }
         }
     }
 }

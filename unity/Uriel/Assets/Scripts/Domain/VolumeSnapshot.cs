@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Uriel.Behaviours;
 
 namespace Uriel.Domain
 {
     [System.Serializable]
     public class VolumeSnapshot
     {
+        public MarchingCubesConfig marchingCubes = MarchingCubesConfig.Default;
+       
         public string id;
         public Vector3 position;
         public Vector3 rotation;

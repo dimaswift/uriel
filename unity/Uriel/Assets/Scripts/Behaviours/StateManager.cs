@@ -22,15 +22,6 @@ namespace Uriel.Behaviours
         public StateManager(VolumeStudio studio)
         {
             this.studio = studio;
-            var first = ListFiles().FirstOrDefault();
-            if (first != null)
-            {
-                LoadState(first);
-            }
-            else
-            {
-                CreateNew();
-            }
         }
 
         private string GetFilePath(string name)
@@ -105,6 +96,15 @@ namespace Uriel.Behaviours
                 currentState = loadedState;
                 studio.LoadState(currentState);
                 OnStateLoaded?.Invoke(currentState);
+            }
+        }
+        
+        public void LoadFirst()
+        {
+            var first = ListFiles().FirstOrDefault();
+            if (!string.IsNullOrEmpty(first))
+            {
+                LoadState(first);
             }
         }
 

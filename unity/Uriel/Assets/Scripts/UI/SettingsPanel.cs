@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine.UIElements;
 using Uriel.Behaviours;
 
@@ -24,7 +23,6 @@ namespace Uriel.UI
                 {
                     studio.Config.resolution.x = x;
                     UpdateConfig();
-                    studio.UpdateResolution();
                 }
             });
             
@@ -36,7 +34,6 @@ namespace Uriel.UI
                 {
                     studio.Config.resolution.y = y;
                     UpdateConfig();
-                    studio.UpdateResolution();
                 }
             });
             
@@ -48,7 +45,6 @@ namespace Uriel.UI
                 {
                     studio.Config.resolution.z = z;
                     UpdateConfig();
-                    studio.UpdateResolution();
                 }
             });
 
@@ -58,10 +54,7 @@ namespace Uriel.UI
             {
                 studio.Config.triangleBudget = evt.newValue;
                 UpdateConfig();
-                studio.UpdateResolution();
             });
-          
-            
         }
     }
 }

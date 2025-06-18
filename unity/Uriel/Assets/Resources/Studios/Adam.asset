@@ -12,12 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 227b7e2fe85b43fb99504eb464b8f21c, type: 3}
   m_Name: Adam
   m_EditorClassIdentifier: 
-  triangleBudget: 2024490
-  resolution: {x: 256, y: 256, z: 256}
+  triangleBudget: 2579690
+  resolution: {x: 64, y: 64, z: 64}
   default:
-    field:
-      saturate: 1
     marchingCubes:
+      budget: 10000
       shell: 0.1
       flipNormals: 0
       invertTriangles: 1

@@ -1,27 +1,52 @@
-
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Uriel.Domain;
 using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
-    public class WaveEmitter : MonoBehaviour, ISelectable
+    public class WaveEmitter : MonoBehaviour, IMovable
     {
+        public Vector3 position
+        {
+            get
+            {
+                return transform.position;
+            }
+            set
+            {
+                transform.position = value;
+            }
+        }
         public string ID => snapshot.id;
-        public bool Selected { get; set; }
-        public Bounds Bounds => new(transform.position, Vector3.one);
+
+        public bool Selected
+        {
+            get
+            {
+                return selected;
+            }
+            set
+            {
+                selectionGizmo?.SetSelected(value);
+                selected = value;
+            }
+        }
+        public Bounds Bounds => new(transform.position, Vector3.one * 0.1f);
         public int LastHash => lastSourcesHash;
         public RenderTexture Field => generator.Field;
         
         [SerializeField] private bool runInUpdate;
         [SerializeField] private bool initOnAwake;
         [SerializeField] private ComputeShader compute;
+        [SerializeField] private SelectionGizmo selectionGizmo;
         [SerializeField] private WaveEmitterSnapshot snapshot = new() {id = Id.Short};
         
         private FieldGenerator generator;
 
         private int lastSourcesHash = 0;
+
+        private bool selected;
         
         private void Awake()
         {
@@ -116,5 +141,7 @@ namespace Uriel.Behaviours
         {
             return snapshot;
         }
+
+
     }
 }

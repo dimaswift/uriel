@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -18,7 +19,7 @@ namespace Uriel.UI
         private Button exportButton;
         private SettingsPanel settings;
         private StateManagePanel stateManager;
-        
+        private VolumeInspector volumeInspector;
         public static UI Instance
         {
             get
@@ -48,9 +49,11 @@ namespace Uriel.UI
 
             settings = new SettingsPanel(document, studio);
             stateManager = new StateManagePanel(document, studio);
+            volumeInspector = new VolumeInspector(document, studio);
             
             stateManager.Hide();
             settings.Hide();
+            volumeInspector.Close();
             
             studio.OnExportFinished += OnExportFinished;
             studio.OnExportStarted += OnExportStarted;
@@ -58,8 +61,23 @@ namespace Uriel.UI
             
             document.rootVisualElement.RegisterCallback<PointerEnterEvent>(evt => studio.Selector.Enabled = false);
             document.rootVisualElement.RegisterCallback<PointerLeaveEvent>(evt => studio.Selector.Enabled = true);
+            
+            studio.Selector.OnSelectionChanged += OnSelectionChanged;
+
         }
 
+        private void OnSelectionChanged()
+        {
+            var count = studio.Selector.GetSelectedCount<Volume>();
+            if (count == 0)
+            {
+                volumeInspector.Close();
+                return;
+            }
+            volumeInspector.Open();
+            volumeInspector.SetVolumes(studio.Selector.GetSelected<Volume>().ToArray());
+        }
+        
         private void OnExportProgressChanged(int progress)
         {
             progressBar.title = $"Exporting... {progress}%";

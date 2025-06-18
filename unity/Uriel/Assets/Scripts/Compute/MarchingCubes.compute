@@ -32,11 +32,9 @@ uint3 Dims;
 uint MaxTriangle;
 uint FlipNormals;
 uint InvertTriangles; 
-float2 Blend;
 float Shrink;
 float Shell;
 int SolidCount;
-float Phase;
 
 float3 transformPoint(float4x4 m, float3 p)
 {

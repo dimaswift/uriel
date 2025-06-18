@@ -27,4 +27,7 @@
         <ui:SliderInt label="Triangles" value="100000" high-value="10000000" name="TriangleBudget" low-value="1000" fill="true" />
         <ui:Button text="X" name="Close" class="panel-close-button" />
     </ui:VisualElement>
+    <ui:VisualElement name="VolumeInspector" style="flex-grow: 1; position: absolute; right: 0%; width: 250px; height: 100%; background-color: rgba(0, 0, 0, 0.75);">
+        <ui:Label text="Label" name="Id" class="label" />
+    </ui:VisualElement>
 </ui:UXML>

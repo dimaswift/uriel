@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using UnityEngine;
 using Uriel.Commands;
 using Uriel.Domain;
@@ -19,14 +17,14 @@ namespace Uriel.Behaviours
         public CommandHistory CommandHistory { get; private set; }
         public StateManager StateManager { get; private set; }
         public Selector Selector { get; private set; }
+        
+        public Mover Mover { get; private set; }
         public bool ExportInProgress { get; private set; }
         
         [SerializeField] private VolumeStudioConfig config;
         
         private Camera cam;
-        private bool moving;
-        private Vector3 moveStartPoint;
-        private readonly Dictionary<Volume, Vector3> moveClickPoints = new();
+     
         private readonly Dictionary<string, Volume> volumes = new ();
         private readonly Dictionary<string, WaveEmitter> waveEmitters = new ();
         private Volume source;
@@ -37,8 +35,9 @@ namespace Uriel.Behaviours
             CommandHistory = new CommandHistory();
             Selector = new Selector(CommandHistory);
             StateManager = new StateManager(this);
+            Mover = new Mover(CommandHistory, Selector);
             
-            Selector.AddSource((string id, out ISelectable selectable) =>
+            Selector.Register((string id, out ISelectable selectable) =>
             {
                 if (volumes.TryGetValue(id, out var vol))
                 {
@@ -47,12 +46,26 @@ namespace Uriel.Behaviours
                 }
                 selectable = null;
                 return false;
-            });
+            }, GetVolumes);
+            
+            Selector.Register((string id, out ISelectable selectable) =>
+            {
+                if (waveEmitters.TryGetValue(id, out var emitter))
+                {
+                    selectable = emitter;
+                    return true;
+                }
+                selectable = null;
+                return false;
+            }, GetWaveEmitters);
             
             source = Instantiate(config.volumePrefab.gameObject).GetComponent<Volume>();
             source.transform.SetParent(transform);
             source.gameObject.SetActive(false);
             cam = Camera.main;
+            
+            StateManager.LoadFirst();
+            
             Dispatcher.Init();
         }
         
@@ -111,8 +124,7 @@ namespace Uriel.Behaviours
             waveEmitters.Clear();
             volumes.Clear();
             Selector.ClearSelection();
-            moveClickPoints.Clear();
-            moving = false;
+            Mover.Reset();
         }
         
         
@@ -130,32 +142,6 @@ namespace Uriel.Behaviours
             }
         }
         
-        public void UpdateResolution()
-        {
-            foreach (var emitter in GetWaveEmitters())
-            {
-                emitter.SetResolution(config.resolution);
-                emitter.Restore(emitter.CreateSnapshot());
-            }
-
-            foreach (var volume in Selector.GetSelected<Volume>())
-            {
-                volume.ChangeResolution(config.triangleBudget);
-            }
-        }
-
-        private Vector3 GetPlanePointer()
-        {
-            var ray = cam.ScreenPointToRay(Input.mousePosition);
-            var plane = new Plane(Vector3.up, Vector3.zero);
-            if (plane.Raycast(ray, out var dist))
-            {
-                return ray.GetPoint(dist);
-            }
-
-            return Vector3.zero;
-        }
-        
         public IEnumerable<Volume> GetVolumes()
         {
             foreach (var v in volumes)
@@ -164,36 +150,7 @@ namespace Uriel.Behaviours
             }
         }
         
-        private void BeginMove()
-        {
-            moveClickPoints.Clear();
-            var targets = new List<Volume>();
-            foreach (var vol in Selector.GetSelected<Volume>())
-            {
-                moveClickPoints.Add(vol, vol.transform.position);
-                targets.Add(vol);
-            }
-            moving = Selector.GetSelectedCount<Volume>() > 0;
-            moveStartPoint = GetPlanePointer();
-            changeCommand = new ChangeVolumesCommand(this, targets.ToArray());
-        }
-
-        private void FinishMove()
-        {
-            changeCommand.SaveNewStates(Selector.GetSelected<Volume>().ToArray());
-            CommandHistory.ExecuteCommand(changeCommand);
-        }
-
-        private void HandleMoving()
-        {
-            var mouse = GetPlanePointer();
-            var mouseDelta = mouse - moveStartPoint;
-            foreach (var volumeMesh in moveClickPoints)
-            {
-                volumeMesh.Key.transform.position = volumeMesh.Value + mouseDelta;
-            }
-        }
-
+        
         private void DeleteSelected()
         {
             var list = new List<Volume>(Selector.GetSelected<Volume>());
@@ -214,11 +171,8 @@ namespace Uriel.Behaviours
                     volume.Regenerate(waveEmitters.FirstOrDefault().Value);
                 }
             }
-    
-            if (moving)
-            {
-                HandleMoving();
-            }
+
+            Mover.Update();
             
             HandleInput();
         }
@@ -233,41 +187,11 @@ namespace Uriel.Behaviours
             CreateVolumes(list.ToArray());
         }
 
-        private bool IsMouseOverVolume(out Volume result)
-        {
-            var ray = cam.ScreenPointToRay(Input.mousePosition);
-            float closestDist = float.MaxValue;
-            Volume hit = null;
-            foreach (var volume in GetVolumes())
-            {
-                if (volume.Bounds.IntersectRay(ray, out var dist) && dist < closestDist)
-                {
-                    hit = volume;
-                    closestDist = dist;
-                }
-            }
-            result = hit;
-            return hit != null;
-        }
+      
 
         private void HandleInput()
         {
-            if (!moving && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonUp(0)))
-            {
-                if (IsMouseOverVolume(out var vol))
-                {
-                    Selector.HandleSelection(vol);
-                }
-                else
-                {
-                    Selector.ClearSelection<Volume>();
-                }
-            }
-
-            if (!moving && Input.GetMouseButton(0) && Input.mousePositionDelta.magnitude > 0.1f)
-            {
-                BeginMove();
-            }
+            Selector.Update();
             
             if (Input.GetKeyDown(KeyCode.Delete))
             {
@@ -277,15 +201,6 @@ namespace Uriel.Behaviours
             if (Input.GetKey(KeyCode.LeftCommand) && Input.GetKeyDown(KeyCode.D))
             {
                 DuplicateSelected();
-            }
-            
-            if (Input.GetMouseButtonUp(0))
-            {
-                if (moving && Selector.GetSelectedCount<Volume>() > 0)
-                {
-                    FinishMove();
-                }
-                moving = false;
             }
             
             if (Input.GetKeyDown(KeyCode.Z) && Input.GetKey(KeyCode.LeftControl))
@@ -336,7 +251,6 @@ namespace Uriel.Behaviours
                 return null;
             }
             var volume = Instantiate(config.volumePrefab.gameObject).GetComponent<Volume>();
-            volume.Initialize(snapshot.id, config.triangleBudget, config.@default.marchingCubes);
             volume.transform.SetParent(transform);
             volume.Restore(snapshot);
             volumes.Add(snapshot.id, volume);
@@ -374,6 +288,7 @@ namespace Uriel.Behaviours
         {
             var snapshot = source.CreateSnapshot();
             snapshot.id = Id.Short;
+            snapshot.marchingCubes.budget = config.triangleBudget; 
             var cmd = new CreateVolumeCommand(this, snapshot);
             CommandHistory.ExecuteCommand(cmd);
         }

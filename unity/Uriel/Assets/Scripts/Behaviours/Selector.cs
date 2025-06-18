@@ -7,25 +7,33 @@ using Uriel.Commands;
 namespace Uriel.Behaviours
 {
     public delegate bool SelectorDelegate(string id, out ISelectable selectable);
+    
     public class Selector
     {
-        public bool Enabled { get; set; }
+        public event Action<ISelectable> OnSelected = s => { };
+        public event Action OnSelectionChanged = () => { };
+        public event Action<ISelectable> OnDeselected = s => { };
+        public bool Enabled { get; set; } = true;
         public ISelectable LastSelection => lastSelection;
         public int Size => selection.Count;
         private readonly CommandHistory history;
-        
+
+        private readonly List<Func<IEnumerable<ISelectable>>> sources = new();
         private readonly Dictionary<string, ISelectable> selection = new();
         private ISelectable lastSelection;
-        private readonly List<ISelectable> buffer = new();
-        private readonly List<SelectorDelegate> sources = new();
+
+        private readonly List<SelectorDelegate> lookUps = new();
+        private readonly Camera cam;
 
         public Selector(CommandHistory history)
         {
+            cam = Camera.main;
             this.history = history;
         }
 
-        public void AddSource(SelectorDelegate source)
+        public void Register(SelectorDelegate lookUp, Func<IEnumerable<ISelectable>> source)
         {
+            lookUps.Add(lookUp);
             sources.Add(source);
         }
 
@@ -65,7 +73,7 @@ namespace Uriel.Behaviours
             {
                 return false;
             }
-            foreach (var source in sources)
+            foreach (var source in lookUps)
             {
                 if (source.Invoke(id, out var selectable))
                 {
@@ -75,6 +83,8 @@ namespace Uriel.Behaviours
                     }
                     selectable.Selected = true;
                     lastSelection = selectable;
+                    OnSelected(selectable);
+                    OnSelectionChanged();
                     return true;
                 }
             }
@@ -93,10 +103,12 @@ namespace Uriel.Behaviours
             }
             selectable.Selected = false;
             selection.Remove(id);
+            OnDeselected(selectable);
             if (lastSelection == selectable)
             {
                 lastSelection = null;
             }
+            OnSelectionChanged();
             return false;
         }
 
@@ -183,6 +195,41 @@ namespace Uriel.Behaviours
             history.ExecuteCommand(new ChangeSelectionCommand(this, old, newSelection.ToArray()));
         }
 
+        private bool IsMouseOverSelectable(out ISelectable result)
+        {
+            var ray = cam.ScreenPointToRay(Input.mousePosition);
+            float closestDist = float.MaxValue;
+            ISelectable hit = null;
+            foreach (var source in sources)
+            {
+                foreach (var selectable in source())
+                {
+                    if (selectable.Bounds.IntersectRay(ray, out var dist) && dist < closestDist)
+                    {
+                        hit = selectable;
+                        closestDist = dist;
+                    }
+                }
+            }
+            result = hit;
+            return hit != null;
+        }
+
+        public void Update()
+        {
+            if ((Input.GetMouseButtonDown(0) || Input.GetMouseButtonUp(0)))
+            {
+                if (IsMouseOverSelectable(out var selectable))
+                {
+                    HandleSelection(selectable);
+                }
+                else
+                {
+                    ClearSelection();
+                }
+            }
+        }
+        
         public void HandleSelection<T>(T hit) where T : class, ISelectable
         {
             if (!Enabled)

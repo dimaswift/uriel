@@ -12,24 +12,25 @@ namespace Uriel.Behaviours
     [System.Serializable]
     public struct MarchingCubesConfig
     {
+        public int budget;
         public float shell;
         public bool flipNormals;
         public bool invertTriangles;
         public float shrink;
-        public Vector2 blend;
-        public float phase;
+        
         public static MarchingCubesConfig Default => new()
         {
             shrink = 0.0f,
             flipNormals = false,
             invertTriangles = true,
             shell = 0.1f,
-            blend = new Vector2(0.5f, 0.5f)
+            budget = 10000
         };
     }
     
     public class MarchingCubes : System.IDisposable
     {
+        public int Budget => triangleBudget;
         public Mesh Mesh => mesh;
 
         public MarchingCubes(int budget, ComputeShader compute) => Initialize(budget, compute);
@@ -76,9 +77,7 @@ namespace Uriel.Behaviours
             return HashCode.Combine(
                 config.flipNormals, 
                 config.invertTriangles, 
-                config.blend, 
                 config.shell, 
-                config.phase, 
                 config.shrink, 
                 dims, 
                 emitter.LastHash + solidsHash);
@@ -103,9 +102,7 @@ namespace Uriel.Behaviours
             compute.SetInts("Dims", dims);
             compute.SetInt("MaxTriangle", triangleBudget);
             compute.SetFloat("Shell", config.shell);
-            compute.SetFloat("Phase", config.phase);
             compute.SetFloat("Shrink", config.shrink);
-            compute.SetVector("Blend", config.blend);
             compute.SetInt("FlipNormals", config.flipNormals ? 1 : 0);
             compute.SetInt("InvertTriangles", config.invertTriangles ? 1 : 0);
             
@@ -126,6 +123,11 @@ namespace Uriel.Behaviours
         
         public void SetSculptSolids(List<SculptSolid> solids)
         {
+            if (solids.Count == 0)
+            {
+                solids.Add(SculptSolid.Default);
+            }
+
             if (solidsBuffer != null && solidsBuffer.count != solids.Count)
             {
                 solidsBuffer.Release();
@@ -144,10 +146,13 @@ namespace Uriel.Behaviours
                 return;
             }
 
+            compute.SetInt("SolidCount", solids.Count);
+            
+          
             solidsBuffer = new ComputeBuffer(solids.Count, Marshal.SizeOf(typeof(SculptSolid)));
             
             compute.SetBuffer(constructKernel, "Solids", solidsBuffer);
-            compute.SetInt("SolidCount", solidsBuffer.count);
+          
             solidsBuffer.SetData(solids);
         }
         

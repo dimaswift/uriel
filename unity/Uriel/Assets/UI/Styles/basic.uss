@@ -46,3 +46,7 @@
     -unity-font-definition: url("project://database/Assets/TextMesh%20Pro/Fonts/LiberationSans.ttf?fileID=12800000&guid=e3265ab4bf004d28a9537516768c1c75&type=3#LiberationSans");
     font-size: 26px;
 }
+
+.inspector {
+    color: rgb(255, 255, 255);
+}
