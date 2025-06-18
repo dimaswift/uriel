@@ -33,10 +33,9 @@ namespace Uriel.Behaviours
         [SerializeField] private MarchingCubesConfig config = MarchingCubesConfig.Default;
         [SerializeField] private ComputeShader marchingCubesCompute;
         [SerializeField] private MeshFilter meshFilter;
-        [SerializeField] private WaveEmitter waveEmitter;
         [SerializeField] private Material selectedMaterial;
         [SerializeField] private Material regularMaterial;
-        
+        [SerializeField] private WaveEmitter emitter;
         private MarchingCubes marchingCubes;
         private readonly List<SculptSolidBehaviour> solids = new();
         private readonly List<SculptSolid> solidsBuffer = new();
@@ -51,16 +50,16 @@ namespace Uriel.Behaviours
             meshRenderer = meshFilter.GetComponent<MeshRenderer>();
             if (initOnAwake)
             {
-                Initialize(Id.Short, budget, config, waveEmitter);
+                Initialize(Id.Short, budget, config);
             }
             Selected = false;
         }
 
         private void Update()
         {
-            if (runInUpdate)
+            if (runInUpdate && emitter)
             {
-                RegenerateVolume();
+                Regenerate(emitter);
             }
         }
         
@@ -76,11 +75,10 @@ namespace Uriel.Behaviours
             meshFilter.mesh = marchingCubes.Mesh;
         }
         
-        public void Initialize(string newId, int triangleBudget, MarchingCubesConfig configuration, WaveEmitter emitter)
+        public void Initialize(string newId, int triangleBudget, MarchingCubesConfig configuration)
         {
             id = newId;
             name = $"VOL_{id}";
-            waveEmitter = emitter;
             budget = triangleBudget;
             if (marchingCubes != null)
             {
@@ -92,20 +90,14 @@ namespace Uriel.Behaviours
        
             marchingCubes = new MarchingCubes(budget, marchingCubesCompute);
             meshFilter.mesh = marchingCubes.Mesh;
-            
-            RegenerateVolume();
         }
 
-        public void SetEmitter(WaveEmitter emitter)
+        public void Regenerate(WaveEmitter waveEmitter)
         {
-            waveEmitter = emitter;
-        }
-        
-        public void RegenerateVolume()
-        {
+            emitter = waveEmitter;
             CollectSolids();
             marchingCubes.SetSculptSolids(solidsBuffer);
-            marchingCubes.Run(config, waveEmitter);
+            marchingCubes.Run(config, emitter);
         }
 
         public VolumeSnapshot CreateSnapshot()
@@ -121,7 +113,7 @@ namespace Uriel.Behaviours
             };
         }
 
-        public void RestoreFromSnapshot(VolumeSnapshot snapshot)
+        public void Restore(VolumeSnapshot snapshot)
         {
             id = snapshot.id;
             transform.position = snapshot.position;
@@ -129,7 +121,6 @@ namespace Uriel.Behaviours
             transform.localScale = snapshot.scale;
             
             LoadSolidStates(snapshot.solids);
-            RegenerateVolume();
         }
         
         private void CollectSolids()

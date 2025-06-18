@@ -9,6 +9,7 @@ namespace Uriel.Behaviours
     public delegate bool SelectorDelegate(string id, out ISelectable selectable);
     public class Selector
     {
+        public bool Enabled { get; set; }
         public ISelectable LastSelection => lastSelection;
         public int Size => selection.Count;
         private readonly CommandHistory history;
@@ -60,6 +61,10 @@ namespace Uriel.Behaviours
 
         public bool Select(string id)
         {
+            if (!Enabled)
+            {
+                return false;
+            }
             foreach (var source in sources)
             {
                 if (source.Invoke(id, out var selectable))
@@ -78,6 +83,10 @@ namespace Uriel.Behaviours
         
         public bool Deselect(string id)
         {
+            if (!Enabled)
+            {
+                return false;
+            }
             if (!selection.TryGetValue(id, out var selectable))
             {
                 return false;
@@ -107,6 +116,10 @@ namespace Uriel.Behaviours
         
         public void AppendSelection<T>(T selectable) where T : class, ISelectable
         {
+            if (!Enabled)
+            {
+                return;
+            }
             var old = GetSelectedIds<T>().ToArray();
             var newSelection = new string[old.Length + 1];
             for (int i = 0; i < old.Length; i++)
@@ -120,6 +133,10 @@ namespace Uriel.Behaviours
            
         public void ClearSelection<T>() where T : class, ISelectable
         {
+            if (!Enabled)
+            {
+                return;
+            }
             var ids = GetSelectedIds<T>().ToArray();
             if (ids.Length == 0)
             {
@@ -131,6 +148,10 @@ namespace Uriel.Behaviours
         
         public void ClearSelection()
         {
+            if (!Enabled)
+            {
+                return;
+            }
             if (selection.Count == 0)
             {
                 return;
@@ -141,6 +162,10 @@ namespace Uriel.Behaviours
         
         public void SelectSingle<T>(T selectable) where T : class, ISelectable
         {
+            if (!Enabled)
+            {
+                return;
+            }
             var newSelection = new [] {selectable.ID};
             history.ExecuteCommand(new ChangeSelectionCommand(this, 
                 GetSelectedIds<T>().ToArray(), newSelection));
@@ -148,6 +173,10 @@ namespace Uriel.Behaviours
         
         public void RemoveSelection<T>(T selectable) where T : class, ISelectable
         {
+            if (!Enabled)
+            {
+                return;
+            }
             var old = GetSelectedIds<T>().ToArray();
             var newSelection = new List<string>(old);
             newSelection.Remove(selectable.ID);
@@ -156,6 +185,10 @@ namespace Uriel.Behaviours
 
         public void HandleSelection<T>(T hit) where T : class, ISelectable
         {
+            if (!Enabled)
+            {
+                return;
+            }
             if (hit.ID == lastSelection?.ID)
             {
                 return;

@@ -269,10 +269,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a555b5ebc6414b1bb53fb4644be12300, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ui: {fileID: 740712038}
-  volumes: []
-  waveEmitters: []
-  activeVolumeMesh: {fileID: 0}
   config: {fileID: 11400000, guid: 01b5fd17338d54cdd8833b83ebcbb16d, type: 2}
 --- !u!4 &239068812
 Transform:
@@ -299,6 +295,7 @@ GameObject:
   m_Component:
   - component: {fileID: 740712039}
   - component: {fileID: 740712038}
+  - component: {fileID: 740712040}
   m_Layer: 5
   m_Name: UI
   m_TagString: Untagged
@@ -340,6 +337,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &740712040
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 740712037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 062b7db69f3a4bd980ff290424005984, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  document: {fileID: 740712038}
+  studio: {fileID: 239068811}
 --- !u!1 &961739749
 GameObject:
   m_ObjectHideFlags: 0

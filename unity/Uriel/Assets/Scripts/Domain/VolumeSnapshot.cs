@@ -15,10 +15,32 @@ namespace Uriel.Domain
     }
     
     [System.Serializable]
+    public class WaveEmitterSnapshot
+    {
+        public string id;
+        public Vector3Int resolution;
+        public bool saturate;
+        public List<WaveSource> sources = new();
+
+        public int CalculateHash()
+        {
+            int h = id.GetHashCode();
+            foreach (var source in sources)
+            {
+                h += source.GetHashCode();
+            }
+
+            h += saturate.GetHashCode();
+            return h;
+        } 
+    }
+
+    
+    [System.Serializable]
     public class StudioState
     {
+        public List<WaveEmitterSnapshot> waveEmitters = new();
         public List<VolumeSnapshot> volumes = new ();
-        public DateTime lastSaved;
         public string name;
     }
 }

@@ -1,20 +1,30 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/Styles/basic.uss?fileID=7433441132597879392&amp;guid=d6cc03b7520784d42aedd7f7518bf48d&amp;type=3#basic" />
-    <ui:VisualElement name="MainMenu" class="label" style="flex-grow: 1;">
+    <ui:Label text="Label" name="ProjectName" style="position: absolute; bottom: 0%; color: rgb(255, 255, 255);" />
+    <ui:VisualElement name="ToolBar" style="flex-grow: 1; position: absolute; top: 0%; left: 0%; right: 0%; flex-direction: row;">
+        <ui:Button text="PROJECTS" name="ShowProjects" class="small-button" />
+        <ui:Button text="SETTINGS" name="ShowSettings" class="small-button" />
+        <ui:Button text="ADD EMITTER" name="CreateEmitter" class="small-button" />
+        <ui:Button text="ADD VOL" name="CreateVolume" class="small-button" />
+        <ui:Button text="EXPORT" name="Export" class="small-button" />
+    </ui:VisualElement>
+    <ui:ProgressBar value="77.1" title="Exporting..." name="ProgressBar" style="flex-direction: column; flex-wrap: nowrap; flex-grow: 0; overflow: hidden; visibility: visible; display: flex; position: absolute; bottom: 0%; right: 0; left: 0; -unity-background-image-tint-color: rgb(0, 103, 8); background-color: rgba(0, 101, 7, 0); -unity-slice-type: sliced;" />
+    <ui:VisualElement name="Projects" enabled="true" class="label" style="flex-grow: 1; position: absolute; left: 0%; top: 0%; right: 0%; bottom: 0%; background-color: rgba(0, 0, 0, 0.8); display: flex; visibility: visible;">
+        <ui:Label text="PROJECTS" class="panel-title" />
+        <ui:ListView name="Files" header-title="Projects" show-add-remove-footer="false" binding-source-selection-mode="Manual" />
+        <ui:Button text="Create New" name="New" />
+        <ui:Button text="Load" name="Load" style="background-color: rgb(89, 147, 195);" />
+        <ui:Button text="Delete" name="Delete" style="background-color: rgb(200, 97, 97);" />
+        <ui:Button text="X" name="Close" class="panel-close-button" />
+        <ui:TextField label="File name" name="NameField" />
+        <ui:Button text="Save" name="Save" style="background-color: rgb(84, 180, 120);" />
+    </ui:VisualElement>
+    <ui:VisualElement name="Settings" enabled="true" class="label" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0.81); height: auto; display: flex; visibility: hidden;">
+        <ui:Label text="SETTINGS" class="panel-title" />
         <ui:DropdownField label="X Res" name="ResolutionX" choices="32,64,128,256,512,1024" />
         <ui:DropdownField label="Y Res" name="ResolutionY" choices="32,64,128,256,512,1024" />
         <ui:DropdownField label="Z Res" name="ResolutionZ" choices="32,64,128,256,512,1024" />
         <ui:SliderInt label="Triangles" value="100000" high-value="10000000" name="TriangleBudget" low-value="1000" fill="true" />
-        <ui:VisualElement name="Buttons" style="flex-grow: 0; flex-direction: row; flex-wrap: nowrap;">
-            <ui:Button text="Create Emitter" name="CreateEmitter" />
-            <ui:Button text="Create Volume" name="CreateVolume" />
-            <ui:Button text="Export" name="Export" />
-        </ui:VisualElement>
-        <ui:ProgressBar value="77.1" title="Exporting..." name="ProgressBar" style="flex-direction: column; flex-wrap: nowrap; flex-grow: 0; overflow: hidden; visibility: visible; display: flex; position: absolute; bottom: 0%; right: 0; left: 0; -unity-background-image-tint-color: rgb(0, 103, 8); background-color: rgba(0, 101, 7, 0); -unity-slice-type: sliced;" />
-    </ui:VisualElement>
-    <ui:VisualElement name="SavePanel" enabled="true" class="label" style="flex-grow: 1; position: absolute; left: 0%; top: 0%; right: 0%; bottom: 0%; background-color: rgba(0, 0, 0, 0.8); display: none;">
-        <ui:ListView name="Files" header-title="Projects" show-add-remove-footer="false" />
-        <ui:Button text="Create New" name="New" />
-        <ui:Button text="Load" name="Load" />
+        <ui:Button text="X" name="Close" class="panel-close-button" />
     </ui:VisualElement>
 </ui:UXML>

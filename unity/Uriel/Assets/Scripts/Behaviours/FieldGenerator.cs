@@ -61,11 +61,11 @@ namespace Uriel.Behaviours
             Field.Create();
         }
         
-        private void GenerateField(Vector3Int dimensions, FieldConfig config)
+        private void GenerateField(Vector3Int dimensions, bool saturate)
         {
             computeShader.SetTexture(kernelIndex, FieldPropertyId, Field);
             computeShader.SetInts(DimsPropertyId, dimensions.x, dimensions.y, dimensions.z);
-            computeShader.SetBool(SaturatePropertyId, config.saturate);
+            computeShader.SetBool(SaturatePropertyId, saturate);
             // Dispatch shader
             DispatchShader(dimensions.x, dimensions.y, dimensions.z);
         }
@@ -83,12 +83,12 @@ namespace Uriel.Behaviours
         /// <summary>
         /// Regenerate the field with new parameters
         /// </summary>
-        public void Run(FieldConfig config)
+        public void Run(bool saturate)
         {
             if (Field != null)
             {
                 Vector3Int dimensions = new Vector3Int(Field.width, Field.height, Field.volumeDepth);
-                GenerateField(dimensions, config);
+                GenerateField(dimensions, saturate);
             }
         }
 

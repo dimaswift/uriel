@@ -1,9 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Uriel.Commands;
 using Uriel.Domain;
 using Uriel.Utils;
@@ -12,35 +12,31 @@ namespace Uriel.Behaviours
 {
     public class VolumeStudio : MonoBehaviour
     {
-        [SerializeField] private UIDocument ui;
-       
-      
-        
-        [SerializeField] private VolumeStudioConfig config;
-        
-        // Core systems
+        public event Action<int> OnExportProgressChanged = v => { };
+        public event Action OnExportStarted = () => { };
+        public event Action OnExportFinished = ()  => { };
+        public VolumeStudioConfig Config => config;
         public CommandHistory CommandHistory { get; private set; }
         public StateManager StateManager { get; private set; }
         public Selector Selector { get; private set; }
-        // Properties
-
-        private bool exportInProgress;
-        private ProgressBar progressBar;
-        private Button exportButton;
+        public bool ExportInProgress { get; private set; }
+        
+        [SerializeField] private VolumeStudioConfig config;
+        
         private Camera cam;
         private bool moving;
         private Vector3 moveStartPoint;
         private readonly Dictionary<Volume, Vector3> moveClickPoints = new();
         private readonly Dictionary<string, Volume> volumes = new ();
-        private readonly List<WaveEmitter> waveEmitters = new ();
+        private readonly Dictionary<string, WaveEmitter> waveEmitters = new ();
         private Volume source;
         private ChangeVolumesCommand changeCommand;
         
         private void Awake()
         {
             CommandHistory = new CommandHistory();
-            StateManager = new StateManager(this);
             Selector = new Selector(CommandHistory);
+            StateManager = new StateManager(this);
             
             Selector.AddSource((string id, out ISelectable selectable) =>
             {
@@ -58,61 +54,33 @@ namespace Uriel.Behaviours
             source.gameObject.SetActive(false);
             cam = Camera.main;
             Dispatcher.Init();
-            STLExporter.OnExportProgress += OnExportProgress;
-            STLExporter.OnExportCompleted += OnExportCompleted;
-            BindUI();
         }
-
-        private void OnDestroy()
-        {
-            STLExporter.OnExportProgress -= OnExportProgress;
-            STLExporter.OnExportCompleted -= OnExportCompleted;
-        }
-
-        private void OnExportCompleted(string file, int triangles, int size)
-        {
-            async void UpdateUI()
-            {
-                progressBar.title = $"Size: {size}; Trigs: {triangles}; Path: {file}!";
-                await Task.Delay(3000);
-                exportInProgress = false;
-                progressBar.visible = false;
-                exportButton.SetEnabled(true);
-            }
-
-            Dispatcher.Instance.EnqueueAsync(UpdateUI);
-        }
-
-        private  void OnExportProgress(float v)
-        {
-            Dispatcher.Instance.Enqueue(() => progressBar.value = v * 100);
-        }
-
+        
         public async void ExportSelectedMesh()
         {
-            if (exportInProgress || Selector.Size == 0)
+            if (ExportInProgress)
             {
                 return;
             }
-            exportButton.SetEnabled(false);
-            exportInProgress = true;
-            progressBar.visible = true;
+            var total = Selector.GetSelectedCount<Volume>();
+
+            if (total == 0)
+            {
+                return;
+            }
+            
+            OnExportStarted();
+            OnExportProgressChanged(0);
+            ExportInProgress = true;
             int progress = 0;
+          
             foreach (var sel in Selector.GetSelected<Volume>())
             {
                 var vol = volumes[sel.ID];
-                progress++;
-                if (vol?.GeneratedMesh == null)
-                {
-                    continue;
-                }
-
-                progressBar.value = 0;
-                progressBar.title = $"Exporting STL {progress}/{Selector.GetSelectedCount<Volume>()}";
                 try
                 {
                     await STLExporter.ExportMeshToSTLAsync(
-                        name: Guid.NewGuid().ToString().Substring(0, 5).ToUpper(),
+                        name: vol.ID,
                         mesh: vol.GeneratedMesh,
                         binary: true,
                         optimizeVertices: true
@@ -121,19 +89,12 @@ namespace Uriel.Behaviours
                 catch (Exception ex)
                 {
                     Debug.LogError($"Export failed: {ex.Message}");
-                   
                 }
+                progress++;
+                OnExportProgressChanged(Mathf.RoundToInt(((float) progress / total) * 100));
             }
-            exportButton.SetEnabled(true);
-            exportInProgress = false;
-            progressBar.visible = false;
-        }
-
-        private void UpdateConfig()
-        {
-            #if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(config);
-            #endif
+            OnExportFinished();
+            ExportInProgress = false;
         }
 
         private void ClearAll()
@@ -145,7 +106,7 @@ namespace Uriel.Behaviours
 
             foreach (var emitter in waveEmitters)
             {
-                Destroy(emitter.gameObject);
+                Destroy(emitter.Value.gameObject);
             }
             waveEmitters.Clear();
             volumes.Clear();
@@ -154,97 +115,32 @@ namespace Uriel.Behaviours
             moving = false;
         }
         
-        public void CreateNewState()
-        {
-            ClearAll();
-        }
         
         public void LoadState(StudioState state)
         {
             ClearAll();
-        }
-        
-        private void BindUI()
-        {
-            StateManager.BindUI(ui);
-            var root = ui.rootVisualElement;
-            var buttons = root.Q<VisualElement>("Buttons");
-            var createEmitterBtn = buttons.Q<Button>("CreateEmitter");
-            createEmitterBtn.RegisterCallback<ClickEvent>(c =>
+            foreach (var snapshot in state.volumes)
             {
-                CreateEmitter();
-            });
-            
-            var createVolumeBtn = buttons.Q<Button>("CreateVolume");
-            createVolumeBtn.RegisterCallback<ClickEvent>(c =>
-            {
-                ExecuteCreateVolumesCommand(source.CreateSnapshot());
-            });
-
-            progressBar = root.Q<ProgressBar>("ProgressBar");
-            progressBar.visible = false;
-            exportButton = buttons.Q<Button>("Export");
-            exportButton.RegisterCallback<ClickEvent>(evt =>
-            {
-                ExportSelectedMesh();
-            });
-
-            var xRes = root.Q<DropdownField>("ResolutionX");
-            xRes.value = config.resolution.x.ToString();
-            xRes.RegisterCallback<ChangeEvent<string>>(evt =>
-            {
-                if (int.TryParse(evt.newValue, out var x))
-                {
-                    config.resolution.x = x;
-                    UpdateConfig();
-                    UpdateResolution();
-                }
-            });
-            
-            var yRes = root.Q<DropdownField>("ResolutionY");
-            yRes.value = config.resolution.y.ToString();
-            yRes.RegisterCallback<ChangeEvent<string>>(evt =>
-            {
-                if (int.TryParse(evt.newValue, out var y))
-                {
-                    config.resolution.y = y;
-                    UpdateConfig();
-                    UpdateResolution();
-                }
-            });
-            
-            var zRes = root.Q<DropdownField>("ResolutionZ");
-            zRes.value = config.resolution.z.ToString();
-            zRes.RegisterCallback<ChangeEvent<string>>(evt =>
-            {
-                if (int.TryParse(evt.newValue, out var z))
-                {
-                    config.resolution.z = z;
-                    UpdateConfig();
-                    UpdateResolution();
-                }
-            });
-
-            var triangleBudget = root.Q<SliderInt>("TriangleBudget");
-            triangleBudget.value = config.triangleBudget;
-            triangleBudget.RegisterCallback<ChangeEvent<int>>(evt =>
-            {
-                config.triangleBudget = evt.newValue;
-                UpdateConfig();
-                UpdateResolution();
-            });
-        }
-
-        private void UpdateResolution()
-        {
-            foreach (var emitter in waveEmitters)
-            {
-                emitter.Initialize(config.@default.field, config.resolution);
+                AddVolume(snapshot);
             }
 
-            foreach (var volume in volumes)
+            foreach (var emitter in state.waveEmitters)
             {
-                volume.Value.ChangeResolution(config.triangleBudget);
+                AddEmitter(emitter);
+            }
+        }
+        
+        public void UpdateResolution()
+        {
+            foreach (var emitter in GetWaveEmitters())
+            {
+                emitter.SetResolution(config.resolution);
+                emitter.Restore(emitter.CreateSnapshot());
+            }
+
+            foreach (var volume in Selector.GetSelected<Volume>())
+            {
+                volume.ChangeResolution(config.triangleBudget);
             }
         }
 
@@ -306,15 +202,19 @@ namespace Uriel.Behaviours
         
         private void Update()
         {
-            foreach (var emitter in waveEmitters)
+            foreach (var emitter in GetWaveEmitters())
             {
                 emitter.Run();
             }
-            foreach (var volume in GetVolumes())
+
+            if (waveEmitters.Count > 0)
             {
-                volume.RegenerateVolume();
+                foreach (var volume in GetVolumes())
+                {
+                    volume.Regenerate(waveEmitters.FirstOrDefault().Value);
+                }
             }
-            
+    
             if (moving)
             {
                 HandleMoving();
@@ -330,10 +230,8 @@ namespace Uriel.Behaviours
             {
                 list.Add(vol.CreateSnapshot());
             }
-            ExecuteCreateVolumesCommand(list.ToArray());
+            CreateVolumes(list.ToArray());
         }
-
-
 
         private bool IsMouseOverVolume(out Volume result)
         {
@@ -403,17 +301,31 @@ namespace Uriel.Behaviours
                 StateManager.SaveState(Id.Short);
             }
         }
-
-        public WaveEmitter CreateEmitter()
+        
+        public WaveEmitter CreateDefaultEmitter()
         {
+            var snapshot = new WaveEmitterSnapshot()
+            {
+                id = Id.Short,
+                sources = new List<WaveSource>(Lattices.Tetrahedron(WaveSource.Default)),
+                resolution = config.resolution,
+                saturate = true
+            };
+            return AddEmitter(snapshot);
+        }
+
+        public WaveEmitter AddEmitter(WaveEmitterSnapshot snapshot)
+        {
+            if (waveEmitters.ContainsKey(snapshot.id))
+            {
+                return null;
+            }
             GameObject go = Instantiate(config.waveEmitterPrefab.gameObject);
             WaveEmitter emitter = go.GetComponent<WaveEmitter>();
-
-            emitter.Initialize(config.@default.field, config.resolution);
+            emitter.Restore(snapshot);
             emitter.transform.SetParent(transform);
-            emitter.name = $"WAVE_EMITTER_{waveEmitters.Count}";
-            waveEmitters.Add(emitter);
-            
+            emitter.name = $"WAVE_EMITTER_{snapshot.id}";
+            waveEmitters.Add(snapshot.id, emitter);
             return emitter;
         }
         
@@ -424,9 +336,9 @@ namespace Uriel.Behaviours
                 return null;
             }
             var volume = Instantiate(config.volumePrefab.gameObject).GetComponent<Volume>();
-            volume.Initialize(snapshot.id, config.triangleBudget, config.@default.marchingCubes, waveEmitters[0]);
+            volume.Initialize(snapshot.id, config.triangleBudget, config.@default.marchingCubes);
             volume.transform.SetParent(transform);
-            volume.RestoreFromSnapshot(snapshot);
+            volume.Restore(snapshot);
             volumes.Add(snapshot.id, volume);
             Selector.Select(volume.ID);
             return volume;
@@ -444,18 +356,25 @@ namespace Uriel.Behaviours
             return true;
         }
         
-        public void ExecuteCreateVolumesCommand(params VolumeSnapshot[] sources)
+        public void CreateVolumes(params VolumeSnapshot[] sources)
         {
-            if (waveEmitters.Count == 0)
+            if (sources.Length == 0)
             {
                 return;
             }
-
             foreach (var snapshot in sources)
             {
                 snapshot.id = Id.Short;
             }
             var cmd = new CreateVolumeCommand(this, sources);
+            CommandHistory.ExecuteCommand(cmd);
+        }
+
+        public void CreateDefaultVolume()
+        {
+            var snapshot = source.CreateSnapshot();
+            snapshot.id = Id.Short;
+            var cmd = new CreateVolumeCommand(this, snapshot);
             CommandHistory.ExecuteCommand(cmd);
         }
         
@@ -468,6 +387,11 @@ namespace Uriel.Behaviours
         public Volume GetVolume(string id)
         {
             return volumes.GetValueOrDefault(id);
+        }
+        
+        public IEnumerable<WaveEmitter> GetWaveEmitters()
+        {
+            return waveEmitters.Values;
         }
     }
 }

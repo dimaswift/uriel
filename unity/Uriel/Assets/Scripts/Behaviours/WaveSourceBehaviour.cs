@@ -11,5 +11,11 @@ namespace Uriel.Behaviours
             config.position = transform.localPosition;
             return config;
         }
+        
+        public void SetWaveSource(WaveSource source)
+        {
+            transform.localPosition = source.position;
+            config = source;
+        }
     }
 }

@@ -38,7 +38,7 @@ namespace Uriel.Commands
             {
                 var vol = Studio.GetVolume(snapshot.id);
                 if (!vol) continue;
-                vol.RestoreFromSnapshot(snapshot);
+                vol.Restore(snapshot);
             }
         }
         
@@ -49,7 +49,7 @@ namespace Uriel.Commands
             {
                 var vol = Studio.GetVolume(snapshot.id);
                 if (!vol) continue;
-                vol.RestoreFromSnapshot(snapshot);
+                vol.Restore(snapshot);
             }
         }
     }

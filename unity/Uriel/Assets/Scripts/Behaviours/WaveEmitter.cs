@@ -2,33 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Uriel.Domain;
+using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
-    public class WaveEmitter : MonoBehaviour
+    public class WaveEmitter : MonoBehaviour, ISelectable
     {
+        public string ID => snapshot.id;
+        public bool Selected { get; set; }
+        public Bounds Bounds => new(transform.position, Vector3.one);
         public int LastHash => lastSourcesHash;
         public RenderTexture Field => generator.Field;
+        
         [SerializeField] private bool runInUpdate;
         [SerializeField] private bool initOnAwake;
         [SerializeField] private ComputeShader compute;
-        [SerializeField] private FieldConfig fieldConfig;
-        [SerializeField] private Vector3Int resolution = new(64,64,64);
-        private FieldGenerator generator;
-        private readonly List<WaveSource> sourcesBuffer = new();
-        private readonly List<WaveSourceBehaviour> sources = new();
+        [SerializeField] private WaveEmitterSnapshot snapshot = new() {id = Id.Short};
         
-        // Hash-based change detection
+        private FieldGenerator generator;
+
         private int lastSourcesHash = 0;
-        private bool forceRegeneration = false;
- 
+        
         private void Awake()
         {
             if (!initOnAwake)
             {
                 return;
             }
-            Initialize(fieldConfig, resolution);
+            
+            Restore(snapshot);
         }
 
         private void Update()
@@ -40,53 +42,36 @@ namespace Uriel.Behaviours
             Run();
         }
 
-        public void Run()
+        public void Run(bool forceRegeneration = false)
         {
-            CollectSources();
-            
-            // Compute hash of current sources state
             int currentHash = ComputeSourcesHash();
             
-            // Skip generation if sources haven't changed and no forced regeneration
             if (currentHash == lastSourcesHash && !forceRegeneration)
             {
                 return;
             }
-            
-            // Update hash and run generation
+
+            if (snapshot.sources.Count == 0)
+            {
+                return;
+            }
             lastSourcesHash = currentHash;
-            forceRegeneration = false;
-            
-            generator.SetSources(sourcesBuffer);
-            generator.Run(fieldConfig);
+            generator.SetSources(snapshot.sources);
+            generator.Run(snapshot.saturate);
         }
         
-        /// <summary>
-        /// Forces the next Run() call to regenerate regardless of source changes
-        /// </summary>
-        public void ForceRegeneration()
-        {
-            forceRegeneration = true;
-        }
-        
-        /// <summary>
-        /// Invalidates the cached hash, forcing regeneration on next Run()
-        /// </summary>
         public void InvalidateCache()
         {
             lastSourcesHash = 0;
-            forceRegeneration = true;
         }
         
         private int ComputeSourcesHash()
         {
-            int hash = sourcesBuffer.Count.GetHashCode();
+            int hash = snapshot.sources.Count.GetHashCode();
             
-            // Hash the field config as it affects generation
-            hash = hash * 31 + fieldConfig.GetHashCode();
-            
-            // Hash each wave source's properties
-            foreach (var source in sourcesBuffer)
+            hash = hash * 31 + snapshot.CalculateHash();
+
+            foreach (var source in snapshot.sources)
             {
                 hash = hash * 31 + source.position.GetHashCode();
                 hash = hash * 31 + source.frequency.GetHashCode();
@@ -99,54 +84,37 @@ namespace Uriel.Behaviours
             return hash;
         }
         
-        private void AddDefaultSource(Vector3 point)
+        public void SetResolution(Vector3Int res)
         {
-            var source = new GameObject("DefaultSource").AddComponent<WaveSourceBehaviour>();
-            source.transform.SetParent(transform);
-            source.transform.localPosition = point;
-            sources.Add(source);
+            snapshot.resolution = res;
         }
         
-        private void CollectSources()
+        public void Restore(WaveEmitterSnapshot waveSnapshot)
         {
-            sourcesBuffer.Clear();
-            GetComponentsInChildren(sources);
-            
-            if (sources.Count == 0)
-            {
-                AddDefaultSource(new Vector3(0.35355339f, 0.35355339f, 0.35355339f));
-                AddDefaultSource(new Vector3(0.35355339f, -0.35355339f, -0.35355339f));
-                AddDefaultSource(new Vector3(-0.35355339f, 0.35355339f, -0.35355339f));
-                AddDefaultSource(new Vector3(-0.35355339f, -0.35355339f, 0.35355339f));
-                
-                // Force regeneration when default sources are added
-                forceRegeneration = true;
-            }
-            
-            foreach (var s in sources)
-            {
-                sourcesBuffer.Add(s.GetWaveSource());
-            }
-        }
-        
-        public void Initialize(FieldConfig config, Vector3Int res)
-        {
-            resolution = res;
-            if (generator != null)
+            if (generator != null && waveSnapshot.resolution != snapshot.resolution)
             {
                 generator.Dispose();
                 generator = null;
             }
-            fieldConfig = config;
-            generator = new FieldGenerator(compute, res);
+
+            if (generator == null)
+            {
+                generator = new FieldGenerator(compute, waveSnapshot.resolution);
+            }
             
-            // Invalidate cache when reinitializing
+            snapshot = waveSnapshot;
+   
             InvalidateCache();
         }
         
         private void OnDestroy()
         {
             generator?.Dispose();
+        }
+        
+        public WaveEmitterSnapshot CreateSnapshot()
+        {
+            return snapshot;
         }
     }
 }
