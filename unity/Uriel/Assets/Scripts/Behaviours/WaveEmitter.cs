@@ -1,12 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
+using Uriel.Commands;
 using Uriel.Domain;
 using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
-    public class WaveEmitter : MonoBehaviour, IMovable
+    public class WaveEmitter : MonoBehaviour, IMovable, IModifiable
     {
+        public ISnapshot Current => snapshot;
         public Vector3 position
         {
             get
@@ -47,6 +49,8 @@ namespace Uriel.Behaviours
         private int lastSourcesHash = 0;
 
         private bool selected;
+
+        private Vector3Int currentResolution;
         
         private void Awake()
         {
@@ -69,6 +73,19 @@ namespace Uriel.Behaviours
 
         public void Run(bool forceRegeneration = false)
         {
+            if (generator != null && currentResolution != snapshot.resolution)
+            {
+                generator.Dispose();
+                generator = null;
+            }
+
+            if (generator == null)
+            {
+                generator = new FieldGenerator(compute, snapshot.resolution);
+            }
+
+            currentResolution = snapshot.resolution;
+            
             int currentHash = ComputeSourcesHash();
             
             if (currentHash == lastSourcesHash && !forceRegeneration)
@@ -109,26 +126,12 @@ namespace Uriel.Behaviours
             return hash;
         }
         
-        public void SetResolution(Vector3Int res)
-        {
-            snapshot.resolution = res;
-        }
-        
         public void Restore(WaveEmitterSnapshot waveSnapshot)
         {
-            if (generator != null && waveSnapshot.resolution != snapshot.resolution)
-            {
-                generator.Dispose();
-                generator = null;
-            }
-
-            if (generator == null)
-            {
-                generator = new FieldGenerator(compute, waveSnapshot.resolution);
-            }
-            
-            snapshot = waveSnapshot;
-   
+            snapshot.saturate = waveSnapshot.saturate;
+            snapshot.sources = new List<WaveSource>(waveSnapshot.sources);
+            snapshot.resolution = waveSnapshot.resolution;
+            snapshot.id = waveSnapshot.id;
             InvalidateCache();
         }
         
@@ -139,9 +142,23 @@ namespace Uriel.Behaviours
         
         public WaveEmitterSnapshot CreateSnapshot()
         {
-            return snapshot;
+            return new WaveEmitterSnapshot()
+            {
+                sources = new List<WaveSource>(snapshot.sources),
+                saturate = snapshot.saturate,
+                resolution = snapshot.resolution,
+                id = snapshot.id
+            };
         }
 
-
+        public void Restore(ISnapshot s)
+        {
+            Restore(s as WaveEmitterSnapshot);
+        }
+        
+        ISnapshot IModifiable.CreateSnapshot()
+        {
+            return CreateSnapshot();
+        }
     }
 }

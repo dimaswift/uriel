@@ -1,50 +1,36 @@
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.UIElements;
 using Uriel.Behaviours;
 using Uriel.Commands;
+using Uriel.Domain;
 
 namespace Uriel.UI
 {
-    public class VolumeInspector : Inspector
+    public class VolumeInspector : Inspector<VolumeSnapshot>
     {
-        private Volume[] volumes;
-        private Label idLabel;
-        
-        // UI Elements for MarchingCubesConfig
         private IntegerField budgetField;
         private Slider shellField;
         private Toggle flipNormalsToggle;
         private Toggle invertTrianglesToggle;
         private FloatField shrinkField;
-        
-        // Control elements
-        private Button resetButton;
+
         private VisualElement configContainer;
-        private ChangeVolumesCommand command;
+        private ModifyCommand<VolumeSnapshot> command;
         
-        public VolumeInspector(UIDocument ui, VolumeStudio studio) : base("Volume", studio, ui)
+        public VolumeInspector(UIDocument ui, Studio studio) : base("Volume", studio, ui)
         {
-            idLabel = Root.Q<Label>("Id");
             SetupUI();
-            BindUIEvents();
-            Studio.CommandHistory.OnUndoOrRedo += OnUndo;
+           
         }
 
-        private void OnUndo()
+        protected override void UpdateUI(ISnapshot snapshot)
         {
-            if (!IsOpen)
-            {
-                return;
-            }
-
-            if (volumes == null || volumes.Length == 0)
-            {
-                return;
-            }
-            
-            var config = volumes[0].Snapshot.marchingCubes;
-            UpdateUIFromConfig(config);
+            var volCfg = snapshot as VolumeSnapshot;
+            if (volCfg == null) return;
+            budgetField.SetValueWithoutNotify(volCfg.marchingCubes.budget);
+            shellField.SetValueWithoutNotify(volCfg.marchingCubes.shell);
+            flipNormalsToggle.SetValueWithoutNotify(volCfg.marchingCubes.flipNormals);
+            invertTrianglesToggle.SetValueWithoutNotify(volCfg.marchingCubes.invertTriangles);
+            shrinkField.SetValueWithoutNotify(volCfg.marchingCubes.shrink);
         }
 
         private void SetupUI()
@@ -59,6 +45,12 @@ namespace Uriel.UI
             
             CreateConfigUI();
             CreateControlButtons();
+            
+            AddField(budgetField, true);
+            AddField(shellField, true);
+            AddField(flipNormalsToggle, true);
+            AddField(invertTrianglesToggle, true);
+            AddField(shrinkField, true);
         }
         
         private void CreateConfigUI()
@@ -104,6 +96,18 @@ namespace Uriel.UI
             shrinkContainer.Add(shrinkField);
         }
         
+        private MarchingCubesConfig GetConfigFromUI()
+        {
+            return new MarchingCubesConfig
+            {
+                budget = budgetField.value,
+                shell = shellField.value,
+                flipNormals = flipNormalsToggle.value,
+                invertTriangles = invertTrianglesToggle.value,
+                shrink = shrinkField.value,
+            };
+        }
+        
         private VisualElement CreateFieldContainer(string labelText)
         {
             var container = new VisualElement();
@@ -129,108 +133,18 @@ namespace Uriel.UI
             buttonContainer.style.flexDirection = FlexDirection.Row;
             buttonContainer.style.marginTop = 10;
             buttonContainer.style.justifyContent = Justify.SpaceBetween;
-
-            resetButton = new Button(ResetToDefaults);
-            resetButton.text = "Reset to Defaults";
-            resetButton.style.flexGrow = 1;
-            resetButton.style.marginRight = 5;
-            
-            buttonContainer.Add(resetButton);
             configContainer.Add(buttonContainer);
         }
         
-        private void BindUIEvents()
+ 
+        protected override void OnApplyChanges()
         {
-            budgetField.RegisterValueChangedCallback(OnConfigChanged);
-            shellField.RegisterValueChangedCallback(OnConfigChanged);
-            flipNormalsToggle.RegisterValueChangedCallback(OnConfigChanged);
-            invertTrianglesToggle.RegisterValueChangedCallback(OnConfigChanged);
-            shrinkField.RegisterValueChangedCallback(OnConfigChanged);
-        }
-
-        private void OnConfigChanged<T>(ChangeEvent<T> evt)
-        {
-            ApplyChanges();
-        }
-        
-        public void SetVolumes(Volume[] volumesList)
-        {
-            volumes = volumesList;
-            
-            if (volumes.Length == 0)
-            {
-                ClearUI();
-                return;
-            }
-            var labelText = "";
-            for (int i = 0; i < volumes.Length; i++)
-            {
-                labelText += volumes[i].ID;
-                if (i < volumes.Length - 1)
-                {
-                    labelText += ", ";
-                }
-            }
-
-            idLabel.text = labelText;
-            var config = volumes[0].Snapshot.marchingCubes;
-            UpdateUIFromConfig(config);
-            SetEnabled(true);
-        }
-        
-        private void UpdateUIFromConfig(MarchingCubesConfig config)
-        {
-            budgetField.SetValueWithoutNotify(config.budget);
-            shellField.SetValueWithoutNotify(config.shell);
-            flipNormalsToggle.SetValueWithoutNotify(config.flipNormals);
-            invertTrianglesToggle.SetValueWithoutNotify(config.invertTriangles);
-            shrinkField.SetValueWithoutNotify(config.shrink);
-        }
-        
-        private void SetEnabled(bool enabled)
-        {
-            budgetField.SetEnabled(enabled);
-            shellField.SetEnabled(enabled);
-            flipNormalsToggle.SetEnabled(enabled);
-            invertTrianglesToggle.SetEnabled(enabled);
-            shrinkField.SetEnabled(enabled);
-            resetButton.SetEnabled(enabled);
-        }
-        
-        private MarchingCubesConfig GetConfigFromUI()
-        {
-            return new MarchingCubesConfig
-            {
-                budget = budgetField.value,
-                shell = shellField.value,
-                flipNormals = flipNormalsToggle.value,
-                invertTriangles = invertTrianglesToggle.value,
-                shrink = shrinkField.value,
-            };
-        }
-        
-        private void ResetToDefaults()
-        {
-            var defaultConfig = MarchingCubesConfig.Default;
-            UpdateUIFromConfig(defaultConfig);
-            ApplyChanges();
-        }
-        
-        private void ApplyChanges()
-        {
-            command = new ChangeVolumesCommand(Studio, volumes);
             var newConfig = GetConfigFromUI();
-            foreach (var volume in volumes)
+            foreach (var volume in GetInspected<Volume>())
             {
-                volume.Snapshot.marchingCubes = newConfig;
+                var snapshot = volume.Current as VolumeSnapshot;
+                snapshot.marchingCubes = newConfig;
             }
-            command.SaveNewStates(volumes);
-            Studio.CommandHistory.ExecuteCommand(command);
-        }
-        
-        private void ClearUI()
-        {
-            UpdateUIFromConfig(MarchingCubesConfig.Default);
         }
     }
 }

@@ -4,9 +4,9 @@ namespace Uriel.Commands
 {
     public abstract class StudioCommand : ICommand
     {
-        protected VolumeStudio Studio;
+        protected Studio Studio;
         
-        public StudioCommand(VolumeStudio studio)
+        public StudioCommand(Studio studio)
         {
             Studio = studio;
         }

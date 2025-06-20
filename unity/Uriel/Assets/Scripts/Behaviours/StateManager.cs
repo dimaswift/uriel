@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using Uriel.Domain;
 using Uriel.Utils;
@@ -12,14 +11,14 @@ namespace Uriel.Behaviours
     public class StateManager
     {
         public StudioState Current => currentState;
-        private readonly VolumeStudio studio;
+        private readonly Studio studio;
         private StudioState currentState = new ();
         private string SaveDirectory => Path.Combine(Application.dataPath, "Export/Studio/");
         
         public event Action<StudioState> OnStateLoaded = s => {};
         public event Action<StudioState> OnStateSaved = s => {};
         
-        public StateManager(VolumeStudio studio)
+        public StateManager(Studio studio)
         {
             this.studio = studio;
         }
@@ -46,18 +45,31 @@ namespace Uriel.Behaviours
             currentState.volumes.Clear();
             currentState.waveEmitters.Clear();
             currentState.name = name;
-            foreach (var volume in studio.GetVolumes())
+            foreach (var volume in studio.Get<Volume>())
             {
                 var snapshot = volume.CreateSnapshot();
                 currentState.volumes.Add(snapshot);
             }
-            foreach (var emitter in studio.GetWaveEmitters())
+            foreach (var emitter in studio.Get<WaveEmitter>())
             {
                 currentState.waveEmitters.Add(emitter.CreateSnapshot());
             }
             
             SaveToFile(currentState, name);
             OnStateSaved?.Invoke(currentState);
+        }
+        
+        public void LoadState(StudioState state)
+        {
+            studio.ClearAll();
+            foreach (var vol in state.volumes)
+            {
+                studio.Add(vol);
+            }
+            foreach (var emitter in state.waveEmitters)
+            {
+                studio.Add(emitter);
+            }
         }
         
         public IEnumerable<string> ListFiles()
@@ -83,7 +95,7 @@ namespace Uriel.Behaviours
                 name = Id.Short,
                 volumes = new ()
             };
-            studio.LoadState(currentState);
+            LoadState(currentState);
             OnStateLoaded(currentState);
             return currentState;
         }
@@ -94,7 +106,7 @@ namespace Uriel.Behaviours
             if (loadedState != null)
             {
                 currentState = loadedState;
-                studio.LoadState(currentState);
+                LoadState(currentState);
                 OnStateLoaded?.Invoke(currentState);
             }
         }

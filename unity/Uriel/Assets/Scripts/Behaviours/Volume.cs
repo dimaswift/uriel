@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Uriel.Commands;
 using Uriel.Domain;
 using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
-    public class Volume : MonoBehaviour, IMovable
+    public class Volume : MonoBehaviour, IMovable, IModifiable
     {
         public event Action OnRestored = () => { };
-        public VolumeSnapshot Snapshot => snapshot;
+        public ISnapshot Current => snapshot;
         public bool Selected
         {
             get => selected;
@@ -100,6 +101,11 @@ namespace Uriel.Behaviours
         public VolumeSnapshot CreateSnapshot()
         {
             CollectSolids();
+            snapshot.solids.Clear();
+            foreach (var solid in solids)
+            {
+                snapshot.solids.Add(solid.GetState());
+            }
             return new VolumeSnapshot()
             {   
                 position = transform.position,
@@ -109,6 +115,11 @@ namespace Uriel.Behaviours
                 id = snapshot.id,
                 marchingCubes = snapshot.marchingCubes
             };
+        }
+
+        public void Restore(ISnapshot s)
+        {
+            Restore(s as VolumeSnapshot);
         }
 
         public void Restore(VolumeSnapshot newSnapshot)
@@ -125,12 +136,11 @@ namespace Uriel.Behaviours
         private void CollectSolids()
         {
             solidsBuffer.Clear();
-            snapshot.solids.Clear();
+            solids.Clear();
             GetComponentsInChildren(solids);
             foreach (var solid in solids)
             {
                 solidsBuffer.Add(solid.GetSolid());
-                snapshot.solids.Add(solid.GetState());
             }
             solidsBuffer.Sort((s1, s2) => s1.priority.CompareTo(s2.priority));
         }
@@ -175,6 +185,11 @@ namespace Uriel.Behaviours
                 snapshot.position = value;
                 transform.position = value;
             }
+        }
+
+        ISnapshot IModifiable.CreateSnapshot()
+        {
+            return CreateSnapshot();
         }
     }
 }

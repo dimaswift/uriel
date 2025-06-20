@@ -24,7 +24,8 @@ namespace Uriel.Behaviours
         private float targetSize;
         private bool dragging;
         private Vector3 zoomPoint;
-        
+        public bool IsPerspective => !cam.orthographic;
+
         private void Awake()
         {
             cam = Camera.main;
@@ -149,6 +150,26 @@ namespace Uriel.Behaviours
             looking = false;
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
+        }
+
+        public void ToggleMode()
+        {
+            cam.orthographic = !cam.orthographic;
+            cam.nearClipPlane = cam.orthographic ? -10f : 0.01f;
+            if (cam.orthographic)
+            {
+                transform.eulerAngles = new Vector3(35.3f, -45f, 0f);
+            }
+        }
+
+        public void RotateAroundX(float degrees)
+        {
+            transform.Rotate(degrees, 0, 0, Space.Self);
+        }
+        
+        public void RotateAroundY(float degrees)
+        {
+            transform.Rotate(0, degrees, 0, Space.Self);
         }
     }
 }

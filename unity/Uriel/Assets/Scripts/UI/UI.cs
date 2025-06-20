@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Uriel.Behaviours;
+using Uriel.Domain;
 using Uriel.Utils;
 
 namespace Uriel.UI
@@ -11,7 +12,7 @@ namespace Uriel.UI
     public class UI : MonoBehaviour
     {
         [SerializeField] private UIDocument document;
-        [SerializeField]  private VolumeStudio studio;
+        [SerializeField]  private Studio studio;
         
         private static UI instance;
 
@@ -20,6 +21,10 @@ namespace Uriel.UI
         private SettingsPanel settings;
         private StateManagePanel stateManager;
         private VolumeInspector volumeInspector;
+        private EmitterInspector emitterInspector;
+        private CameraControls cameraControls;
+        private VolumeStudio volumeStudio;
+        
         public static UI Instance
         {
             get
@@ -46,36 +51,33 @@ namespace Uriel.UI
             BindVolumeStudio();
             progressBar = document.rootVisualElement.Q<ProgressBar>("ProgressBar");
             progressBar.visible = false;
-
+            
             settings = new SettingsPanel(document, studio);
             stateManager = new StateManagePanel(document, studio);
             volumeInspector = new VolumeInspector(document, studio);
+            cameraControls = new CameraControls(document);
+            emitterInspector = new EmitterInspector(document, studio);
             
             stateManager.Hide();
             settings.Hide();
             volumeInspector.Close();
-            
-            studio.OnExportFinished += OnExportFinished;
-            studio.OnExportStarted += OnExportStarted;
-            studio.OnExportProgressChanged += OnExportProgressChanged;
+            emitterInspector.Close();
+
+            volumeStudio = studio.GetComponent<VolumeStudio>();
+            volumeStudio.OnExportFinished += OnExportFinished;
+            volumeStudio.OnExportStarted += OnExportStarted;
+            volumeStudio.OnExportProgressChanged += OnExportProgressChanged;
             
             document.rootVisualElement.RegisterCallback<PointerEnterEvent>(evt => studio.Selector.Enabled = false);
             document.rootVisualElement.RegisterCallback<PointerLeaveEvent>(evt => studio.Selector.Enabled = true);
-            
-            studio.Selector.OnSelectionChanged += OnSelectionChanged;
 
+            studio.Selector.OnSelectionChanged += OnSelectionChanged;
         }
 
         private void OnSelectionChanged()
         {
-            var count = studio.Selector.GetSelectedCount<Volume>();
-            if (count == 0)
-            {
-                volumeInspector.Close();
-                return;
-            }
-            volumeInspector.Open();
-            volumeInspector.SetVolumes(studio.Selector.GetSelected<Volume>().ToArray());
+            volumeInspector.HandleSelection<Volume>();
+            emitterInspector.HandleSelection<WaveEmitter>();
         }
         
         private void OnExportProgressChanged(int progress)
@@ -102,17 +104,21 @@ namespace Uriel.UI
 
             buttons.Q<Button>("CreateEmitter").RegisterCallback<ClickEvent>(_ =>
             {
-                studio.CreateDefaultEmitter();
+                var source = new WaveEmitterSnapshot();
+                source.resolution = new Vector3Int(128, 128, 128);
+                source.saturate = true;
+                source.sources = Lattices.Tetrahedron(new WaveSource() {frequency = 10, amplitude = 1, scale = 1, radius = 1}).ToList();
+                studio.Create(source);
             });
             
             buttons.Q<Button>("CreateVolume").RegisterCallback<ClickEvent>(_ =>
             {
-                studio.CreateDefaultVolume();
+                studio.Selector.Select(studio.CreateDefault<Volume>().ID);
             });
             
             buttons.Q<Button>("Export").RegisterCallback<ClickEvent>(_ =>
             {
-                studio.ExportSelectedMesh();
+                volumeStudio.ExportSelectedMesh();
             });
         }
     }

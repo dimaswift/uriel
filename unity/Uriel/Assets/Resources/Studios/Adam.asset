@@ -13,15 +13,7 @@ MonoBehaviour:
   m_Name: Adam
   m_EditorClassIdentifier: 
   triangleBudget: 2579690
-  resolution: {x: 64, y: 64, z: 64}
-  default:
-    marchingCubes:
-      budget: 10000
-      shell: 0.1
-      flipNormals: 0
-      invertTriangles: 1
-      shrink: 0
-      blend: {x: 0.5, y: 0.5}
-      phase: 0
-  volumePrefab: {fileID: 3170965333970312374, guid: 48230854c936e42958bac6f3633fc60d, type: 3}
-  waveEmitterPrefab: {fileID: 2042722840801966343, guid: 78ac65718405f46aaa59d6393a787d74, type: 3}
+  resolution: {x: 256, y: 256, z: 256}
+  prefabs:
+  - {fileID: 3754575169195737639, guid: 48230854c936e42958bac6f3633fc60d, type: 3}
+  - {fileID: 2823463461322235208, guid: 78ac65718405f46aaa59d6393a787d74, type: 3}

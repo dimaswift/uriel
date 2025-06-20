@@ -24,7 +24,7 @@ namespace Uriel.UI
             base.OnShow();
         }
         
-        public StateManagePanel(UIDocument ui, VolumeStudio studio) 
+        public StateManagePanel(UIDocument ui, Studio studio) 
             : base(studio, ui, "Projects", "ShowProjects")
         {
             Studio.StateManager.OnStateLoaded += s =>

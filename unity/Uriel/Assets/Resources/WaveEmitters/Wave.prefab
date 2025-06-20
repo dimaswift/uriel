@@ -51,7 +51,7 @@ MonoBehaviour:
   selectionGizmo: {fileID: 4660901199793385108}
   snapshot:
     id: 52A1B
-    resolution: {x: 0, y: 0, z: 0}
+    resolution: {x: 64, y: 64, z: 64}
     saturate: 0
     sources: []
 --- !u!1 &8687659051437423765

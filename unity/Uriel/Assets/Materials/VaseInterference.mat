@@ -153,7 +153,7 @@ Material:
     - _GlossyReflections: 0
     - _GradientEnd: 1
     - _GradientMultiplier: 1.46
-    - _GradientStart: 1
+    - _GradientStart: 0.92
     - _GradientThreshold: 1
     - _Harmonics: 1
     - _Iterations: 0

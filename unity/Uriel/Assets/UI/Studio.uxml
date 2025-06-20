@@ -1,6 +1,13 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/Styles/basic.uss?fileID=7433441132597879392&amp;guid=d6cc03b7520784d42aedd7f7518bf48d&amp;type=3#basic" />
     <ui:Label text="Label" name="ProjectName" style="position: absolute; bottom: 0%; color: rgb(255, 255, 255);" />
+    <ui:VisualElement name="CameraControls" style="flex-grow: 1; position: absolute; top: 37px; right: auto; left: 0;">
+        <ui:Button text="P" name="Mode" style="height: 22px; width: 0;" />
+        <ui:Button text="XUp" name="RotateXUp" />
+        <ui:Button text="XDown" name="RotateXDown" />
+        <ui:Button text="YUp" name="RotateYLeft" />
+        <ui:Button text="YDown" name="RotateYRight" />
+    </ui:VisualElement>
     <ui:VisualElement name="ToolBar" style="flex-grow: 1; position: absolute; top: 0%; left: 0%; right: 0%; flex-direction: row;">
         <ui:Button text="PROJECTS" name="ShowProjects" class="small-button" />
         <ui:Button text="SETTINGS" name="ShowSettings" class="small-button" />
@@ -29,5 +36,10 @@
     </ui:VisualElement>
     <ui:VisualElement name="VolumeInspector" style="flex-grow: 1; position: absolute; right: 0%; width: 250px; height: 100%; background-color: rgba(0, 0, 0, 0.75);">
         <ui:Label text="Label" name="Id" class="label" />
+    </ui:VisualElement>
+    <ui:VisualElement name="EmitterInspector" class="inspector" style="flex-grow: 1; position: absolute; right: 0%; width: 410px; height: 100%; background-color: rgba(0, 0, 0, 0.75);">
+        <ui:Label text="Label" name="Id" class="label" />
+        <ui:Vector3IntField label="Resolution" name="Resolution" value="0,0,0" />
+        <ui:IntegerField label="Resolution All" value="42" name="ResolutionCommon" />
     </ui:VisualElement>
 </ui:UXML>
