@@ -8,17 +8,28 @@ namespace Uriel.Behaviours
 {
     public class Studio : MonoBehaviour
     {
+        public bool ShowGrid
+        {
+            get => grid.activeSelf;
+            set => grid.SetActive(value);
+        }
         public StudioConfig Config => config;
         public CommandHistory CommandHistory { get; private set; }
         public StateManager StateManager { get; private set; }
         public Selector Selector { get; private set; }
         public Mover Mover { get; private set; }
+        public CameraController Camera { get; private set; }
         
         [SerializeField] private StudioConfig config;
+        
+        [SerializeField] private GameObject grid;
         
         private readonly Dictionary<string, IModifiable> modifiables = new ();
 
         private readonly Dictionary<string, IModifiable> prefabs = new();
+
+        private Vector3 lastCameraAnchor;
+        
         
         private void Awake()
         {
@@ -26,7 +37,7 @@ namespace Uriel.Behaviours
             Selector = new Selector(CommandHistory);
             StateManager = new StateManager(this);
             Mover = new Mover(CommandHistory, Selector);
-            
+            Camera = FindFirstObjectByType<CameraController>();
             Selector.Register((string id, out ISelectable selectable) =>
             {
                 if (modifiables.TryGetValue(id, out var vol))
@@ -47,10 +58,11 @@ namespace Uriel.Behaviours
             }
         
             StateManager.LoadFirst();
-            
+
             Dispatcher.Init();
         }
         
+
         public void ClearAll()
         {
             foreach (var volume in modifiables)
@@ -95,6 +107,24 @@ namespace Uriel.Behaviours
             }
             
             Mover.Update();
+
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                var anchor = Vector3.zero;
+                int amount = 0;
+                foreach (var m in Selector.GetSelected<IModifiable>())
+                {
+                    amount++;
+                    anchor += m.transform.position;
+                }
+                if (amount > 0)
+                {
+                    anchor /= amount;
+                    lastCameraAnchor = anchor;
+                    Camera.SetOrbitPoint(lastCameraAnchor);
+                    Camera.FocusOnTarget();
+                }
+            }
             
             HandleInput();
         }

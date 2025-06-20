@@ -11,6 +11,10 @@ namespace Uriel.UI
 {
     public class UI : MonoBehaviour
     {
+        public bool IsPointerOver { get; private set; }
+        public event Action OnPointerEnterUI = () => { }; 
+        public event Action OnPointerExitUI = () => { }; 
+        
         [SerializeField] private UIDocument document;
         [SerializeField]  private Studio studio;
         
@@ -68,8 +72,19 @@ namespace Uriel.UI
             volumeStudio.OnExportStarted += OnExportStarted;
             volumeStudio.OnExportProgressChanged += OnExportProgressChanged;
             
-            document.rootVisualElement.RegisterCallback<PointerEnterEvent>(evt => studio.Selector.Enabled = false);
-            document.rootVisualElement.RegisterCallback<PointerLeaveEvent>(evt => studio.Selector.Enabled = true);
+            studio.Mover.AddBlocker(() => IsPointerOver);
+            studio.Selector.AddBlocker(() => IsPointerOver);
+            
+            document.rootVisualElement.RegisterCallback<PointerEnterEvent>(_ =>
+            {
+                IsPointerOver = true;
+                OnPointerEnterUI();
+            });
+            document.rootVisualElement.RegisterCallback<PointerLeaveEvent>(_ =>
+            {
+                IsPointerOver = false;
+                OnPointerExitUI();
+            });
 
             studio.Selector.OnSelectionChanged += OnSelectionChanged;
         }

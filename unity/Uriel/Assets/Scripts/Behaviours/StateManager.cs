@@ -45,6 +45,7 @@ namespace Uriel.Behaviours
             currentState.volumes.Clear();
             currentState.waveEmitters.Clear();
             currentState.name = name;
+            currentState.showGrid = studio.ShowGrid;
             foreach (var volume in studio.Get<Volume>())
             {
                 var snapshot = volume.CreateSnapshot();
@@ -70,6 +71,10 @@ namespace Uriel.Behaviours
             {
                 studio.Add(emitter);
             }
+
+            studio.ShowGrid = state.showGrid;
+            
+            OnStateLoaded(currentState);
         }
         
         public IEnumerable<string> ListFiles()
@@ -96,7 +101,7 @@ namespace Uriel.Behaviours
                 volumes = new ()
             };
             LoadState(currentState);
-            OnStateLoaded(currentState);
+          
             return currentState;
         }
         

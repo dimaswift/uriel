@@ -15,7 +15,7 @@ namespace Uriel.Utils
 	    
 	    private static Dispatcher instance = null;
 
-	    public static Dispatcher Instance
+	    private static Dispatcher Instance
 	    {
 		    get
 		    {
@@ -28,11 +28,23 @@ namespace Uriel.Utils
 	    }
 	    
 		private static readonly Queue<Action> ExecutionQueue = new ();
-		
+		private static readonly List<(Func<bool> condition, Action action)> ConditionalQueue = new ();
 
 		public void Update() 
 		{
-			lock(ExecutionQueue) 
+			lock (ConditionalQueue) 
+			{
+				for (int i = ConditionalQueue.Count - 1; i >= 0; i--)
+				{
+					var cond = ConditionalQueue[i];
+					if (cond.condition())
+					{
+						cond.action();
+						ConditionalQueue.RemoveAt(i);
+					}
+				}
+			}
+			lock (ExecutionQueue) 
 			{
 				while (ExecutionQueue.Count > 0) 
 				{
@@ -40,27 +52,26 @@ namespace Uriel.Utils
 				}
 			}
 		}
-
-		public void Enqueue(IEnumerator action) 
+		
+		public static void WaitFor(Func<bool> condition, Action action)
 		{
-			lock (ExecutionQueue) 
+			lock (ConditionalQueue)
 			{
-				ExecutionQueue.Enqueue (() => 
-				{
-					StartCoroutine (action);
-				});
+				ConditionalQueue.Add((condition, action));
+			}
+		}
+		
+		public static void Enqueue(Action action)
+		{
+			lock (ExecutionQueue)
+			{
+				ExecutionQueue.Enqueue(action);
 			}
 		}
 
-		public void Enqueue(Action action)
-		{
-			Enqueue(ActionWrapper(action));
-		}
-
-		public Task EnqueueAsync(Action action)
+		public static Task EnqueueAsync(Action action)
 		{
 			var tcs = new TaskCompletionSource<bool>();
-
 			void WrappedAction() 
 			{
 				try 
@@ -72,16 +83,8 @@ namespace Uriel.Utils
 					tcs.TrySetException(ex);
 				}
 			}
-
-			Enqueue(ActionWrapper(WrappedAction));
+			Enqueue(WrappedAction);
 			return tcs.Task;
-		}
-
-
-		private IEnumerator ActionWrapper(Action a)
-		{
-			a();
-			yield return null;
 		}
 		
 		private void Awake() 

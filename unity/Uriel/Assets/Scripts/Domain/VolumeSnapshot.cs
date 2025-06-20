@@ -57,5 +57,6 @@ namespace Uriel.Domain
         public List<WaveEmitterSnapshot> waveEmitters = new();
         public List<VolumeSnapshot> volumes = new ();
         public string name;
+        public bool showGrid;
     }
 }

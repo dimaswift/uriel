@@ -3,10 +3,7 @@
     <ui:Label text="Label" name="ProjectName" style="position: absolute; bottom: 0%; color: rgb(255, 255, 255);" />
     <ui:VisualElement name="CameraControls" style="flex-grow: 1; position: absolute; top: 37px; right: auto; left: 0;">
         <ui:Button text="P" name="Mode" style="height: 22px; width: 0;" />
-        <ui:Button text="XUp" name="RotateXUp" />
-        <ui:Button text="XDown" name="RotateXDown" />
-        <ui:Button text="YUp" name="RotateYLeft" />
-        <ui:Button text="YDown" name="RotateYRight" />
+        <ui:Button text="SNAP" name="Snap" style="height: 22px; width: 52px;" />
     </ui:VisualElement>
     <ui:VisualElement name="ToolBar" style="flex-grow: 1; position: absolute; top: 0%; left: 0%; right: 0%; flex-direction: row;">
         <ui:Button text="PROJECTS" name="ShowProjects" class="small-button" />
@@ -16,7 +13,32 @@
         <ui:Button text="EXPORT" name="Export" class="small-button" />
     </ui:VisualElement>
     <ui:ProgressBar value="77.1" title="Exporting..." name="ProgressBar" style="flex-direction: column; flex-wrap: nowrap; flex-grow: 0; overflow: hidden; visibility: visible; display: flex; position: absolute; bottom: 0%; right: 0; left: 0; -unity-background-image-tint-color: rgb(0, 103, 8); background-color: rgba(0, 101, 7, 0); -unity-slice-type: sliced;" />
-    <ui:VisualElement name="Projects" enabled="true" class="label" style="flex-grow: 1; position: absolute; left: 0%; top: 0%; right: 0%; bottom: 0%; background-color: rgba(0, 0, 0, 0.8); display: flex; visibility: visible;">
+    <ui:VisualElement name="VolumeInspector" class="inspector" style="flex-grow: 1; position: absolute; right: 0%; width: 410px; height: 100%; background-color: rgba(0, 0, 0, 0.75);">
+        <ui:Label text="Label" name="Id" class="label" />
+        <ui:IntegerField label="Budget" value="42" name="Budget" />
+        <ui:Slider label="Shell" value="0.1" high-value="1" name="Shell" />
+        <ui:Toggle label="Flip Normals" name="FlipNormals" />
+        <ui:Toggle label="Invert Triangles" name="InvertTriangles" />
+        <ui:Slider label="Shrink" value="0" high-value="1" name="Shrink" low-value="-1" fill="true" />
+    </ui:VisualElement>
+    <ui:VisualElement name="EmitterInspector" class="inspector" style="flex-grow: 1; position: absolute; right: 0%; width: 410px; height: 100%; background-color: rgba(0, 0, 0, 0.75); display: flex;">
+        <ui:Label text="Label" name="Id" class="label" />
+        <ui:Vector3IntField label="Resolution" name="Resolution" value="0,0,0" />
+        <ui:IntegerField label="Resolution All" value="42" name="ResolutionCommon" />
+        <ui:Button text="Apply" name="Apply" style="position: absolute; bottom: 0%; left: 0; right: 0;" />
+        <ui:MinMaxSlider label="Range" value="10,12" low-limit="-10" high-limit="40" name="FrequencyRange" />
+        <ui:SliderInt label="Frequency" value="42" high-value="100" name="Frequency" show-input-field="true" fill="true" />
+        <ui:Slider label="Amplitude" value="1" high-value="3" name="Amplitude" fill="true" />
+        <ui:Slider label="Phase" value="42" high-value="360" name="Phase" fill="true" />
+        <ui:Slider label="Radius" value="1" high-value="10" name="Radius" fill="true" low-value="-10" />
+        <ui:Slider label="Scale" value="1" high-value="5" name="Scale" fill="true" low-value="-5" />
+    </ui:VisualElement>
+    <ui:VisualElement name="Settings" enabled="true" class="label" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0.81); height: auto; display: flex; visibility: hidden;">
+        <ui:Label text="SETTINGS" class="panel-title" />
+        <ui:Toggle label="Show Grid" name="ShowGrid" />
+        <ui:Button text="X" name="Close" class="panel-close-button" />
+    </ui:VisualElement>
+    <ui:VisualElement name="Projects" enabled="true" class="label" style="flex-grow: 1; position: absolute; left: 0%; top: 0%; right: 0%; bottom: 0%; background-color: rgba(0, 0, 0, 0.96); display: flex; visibility: visible;">
         <ui:Label text="PROJECTS" class="panel-title" />
         <ui:ListView name="Files" header-title="Projects" show-add-remove-footer="false" binding-source-selection-mode="Manual" />
         <ui:Button text="Create New" name="New" />
@@ -25,21 +47,5 @@
         <ui:Button text="X" name="Close" class="panel-close-button" />
         <ui:TextField label="File name" name="NameField" />
         <ui:Button text="Save" name="Save" style="background-color: rgb(84, 180, 120);" />
-    </ui:VisualElement>
-    <ui:VisualElement name="Settings" enabled="true" class="label" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0.81); height: auto; display: flex; visibility: hidden;">
-        <ui:Label text="SETTINGS" class="panel-title" />
-        <ui:DropdownField label="X Res" name="ResolutionX" choices="32,64,128,256,512,1024" />
-        <ui:DropdownField label="Y Res" name="ResolutionY" choices="32,64,128,256,512,1024" />
-        <ui:DropdownField label="Z Res" name="ResolutionZ" choices="32,64,128,256,512,1024" />
-        <ui:SliderInt label="Triangles" value="100000" high-value="10000000" name="TriangleBudget" low-value="1000" fill="true" />
-        <ui:Button text="X" name="Close" class="panel-close-button" />
-    </ui:VisualElement>
-    <ui:VisualElement name="VolumeInspector" style="flex-grow: 1; position: absolute; right: 0%; width: 250px; height: 100%; background-color: rgba(0, 0, 0, 0.75);">
-        <ui:Label text="Label" name="Id" class="label" />
-    </ui:VisualElement>
-    <ui:VisualElement name="EmitterInspector" class="inspector" style="flex-grow: 1; position: absolute; right: 0%; width: 410px; height: 100%; background-color: rgba(0, 0, 0, 0.75);">
-        <ui:Label text="Label" name="Id" class="label" />
-        <ui:Vector3IntField label="Resolution" name="Resolution" value="0,0,0" />
-        <ui:IntegerField label="Resolution All" value="42" name="ResolutionCommon" />
     </ui:VisualElement>
 </ui:UXML>

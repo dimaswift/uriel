@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Uriel.Behaviours
 {
@@ -25,6 +26,7 @@ namespace Uriel.Behaviours
         public void ExecuteCommand(ICommand command)
         {
             command.Execute();
+
             undoStack.Push(command);
             redoStack.Clear();
             

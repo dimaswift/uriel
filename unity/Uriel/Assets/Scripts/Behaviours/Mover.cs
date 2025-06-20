@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Uriel.Commands;
 
 namespace Uriel.Behaviours
 {
@@ -8,68 +10,50 @@ namespace Uriel.Behaviours
         Vector3 position { get; set; }
     }
 
-    public class MoveCommand : ICommand
-    {
-        private readonly List<IMovable> list = new();
-        private readonly List<Vector3> oldPositions = new();
-        private readonly List<Vector3> newPositions = new();
-        
-        public MoveCommand(IEnumerable<IMovable> movables)
-        {
-            list.AddRange(movables);
-            foreach (var movable in list)
-            {
-                oldPositions.Add(movable.position);
-            }
-        }
-        
-        public void Execute()
-        {
-            for (int i = 0; i < list.Count; i++)
-            {
-                list[i].position = newPositions[i];
-            }
-        }
-
-        public void Undo()
-        {
-            for (int i = 0; i < list.Count; i++)
-            {
-                list[i].position = oldPositions[i];
-            }
-        }
-
-        public void SaveModified()
-        {
-            newPositions.Clear();
-            foreach (var movable in list)
-            {
-                newPositions.Add(movable.position);
-            }
-        }
-    }
+   
     
     public class Mover
     {
         public bool IsMoving => moving;
-        
+        public bool Enabled { get; set; } = true;
+
         private readonly CommandHistory commandHistory;
         private readonly Selector selector;
         private readonly Camera cam;
         private readonly List<IMovable> buffer = new();
+        private readonly List<Func<bool>> blockers = new();
         
         public Mover(CommandHistory commandHistory, Selector selector)
         {
             cam = Camera.main;
             this.commandHistory = commandHistory;
             this.selector = selector;
+            selector.AddBlocker(() => IsMoving);
         }
-        
+         
         private bool moving;
         private Vector3 moveStartPoint;
         private readonly Dictionary<IMovable, Vector3> moveClickPoints = new();
 
         private MoveCommand command;
+
+        public void AddBlocker(Func<bool> shouldBlock)
+        {
+            blockers.Add(shouldBlock);
+        }
+
+        private bool IsBlocked()
+        {
+            foreach (var blocker in blockers)
+            {
+                if (blocker())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
         
         private void FinishMove()
         {
@@ -93,6 +77,10 @@ namespace Uriel.Behaviours
 
         private void BeginMove()
         {
+            if (!Enabled || IsBlocked())
+            {
+                return;
+            }
             moveClickPoints.Clear();
             buffer.Clear();
             

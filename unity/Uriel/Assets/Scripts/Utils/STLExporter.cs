@@ -133,7 +133,7 @@ namespace Uriel.Utils
                         positions[i] = new Vector3(
                             BitConverter.ToSingle(vertexData, baseOffset + positionOffset),
                             BitConverter.ToSingle(vertexData, baseOffset + positionOffset + 4),
-                            BitConverter.ToSingle(vertexData, baseOffset + positionOffset + 8)
+                            BitConverter.ToSingle(vertexData, baseOffset + positionOffset + 8) * 1000f
                         );
                     }
 

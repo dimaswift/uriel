@@ -17,13 +17,26 @@ namespace Uriel.UI
 
         public bool IsOpen => Root.visible;
 
-        private bool isModified;
+        protected bool IsModified
+        {
+            get => modified;
+            set
+            {
+                if (applyButton != null)
+                {
+                    applyButton.SetEnabled(value);
+                }
+                modified = value;
+            }
+        }
+
+        protected bool modified;
         
         private void OnValueChanged<T>(ChangeEvent<T> _, bool immediate)
         {
             if (applyButton != null && !immediate)
             {
-                isModified = true;
+                IsModified = true;
                 applyButton?.SetEnabled(true);
             }
             else
@@ -31,10 +44,17 @@ namespace Uriel.UI
                 ApplyChanges();
             }
         }
-
-        public void AddField<T>(BaseField<T> field, bool immediate)
+        
+        public T RegisterField<T, T1>(string name, bool immediate = true) where T :  BaseField<T1>
         {
-            field.RegisterValueChangedCallback(evt =>
+            var field = Root.Q<T>(name);
+            ListenToField(field, immediate);
+            return field;
+        }
+
+        public void ListenToField<T>(BaseField<T> field, bool immediate)
+        {
+            field?.RegisterValueChangedCallback(evt =>
             {
                 OnValueChanged(evt, immediate);
             });
@@ -79,14 +99,15 @@ namespace Uriel.UI
 
         private void ClearUI()
         {
-            
+            IsModified = false;
+            OnClearUI();
         }
         
         public void Set(IEnumerable<IModifiable> list)
         {
             modifiables.Clear();
             modifiables.AddRange(list);
-            
+            IsModified = false;
             if (modifiables.Count == 0)
             {
                 ClearUI();
@@ -144,14 +165,13 @@ namespace Uriel.UI
             applyButton = Root.Q<Button>("Apply");
             applyButton?.RegisterCallback<ClickEvent>(_ =>
             {
-                if (isModified)
+                if (IsModified)
                 {
                     ApplyChanges();
-                    isModified = false;
-                    applyButton.SetEnabled(false);
+                    IsModified = false;
                 }
             });
-            applyButton?.SetEnabled(false);
+            IsModified = false;
         }
     }
 }

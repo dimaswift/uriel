@@ -5,23 +5,18 @@ namespace Uriel.UI
 {
     public class SettingsPanel : StudioPanel
     {
-        private void UpdateConfig()
-        {
-#if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(Studio.Config);
-#endif
-        }
-        
         public SettingsPanel(UIDocument ui, Studio studio) 
             : base(studio, ui, "Settings", "ShowSettings")
         {
-            
-            var triangleBudget = Root.Q<SliderInt>("TriangleBudget");
-            triangleBudget.value = studio.Config.triangleBudget;
-            triangleBudget.RegisterCallback<ChangeEvent<int>>(evt =>
+            var gridToggle = Root.Q<Toggle>("ShowGrid");
+            gridToggle.SetValueWithoutNotify(studio.ShowGrid);
+            studio.StateManager.OnStateLoaded += s =>
             {
-                studio.Config.triangleBudget = evt.newValue;
-                UpdateConfig();
+                gridToggle.SetValueWithoutNotify(studio.ShowGrid);
+            };
+            gridToggle.RegisterValueChangedCallback(v =>
+            {
+                studio.ShowGrid = v.newValue;
             });
         }
     }

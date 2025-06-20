@@ -23,14 +23,21 @@ namespace Uriel.Behaviours
         private ISelectable lastSelection;
 
         private readonly List<SelectorDelegate> lookUps = new();
+        private readonly List<Func<bool>> blockers = new();
         private readonly Camera cam;
 
+        
         public Selector(CommandHistory history)
         {
             cam = Camera.main;
             this.history = history;
         }
 
+        public void AddBlocker(Func<bool> shouldBlock)
+        {
+            blockers.Add(shouldBlock);
+        }
+        
         public void Register(SelectorDelegate lookUp, Func<IEnumerable<ISelectable>> source)
         {
             lookUps.Add(lookUp);
@@ -67,12 +74,21 @@ namespace Uriel.Behaviours
             }
         }
 
+        private bool IsBlocked()
+        {
+            foreach (var blocker in blockers)
+            {
+                if (blocker())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public bool Select(string id)
         {
-            if (!Enabled)
-            {
-                return false;
-            }
             foreach (var source in lookUps)
             {
                 if (source.Invoke(id, out var selectable))
@@ -93,10 +109,6 @@ namespace Uriel.Behaviours
         
         public bool Deselect(string id)
         {
-            if (!Enabled)
-            {
-                return false;
-            }
             if (!selection.TryGetValue(id, out var selectable))
             {
                 return false;
@@ -128,10 +140,6 @@ namespace Uriel.Behaviours
         
         public void AppendSelection<T>(T selectable) where T : class, ISelectable
         {
-            if (!Enabled)
-            {
-                return;
-            }
             var old = GetSelectedIds<T>().ToArray();
             var newSelection = new string[old.Length + 1];
             for (int i = 0; i < old.Length; i++)
@@ -145,10 +153,6 @@ namespace Uriel.Behaviours
            
         public void ClearSelection<T>() where T : class, ISelectable
         {
-            if (!Enabled)
-            {
-                return;
-            }
             var ids = GetSelectedIds<T>().ToArray();
             if (ids.Length == 0)
             {
@@ -160,10 +164,6 @@ namespace Uriel.Behaviours
         
         public void ClearSelection()
         {
-            if (!Enabled)
-            {
-                return;
-            }
             if (selection.Count == 0)
             {
                 return;
@@ -174,10 +174,6 @@ namespace Uriel.Behaviours
         
         public void SelectSingle<T>(T selectable) where T : class, ISelectable
         {
-            if (!Enabled)
-            {
-                return;
-            }
             var newSelection = new [] {selectable.ID};
             history.ExecuteCommand(new ChangeSelectionCommand(this, 
                 GetSelectedIds<T>().ToArray(), newSelection));
@@ -185,10 +181,6 @@ namespace Uriel.Behaviours
         
         public void RemoveSelection<T>(T selectable) where T : class, ISelectable
         {
-            if (!Enabled)
-            {
-                return;
-            }
             var old = GetSelectedIds<T>().ToArray();
             var newSelection = new List<string>(old);
             newSelection.Remove(selectable.ID);
@@ -217,8 +209,12 @@ namespace Uriel.Behaviours
 
         public void Update()
         {
-            if ((Input.GetMouseButtonDown(0) || Input.GetMouseButtonUp(0)))
+            if ((Input.GetMouseButtonDown(0)))
             {
+                if (!Enabled || IsBlocked())
+                {
+                    return;
+                }
                 if (IsMouseOverSelectable(out var selectable))
                 {
                     HandleSelection(selectable);
@@ -232,15 +228,10 @@ namespace Uriel.Behaviours
         
         public void HandleSelection<T>(T hit) where T : class, ISelectable
         {
-            if (!Enabled)
-            {
-                return;
-            }
             if (hit.ID == lastSelection?.ID)
             {
                 return;
             }
-
             if (selection.ContainsKey(hit.ID))
             {
                 if (Input.GetMouseButtonUp(0))
