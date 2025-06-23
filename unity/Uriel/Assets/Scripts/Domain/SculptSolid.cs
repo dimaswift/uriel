@@ -1,6 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using Uriel.Behaviours;
+using Uriel.Commands;
 
 namespace Uriel.Domain
 {
@@ -9,7 +11,8 @@ namespace Uriel.Domain
         Box = 0,
         Sphere = 1,
         Cylinder = 2,
-        Capsule = 3
+        Capsule = 3,
+        Tetrahedron = 4
     }
     
     public enum SculptOperation
@@ -60,11 +63,25 @@ namespace Uriel.Domain
     }
     
     [Serializable]
-    public struct SculptSolidState
+    public class SculptSolidSnapshot : ISnapshot
     {
+        public string parentId;
+        public string id;
         public SculptSolid solid;
         public Vector3 position;
         public Vector3 scale;
         public Vector3 rotation;
+        public string ID
+        {
+            get => id;
+            set => id = value;
+        }
+
+        public string ParentID
+        {
+            get => parentId;
+            set => parentId = value;
+        }
+        public string TargetType => nameof(SculptSolidBehaviour);
     }
 }

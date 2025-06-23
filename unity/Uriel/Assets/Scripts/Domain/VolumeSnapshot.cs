@@ -15,18 +15,19 @@ namespace Uriel.Domain
             set => id = value;
         }
 
+        public string ParentID { get; set; }
         public string TargetType => nameof(Volume);
         public MarchingCubesConfig marchingCubes = MarchingCubesConfig.Default;
         public string id;
         public Vector3 position;
         public Vector3 rotation;
         public Vector3 scale;
-        public List<SculptSolidState> solids = new();
     }
     
     [System.Serializable]
     public class WaveEmitterSnapshot  : ISnapshot
     {
+        public string ParentID { get; set; }
         public string TargetType => nameof(WaveEmitter);
         public string ID
         {
@@ -56,6 +57,7 @@ namespace Uriel.Domain
     {
         public List<WaveEmitterSnapshot> waveEmitters = new();
         public List<VolumeSnapshot> volumes = new ();
+        public List<SculptSolidSnapshot> solids = new ();
         public string name;
         public bool showGrid;
     }

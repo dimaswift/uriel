@@ -8,31 +8,31 @@ using Uriel.Utils;
 
 namespace Uriel.Behaviours
 {
-    public class StateManager
+    public class StateManager : MonoBehaviour
     {
         public StudioState Current => currentState;
-        private readonly Studio studio;
+        private Studio studio;
         private StudioState currentState = new ();
         private string SaveDirectory => Path.Combine(Application.dataPath, "Export/Studio/");
         
         public event Action<StudioState> OnStateLoaded = s => {};
         public event Action<StudioState> OnStateSaved = s => {};
         
-        public StateManager(Studio studio)
+        private string GetFilePath(string fileName)
         {
-            this.studio = studio;
+            return $"{SaveDirectory}{fileName}.json";
         }
 
-        private string GetFilePath(string name)
+        private void Awake()
         {
-            return $"{SaveDirectory}{name}.json";
+            studio = GetComponent<Studio>();
         }
-        
-        public void Delete(string name)
+
+        public void Delete(string fileName)
         {
             try
             {
-                File.Delete(GetFilePath(name));
+                File.Delete(GetFilePath(fileName));
             }
             catch (Exception e)
             {
@@ -40,11 +40,13 @@ namespace Uriel.Behaviours
             }
         }
         
-        public void SaveState(string name)
+        public void SaveState(string fileName)
         {
             currentState.volumes.Clear();
             currentState.waveEmitters.Clear();
-            currentState.name = name;
+            currentState.solids.Clear();
+            
+            currentState.name = fileName;
             currentState.showGrid = studio.ShowGrid;
             foreach (var volume in studio.Get<Volume>())
             {
@@ -55,8 +57,11 @@ namespace Uriel.Behaviours
             {
                 currentState.waveEmitters.Add(emitter.CreateSnapshot());
             }
-            
-            SaveToFile(currentState, name);
+            foreach (var sol in studio.Get<SculptSolidBehaviour>())
+            {
+                currentState.solids.Add(sol.CreateSnapshot());
+            }
+            SaveToFile(currentState, fileName);
             OnStateSaved?.Invoke(currentState);
         }
         
@@ -71,7 +76,10 @@ namespace Uriel.Behaviours
             {
                 studio.Add(emitter);
             }
-
+            foreach (var solid in state.solids)
+            {
+                studio.Add(solid);
+            }
             studio.ShowGrid = state.showGrid;
             
             OnStateLoaded(currentState);
@@ -105,9 +113,9 @@ namespace Uriel.Behaviours
             return currentState;
         }
         
-        public void LoadState(string name)
+        public void LoadState(string fileName)
         {
-            var loadedState = LoadFromFile(name);
+            var loadedState = LoadFromFile(fileName);
             if (loadedState != null)
             {
                 currentState = loadedState;
@@ -125,19 +133,19 @@ namespace Uriel.Behaviours
             }
         }
 
-        private void SaveToFile(StudioState state, string name)
+        private void SaveToFile(StudioState state, string fileName)
         {
             string json = JsonUtility.ToJson(state, true);
             if (!Directory.Exists(SaveDirectory))
             {
                 Directory.CreateDirectory(SaveDirectory);
             }
-            File.WriteAllText(GetFilePath(name), json);
+            File.WriteAllText(GetFilePath(fileName), json);
         }
 
-        private StudioState LoadFromFile(string name)
+        private StudioState LoadFromFile(string fileName)
         {
-            string filePath = GetFilePath(name);
+            string filePath = GetFilePath(fileName);
             if (File.Exists(filePath))
             {
                 string json = File.ReadAllText(filePath);

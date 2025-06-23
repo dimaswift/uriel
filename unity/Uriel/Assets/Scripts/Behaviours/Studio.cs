@@ -17,7 +17,9 @@ namespace Uriel.Behaviours
         public CommandHistory CommandHistory { get; private set; }
         public StateManager StateManager { get; private set; }
         public Selector Selector { get; private set; }
-        public Mover Mover { get; private set; }
+        public MoveHandle MoveHandle { get; private set; }
+        public ScaleHandle ScaleHandle { get; private set; }
+
         public CameraController Camera { get; private set; }
         
         [SerializeField] private StudioConfig config;
@@ -33,10 +35,11 @@ namespace Uriel.Behaviours
         
         private void Awake()
         {
-            CommandHistory = new CommandHistory();
-            Selector = new Selector(CommandHistory);
-            StateManager = new StateManager(this);
-            Mover = new Mover(CommandHistory, Selector);
+            CommandHistory = GetComponent<CommandHistory>();
+            Selector = GetComponent<Selector>();
+            StateManager = GetComponent<StateManager>();
+            MoveHandle = GetComponent<MoveHandle>();
+            ScaleHandle = GetComponent<ScaleHandle>();
             Camera = FindFirstObjectByType<CameraController>();
             Selector.Register((string id, out ISelectable selectable) =>
             {
@@ -71,7 +74,7 @@ namespace Uriel.Behaviours
             }
             modifiables.Clear();
             Selector.ClearSelection();
-            Mover.Reset();
+            MoveHandle.Reset();
         }
         
         private void DeleteSelected()
@@ -106,7 +109,7 @@ namespace Uriel.Behaviours
                 break;
             }
             
-            Mover.Update();
+            MoveHandle.Update();
 
             if (Input.GetKeyDown(KeyCode.F))
             {
@@ -180,7 +183,24 @@ namespace Uriel.Behaviours
             var mod = Instantiate(prefab.transform.gameObject).GetComponent<IModifiable>();
             mod.transform.gameObject.SetActive(true);
             mod.transform.name = $"{snapshot.TargetType}_{snapshot.ID}";
-            mod.transform.SetParent(transform);
+
+            if (snapshot.ParentID != null)
+            {
+                var parent = Find(snapshot.ParentID);
+                if (parent != null)
+                {
+                    mod.transform.SetParent(parent.transform);
+                }
+                else
+                {
+                    mod.transform.SetParent(transform);
+                }
+            }
+            else
+            {
+                mod.transform.SetParent(transform);
+            }
+          
             mod.Restore(snapshot);
             modifiables.Add(snapshot.ID, mod);
             return mod;
@@ -197,6 +217,27 @@ namespace Uriel.Behaviours
             Destroy(volume.transform.gameObject);
             return true;
         }
+
+        public void AssignParents()
+        {
+            foreach (var modifiable in modifiables)
+            {
+                var mod = modifiable.Value;
+                if (mod.Current.ParentID == null)
+                {
+                    continue;
+                }
+
+                var parent = Find(mod.Current.ParentID);
+
+                if (parent == null)
+                {
+                    continue;
+                }
+                
+                mod.transform.SetParent(parent.transform);
+            }
+        }
         
         public void Create(IReadOnlyList<ISnapshot> snapshots)
         {
@@ -212,14 +253,15 @@ namespace Uriel.Behaviours
             CommandHistory.ExecuteCommand(cmd);
         }
 
-        public void Create(ISnapshot source)
+        public void Create(ISnapshot source, IModifiable parent)
         {
             source.ID = Id.Short;
+            source.ParentID = parent?.ID;
             var cmd = new CreateCommand(this, source);
             CommandHistory.ExecuteCommand(cmd);
         }
         
-        public ISnapshot CreateDefault<T>() where T : class, IModifiable
+        public ISnapshot CreateDefault<T>(IModifiable parent) where T : class, IModifiable
         {
             if (!prefabs.TryGetValue(typeof(T).Name, out var prefab))
             {
@@ -227,6 +269,7 @@ namespace Uriel.Behaviours
             }
             var snapshot = prefab.CreateSnapshot();
             snapshot.ID = Id.Short;
+            snapshot.ParentID = parent?.ID;
             var cmd = new CreateCommand(this, snapshot);
             CommandHistory.ExecuteCommand(cmd);
             return snapshot;

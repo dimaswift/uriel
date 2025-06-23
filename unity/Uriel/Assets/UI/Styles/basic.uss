@@ -50,3 +50,20 @@
 .inspector {
     color: rgb(255, 255, 255);
 }
+
+.selected {
+    -unity-text-outline-width: 0;
+    -unity-text-outline-color: rgba(0, 255, 27, 0.66);
+    border-top-width: 3px;
+    border-left-width: 3px;
+    border-bottom-width: 3px;
+    border-right-width: 3px;
+    border-top-color: rgba(100, 255, 126, 0.8);
+    border-right-color: rgba(100, 255, 126, 0.8);
+    border-bottom-color: rgba(100, 255, 126, 0.8);
+    border-left-color: rgba(100, 255, 126, 0.8);
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+}

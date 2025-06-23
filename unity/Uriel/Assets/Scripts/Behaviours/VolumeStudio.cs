@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using Uriel.Utils;
 
@@ -37,12 +38,12 @@ namespace Uriel.Behaviours
             ExportInProgress = true;
             int progress = 0;
           
-            foreach (var sel in studio.Selector.GetSelected<Volume>())
+            foreach (var sel in studio.Selector.GetSelected<Volume>().ToArray())
             {
                 try
                 {
                     await STLExporter.ExportMeshToSTLAsync(
-                        name: sel.ID,
+                        name: Id.Short,
                         mesh: sel.GeneratedMesh,
                         binary: true,
                         optimizeVertices: true

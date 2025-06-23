@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UIElements;
 using Uriel.Behaviours;
 using Uriel.Commands;
@@ -12,7 +14,10 @@ namespace Uriel.UI
         private Toggle flipNormalsToggle;
         private Toggle invertTrianglesToggle;
         private Slider shrinkField;
+        private ListView solidList;
 
+        private readonly List<string> solidBuffer = new();
+        
         private ModifyCommand<VolumeSnapshot> command;
         
         public VolumeInspector(UIDocument ui, Studio studio) : base("Volume", studio, ui)
@@ -29,8 +34,37 @@ namespace Uriel.UI
             flipNormalsToggle.SetValueWithoutNotify(volCfg.marchingCubes.flipNormals);
             invertTrianglesToggle.SetValueWithoutNotify(volCfg.marchingCubes.invertTriangles);
             shrinkField.SetValueWithoutNotify(volCfg.marchingCubes.shrink);
+            
+            solidBuffer.Clear();
+            var vol = Studio.Find<Volume>(snapshot.ID);
+            foreach (var solid in vol.GetComponentsInChildren<SculptSolidBehaviour>())
+            {
+                solidBuffer.Add(solid.ID);
+            }
+            solidList.SetSelection(-1);
+            solidList.Rebuild();
         }
 
+        private VisualElement MakeSolid()
+        {
+            var itemContainer = new VisualElement();
+            itemContainer.style.flexDirection = FlexDirection.Row;
+            itemContainer.style.alignItems = Align.Center;
+            itemContainer.style.paddingLeft = 10;
+            itemContainer.style.paddingRight = 10;
+            itemContainer.style.paddingTop = 5;
+            itemContainer.style.paddingBottom = 5;
+
+            var label = new Label();
+            label.name = "Label";
+            label.style.flexGrow = 1;
+            label.style.unityTextAlign = TextAnchor.MiddleLeft;
+
+            itemContainer.Add(label);
+            
+            return itemContainer;
+        }
+        
         private void SetupUI()
         {
             budgetField = RegisterField<IntegerField, int>("Budget");
@@ -38,6 +72,18 @@ namespace Uriel.UI
             flipNormalsToggle = RegisterField<Toggle, bool>("FlipNormals");
             invertTrianglesToggle = RegisterField<Toggle, bool>("InvertTriangles");
             shrinkField = RegisterField<Slider, float>("Shrink");
+            solidList = Root.Q<ListView>("Solids");
+            solidList.itemsSource = solidBuffer;
+            solidList.selectionType = SelectionType.Single;
+            solidList.makeItem = MakeSolid;
+            solidList.bindItem = (element, i) =>
+            {
+                element.Q<Label>().text = solidBuffer[i];
+            };
+            solidList.itemsChosen += c =>
+            {
+                Studio.Selector.SelectSingle(solidList.selectedItem.ToString());
+            };
         }
         
         private MarchingCubesConfig GetConfigFromUI()

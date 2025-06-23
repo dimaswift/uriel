@@ -11,6 +11,7 @@
         <ui:Button text="ADD EMITTER" name="CreateEmitter" class="small-button" />
         <ui:Button text="ADD VOL" name="CreateVolume" class="small-button" />
         <ui:Button text="EXPORT" name="Export" class="small-button" />
+        <ui:Button text="ADD SOLID" name="CreateSolid" class="small-button" />
     </ui:VisualElement>
     <ui:ProgressBar value="77.1" title="Exporting..." name="ProgressBar" style="flex-direction: column; flex-wrap: nowrap; flex-grow: 0; overflow: hidden; visibility: visible; display: flex; position: absolute; bottom: 0%; right: 0; left: 0; -unity-background-image-tint-color: rgb(0, 103, 8); background-color: rgba(0, 101, 7, 0); -unity-slice-type: sliced;" />
     <ui:VisualElement name="VolumeInspector" class="inspector" style="flex-grow: 1; position: absolute; right: 0%; width: 410px; height: 100%; background-color: rgba(0, 0, 0, 0.75);">
@@ -20,18 +21,19 @@
         <ui:Toggle label="Flip Normals" name="FlipNormals" />
         <ui:Toggle label="Invert Triangles" name="InvertTriangles" />
         <ui:Slider label="Shrink" value="0" high-value="1" name="Shrink" low-value="-1" fill="true" />
+        <ui:ListView name="Solids" header-title="Solids" allow-add="false" allow-remove="false" show-foldout-header="true" />
     </ui:VisualElement>
     <ui:VisualElement name="EmitterInspector" class="inspector" style="flex-grow: 1; position: absolute; right: 0%; width: 410px; height: 100%; background-color: rgba(0, 0, 0, 0.75); display: flex;">
         <ui:Label text="Label" name="Id" class="label" />
         <ui:Vector3IntField label="Resolution" name="Resolution" value="0,0,0" />
         <ui:IntegerField label="Resolution All" value="42" name="ResolutionCommon" />
         <ui:Button text="Apply" name="Apply" style="position: absolute; bottom: 0%; left: 0; right: 0;" />
-        <ui:MinMaxSlider label="Range" value="10,12" low-limit="-10" high-limit="40" name="FrequencyRange" />
+        <ui:MinMaxSlider label="Range" value="10,12" low-limit="0" high-limit="1000" name="FrequencyRange" />
         <ui:SliderInt label="Frequency" value="42" high-value="100" name="Frequency" show-input-field="true" fill="true" />
-        <ui:Slider label="Amplitude" value="1" high-value="3" name="Amplitude" fill="true" />
-        <ui:Slider label="Phase" value="42" high-value="360" name="Phase" fill="true" />
-        <ui:Slider label="Radius" value="1" high-value="10" name="Radius" fill="true" low-value="-10" />
-        <ui:Slider label="Scale" value="1" high-value="5" name="Scale" fill="true" low-value="-5" />
+        <ui:Slider label="Amplitude" value="1" high-value="3" name="Amplitude" fill="true" show-input-field="true" />
+        <ui:Slider label="Phase" value="42" high-value="3.14" name="Phase" fill="true" />
+        <ui:Slider label="Radius" value="1" high-value="2" name="Radius" fill="true" low-value="0" show-input-field="true" />
+        <ui:Slider label="Scale" value="1" high-value="2" name="Scale" fill="true" low-value="0" show-input-field="true" />
     </ui:VisualElement>
     <ui:VisualElement name="Settings" enabled="true" class="label" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0.81); height: auto; display: flex; visibility: hidden;">
         <ui:Label text="SETTINGS" class="panel-title" />
@@ -47,5 +49,20 @@
         <ui:Button text="X" name="Close" class="panel-close-button" />
         <ui:TextField label="File name" name="NameField" />
         <ui:Button text="Save" name="Save" style="background-color: rgb(84, 180, 120);" />
+    </ui:VisualElement>
+    <ui:VisualElement name="Handles" style="flex-grow: 1; position: absolute; top: auto; right: auto; left: 0; bottom: 0;">
+        <ui:Button text="Move" name="Move" />
+        <ui:Button text="Scale" name="Scale" />
+        <ui:Button text="Reset Scale" name="ResetScale" />
+        <ui:Button text="Reset Position" name="ResetPosition" />
+    </ui:VisualElement>
+    <ui:VisualElement name="SolidInspector" class="inspector" style="flex-grow: 1; position: absolute; right: 0%; width: 410px; height: 100%; background-color: rgba(0, 0, 0, 0.75); display: flex;">
+        <ui:Label text="Label" name="Id" class="label" />
+        <ui:Slider label="Scale" value="1" high-value="3" name="Scale" fill="true" show-input-field="true" low-value="-3" />
+        <ui:DropdownField label="Type" name="Type" />
+        <ui:DropdownField label="Operation" name="Operation" />
+        <ui:Slider label="Feather" value="1" high-value="0.5" name="Feather" fill="true" show-input-field="true" low-value="0" />
+        <ui:Slider label="Exp" value="1" high-value="0.5" name="Exp" fill="true" show-input-field="true" low-value="0" />
+        <ui:Slider label="Lerp" value="1" high-value="3" name="Lerp" fill="true" show-input-field="true" low-value="-3" />
     </ui:VisualElement>
 </ui:UXML>

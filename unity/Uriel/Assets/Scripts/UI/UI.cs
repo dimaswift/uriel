@@ -19,7 +19,7 @@ namespace Uriel.UI
         [SerializeField]  private Studio studio;
         
         private static UI instance;
-
+        
         private ProgressBar progressBar;
         private Button exportButton;
         private SettingsPanel settings;
@@ -28,6 +28,8 @@ namespace Uriel.UI
         private EmitterInspector emitterInspector;
         private CameraControls cameraControls;
         private VolumeStudio volumeStudio;
+        private HandlesUI handlesUI;
+        private SolidInspector solidInspector;
         
         public static UI Instance
         {
@@ -61,18 +63,21 @@ namespace Uriel.UI
             volumeInspector = new VolumeInspector(document, studio);
             cameraControls = new CameraControls(document);
             emitterInspector = new EmitterInspector(document, studio);
+            handlesUI = new HandlesUI(document, studio);
+            solidInspector = new SolidInspector(document, studio);
             
             stateManager.Hide();
             settings.Hide();
             volumeInspector.Close();
             emitterInspector.Close();
+            solidInspector.Close();
 
             volumeStudio = studio.GetComponent<VolumeStudio>();
             volumeStudio.OnExportFinished += OnExportFinished;
             volumeStudio.OnExportStarted += OnExportStarted;
             volumeStudio.OnExportProgressChanged += OnExportProgressChanged;
             
-            studio.Mover.AddBlocker(() => IsPointerOver);
+            studio.MoveHandle.AddBlocker(() => IsPointerOver);
             studio.Selector.AddBlocker(() => IsPointerOver);
             
             document.rootVisualElement.RegisterCallback<PointerEnterEvent>(_ =>
@@ -80,7 +85,7 @@ namespace Uriel.UI
                 IsPointerOver = true;
                 OnPointerEnterUI();
             });
-            document.rootVisualElement.RegisterCallback<PointerLeaveEvent>(_ =>
+            document.rootVisualElement.RegisterCallback<PointerLeaveEvent>(evt =>
             {
                 IsPointerOver = false;
                 OnPointerExitUI();
@@ -93,6 +98,7 @@ namespace Uriel.UI
         {
             volumeInspector.HandleSelection<Volume>();
             emitterInspector.HandleSelection<WaveEmitter>();
+            solidInspector.HandleSelection<SculptSolidBehaviour>();
         }
         
         private void OnExportProgressChanged(int progress)
@@ -122,13 +128,24 @@ namespace Uriel.UI
                 var source = new WaveEmitterSnapshot();
                 source.resolution = new Vector3Int(128, 128, 128);
                 source.saturate = true;
-                source.sources = Lattices.Tetrahedron(new WaveSource() {frequency = 10, amplitude = 1, scale = 1, radius = 1}).ToList();
-                studio.Create(source);
+                source.sources = Lattices.Matrix(new WaveSource() {frequency = 10, amplitude = 1, scale = 1, radius = 1}).ToList();
+                
+                studio.Create(source, null);
             });
             
             buttons.Q<Button>("CreateVolume").RegisterCallback<ClickEvent>(_ =>
             {
-                studio.Selector.Select(studio.CreateDefault<Volume>().ID);
+                studio.Selector.Select(studio.CreateDefault<Volume>(null).ID);
+            });
+            
+            buttons.Q<Button>("CreateSolid").RegisterCallback<ClickEvent>(_ =>
+            {
+                var selected = studio.Selector.GetSelected<Volume>();
+                foreach (var sel in selected.ToArray())
+                {
+                    studio.Selector.Select(studio.CreateDefault<SculptSolidBehaviour>(sel).ID);
+                }
+              
             });
             
             buttons.Q<Button>("Export").RegisterCallback<ClickEvent>(_ =>

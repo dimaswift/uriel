@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 227b7e2fe85b43fb99504eb464b8f21c, type: 3}
   m_Name: Adam
   m_EditorClassIdentifier: 
-  triangleBudget: 2579690
-  resolution: {x: 256, y: 256, z: 256}
   prefabs:
   - {fileID: 3754575169195737639, guid: 48230854c936e42958bac6f3633fc60d, type: 3}
   - {fileID: 2823463461322235208, guid: 78ac65718405f46aaa59d6393a787d74, type: 3}
+  - {fileID: 8759829001097783297, guid: d0a8f3a8b8b044589af0fbcecb68da7a, type: 3}

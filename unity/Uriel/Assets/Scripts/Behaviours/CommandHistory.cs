@@ -10,7 +10,7 @@ namespace Uriel.Behaviours
         void Undo();
     }
 
-    public class CommandHistory
+    public class CommandHistory : MonoBehaviour
     {
         private readonly Stack<ICommand> undoStack = new ();
         private readonly Stack<ICommand> redoStack = new ();

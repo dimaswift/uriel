@@ -7,6 +7,7 @@ namespace Uriel.Commands
     public interface ISnapshot
     {
         string ID { get; set; }
+        string ParentID { get; set; }
         string TargetType { get; }
     }
     

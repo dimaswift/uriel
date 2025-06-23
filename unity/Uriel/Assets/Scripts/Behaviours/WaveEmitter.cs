@@ -9,7 +9,7 @@ namespace Uriel.Behaviours
     public class WaveEmitter : MonoBehaviour, IMovable, IModifiable
     {
         public ISnapshot Current => snapshot;
-        public Vector3 position
+        public Vector3 Position
         {
             get
             {
@@ -30,18 +30,20 @@ namespace Uriel.Behaviours
             }
             set
             {
-                selectionGizmo?.SetSelected(value);
+                gizmo.SetState(value ? SelectableState.Selected : SelectableState.None);
                 selected = value;
             }
         }
         public Bounds Bounds => new(transform.position, Vector3.one * 0.1f);
+
+
         public int LastHash => lastSourcesHash;
         public RenderTexture Field => generator.Field;
         
         [SerializeField] private bool runInUpdate;
         [SerializeField] private bool initOnAwake;
         [SerializeField] private ComputeShader compute;
-        [SerializeField] private SelectionGizmo selectionGizmo;
+     
         [SerializeField] private WaveEmitterSnapshot snapshot = new() {id = Id.Short};
         
         private FieldGenerator generator;
@@ -51,15 +53,23 @@ namespace Uriel.Behaviours
         private bool selected;
 
         private Vector3Int currentResolution;
+
+        private SelectableGizmo gizmo;
         
         private void Awake()
         {
+            gizmo = GetComponentInChildren<SelectableGizmo>();
             if (!initOnAwake)
             {
                 return;
             }
             
             Restore(snapshot);
+        }
+        
+        public void SetState(SelectableState state)
+        {
+            gizmo?.SetState(state);
         }
 
         private void Update()

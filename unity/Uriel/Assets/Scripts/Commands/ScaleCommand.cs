@@ -4,18 +4,18 @@ using Uriel.Behaviours;
 
 namespace Uriel.Commands
 {
-    public class MoveCommand : ICommand
+    public class ScaleCommand : ICommand
     {
-        private readonly List<IMovable> list = new();
-        private readonly List<Vector3> oldPositions = new();
-        private readonly List<Vector3> newPositions = new();
+        private readonly List<IScalable> list = new();
+        private readonly List<Vector3> oldScales = new();
+        private readonly List<Vector3> newScales = new();
         
-        public MoveCommand(IEnumerable<IMovable> movables)
+        public ScaleCommand(IEnumerable<IScalable> movables)
         {
             list.AddRange(movables);
             foreach (var movable in list)
             {
-                oldPositions.Add(movable.Position);
+                oldScales.Add(movable.Scale);
             }
         }
         
@@ -23,7 +23,7 @@ namespace Uriel.Commands
         {
             for (int i = 0; i < list.Count; i++)
             {
-                list[i].Position = newPositions[i];
+                list[i].Scale = newScales[i];
             }
         }
 
@@ -31,16 +31,16 @@ namespace Uriel.Commands
         {
             for (int i = 0; i < list.Count; i++)
             {
-                list[i].Position = oldPositions[i];
+                list[i].Scale = oldScales[i];
             }
         }
 
         public void SaveModified()
         {
-            newPositions.Clear();
+            newScales.Clear();
             foreach (var movable in list)
             {
-                newPositions.Add(movable.Position);
+                newScales.Add(movable.Scale);
             }
         }
     }

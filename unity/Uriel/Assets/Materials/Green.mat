@@ -20,13 +20,12 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Normal
+  m_Name: Green
   m_Shader: {fileID: 4800000, guid: 7a760ce946ff84a8ea9f28c7f340a28f, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
-  m_InvalidKeywords:
-  - _CLEARCOAT
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
@@ -129,8 +128,8 @@ Material:
     - _BlendOp: 0
     - _BumpScale: 1
     - _ClearCoat: 1
-    - _ClearCoatMask: 0.325
-    - _ClearCoatSmoothness: 0.235
+    - _ClearCoatMask: 1
+    - _ClearCoatSmoothness: 0.843
     - _ColorScale: 3.39
     - _ColorShape: 4
     - _Cull: 0
@@ -158,8 +157,10 @@ Material:
     - _GradientMultiplier: 1.46
     - _GradientStart: 3.82
     - _GradientThreshold: 1
+    - _GridSize: 10
     - _Harmonics: 1
     - _Iterations: 0
+    - _LineThickness: 0.05
     - _Max: 3
     - _MaxColor: 0.086
     - _MaxDisplacement: -1.1
@@ -205,7 +206,7 @@ Material:
     - _Shell: 34.9
     - _Shininess: 85
     - _Sign: 1
-    - _Smoothness: 0.448
+    - _Smoothness: 0.547
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SpecularMultiplier: 3.94
@@ -239,14 +240,16 @@ Material:
     - _Z: 2
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.5377358, g: 0.5377358, b: 0.5377358, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _BackgroundColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _BaseColor: {r: 0, g: 1, b: 0.11084986, a: 1}
+    - _Color: {r: 0, g: 1, b: 0.110849835, a: 1}
     - _ColorPos: {r: 0.15, g: 1.58, b: 0.25, a: 0.92}
     - _Color_0: {r: 0.2971698, g: 0.5244031, b: 1, a: 1}
     - _Color_1: {r: 0.5147662, g: 0, b: 1, a: 1}
     - _Color_2: {r: 0, g: 1, b: 0.5188298, a: 1}
     - _Color_3: {r: 0, g: 1, b: 0.5890684, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _GridColor: {r: 1, g: 1, b: 1, a: 1}
     - _Light: {r: 1, g: 1, b: 1, a: 1}
     - _LightColor: {r: 1, g: 1, b: 1, a: 1}
     - _LightSource: {r: 0, g: 1.933, b: 0.904, a: 0}

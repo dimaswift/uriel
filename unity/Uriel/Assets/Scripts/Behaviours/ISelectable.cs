@@ -7,5 +7,6 @@ namespace Uriel.Behaviours
         string ID { get; }
         bool Selected { get; set; }
         Bounds Bounds { get; }
+        void SetState(SelectableState state);
     }
 }
