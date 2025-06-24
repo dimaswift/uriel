@@ -67,11 +67,11 @@ namespace Uriel.UI
         
         private void SetupUI()
         {
-            budgetField = RegisterField<IntegerField, int>("Budget");
-            shellField = RegisterField<Slider, float>("Shell");
-            flipNormalsToggle = RegisterField<Toggle, bool>("FlipNormals");
-            invertTrianglesToggle = RegisterField<Toggle, bool>("InvertTriangles");
-            shrinkField = RegisterField<Slider, float>("Shrink");
+            budgetField = RegisterField<IntegerField, int>("Budget", false, false);
+            shellField = RegisterField<Slider, float>("Shell", true, true);
+            flipNormalsToggle = RegisterField<Toggle, bool>("FlipNormals", false, true);
+            invertTrianglesToggle = RegisterField<Toggle, bool>("InvertTriangles", false, true);
+            shrinkField = RegisterField<Slider, float>("Shrink", true, true);
             solidList = Root.Q<ListView>("Solids");
             solidList.itemsSource = solidBuffer;
             solidList.selectionType = SelectionType.Single;

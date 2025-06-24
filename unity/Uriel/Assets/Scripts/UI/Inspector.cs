@@ -1,10 +1,19 @@
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UIElements;
 using Uriel.Behaviours;
 using Uriel.Commands;
 
 namespace Uriel.UI
 {
+    [Flags]
+    public enum PointerEventType
+    {
+        BeginEdit = 1,
+        Editing = 2,
+        EndEdit = 4
+    }
     public class Inspector<TSnapshot> where TSnapshot : class, ISnapshot
     {
         private readonly List<IModifiable> modifiables = new();
@@ -16,6 +25,7 @@ namespace Uriel.UI
         private Button applyButton;
 
         public bool IsOpen => Root.visible;
+        private readonly Dictionary<BindableElement, bool> valueTracker = new();
 
         protected bool IsModified
         {
@@ -32,7 +42,7 @@ namespace Uriel.UI
 
         protected bool modified;
         
-        private void OnValueChanged<T>(ChangeEvent<T> _, bool immediate)
+        private void OnValueChanged<T>(ChangeEvent<T> _, bool immediate, PointerEventType type)
         {
             if (applyButton != null && !immediate)
             {
@@ -41,23 +51,45 @@ namespace Uriel.UI
             }
             else
             {
-                ApplyChanges();
+                ApplyChanges(type);
             }
         }
         
-        public T RegisterField<T, T1>(string name, bool immediate = true) where T :  BaseField<T1>
+        public T RegisterField<T, T1>(string name, bool continuous, bool immediate) where T :  BaseField<T1>
         {
             var field = Root.Q<T>(name);
-            ListenToField(field, immediate);
+            ListenToField(field,  immediate, continuous);
             return field;
         }
 
-        public void ListenToField<T>(BaseField<T> field, bool immediate)
+        public void ListenToField<T>(BaseField<T> field, bool immediate, bool continuous)
         {
-            field?.RegisterValueChangedCallback(evt =>
+            if (continuous)
             {
-                OnValueChanged(evt, immediate);
-            });
+                field?.RegisterCallback<PointerCaptureEvent>(_ =>
+                {
+                    OnValueChanged(new ChangeEvent<T>(), immediate, PointerEventType.BeginEdit);
+                });
+                field?.RegisterCallback<PointerCaptureOutEvent>(_ =>
+                {
+                    OnValueChanged(new ChangeEvent<T>(), immediate, PointerEventType.EndEdit);
+                });
+                field?.RegisterCallback<FocusOutEvent>(_ =>
+                {
+                    OnValueChanged(new ChangeEvent<T>(), immediate, PointerEventType.EndEdit);
+                });
+                field?.RegisterValueChangedCallback(evt =>
+                {
+                    OnValueChanged(evt, immediate, PointerEventType.Editing);
+                });
+            }
+            else
+            {
+                field?.RegisterValueChangedCallback(evt =>
+                {
+                    OnValueChanged(evt, immediate, PointerEventType.BeginEdit | PointerEventType.EndEdit | PointerEventType.Editing);
+                });
+            }
         }
         
         public void HandleSelection<T>() where T : class, IModifiable
@@ -87,12 +119,31 @@ namespace Uriel.UI
         protected virtual void OnShow() {}
         protected virtual void OnHide() {}
         
-        protected void ApplyChanges()
+        protected void ApplyChanges(PointerEventType eventType)
         {
-            command = new ModifyCommand<TSnapshot>(Studio, modifiables);
-            OnApplyChanges();
-            command.ApplyModifications(modifiables);
-            Studio.CommandHistory.ExecuteCommand(command);
+            if (eventType.HasFlag(PointerEventType.BeginEdit) && command == null)
+            {
+                command = new ModifyCommand<TSnapshot>(Studio, modifiables);
+            }
+
+            if (eventType.HasFlag(PointerEventType.Editing) && command == null)
+            {
+                command = new ModifyCommand<TSnapshot>(Studio, modifiables);
+            }
+            
+            if (command != null)
+            {
+                OnApplyChanges();
+            }
+           
+            if (eventType.HasFlag(PointerEventType.EndEdit) && command != null)
+            {
+                if (command.ApplyModifications(modifiables))
+                {
+                    Studio.CommandHistory.ExecuteCommand(command);
+                }
+                command = null;
+            }
         }
         
         protected virtual void OnClearUI() {}
@@ -167,7 +218,7 @@ namespace Uriel.UI
             {
                 if (IsModified)
                 {
-                    ApplyChanges();
+                    ApplyChanges(PointerEventType.BeginEdit | PointerEventType.EndEdit);
                     IsModified = false;
                 }
             });

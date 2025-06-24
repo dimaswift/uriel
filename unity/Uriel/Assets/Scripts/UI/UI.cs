@@ -11,7 +11,18 @@ namespace Uriel.UI
 {
     public class UI : MonoBehaviour
     {
-        public bool IsPointerOver { get; private set; }
+        public bool IsPointerOver
+        {
+            get
+            {
+                if (pointerInside)
+                {
+                    return true;
+                }
+
+                return document.runtimePanel.focusController.focusedElement != null;
+            }
+        }
         public event Action OnPointerEnterUI = () => { }; 
         public event Action OnPointerExitUI = () => { }; 
         
@@ -30,6 +41,7 @@ namespace Uriel.UI
         private VolumeStudio volumeStudio;
         private HandlesUI handlesUI;
         private SolidInspector solidInspector;
+        private bool pointerInside;
         
         public static UI Instance
         {
@@ -82,12 +94,12 @@ namespace Uriel.UI
             
             document.rootVisualElement.RegisterCallback<PointerEnterEvent>(_ =>
             {
-                IsPointerOver = true;
+                pointerInside = true;
                 OnPointerEnterUI();
             });
             document.rootVisualElement.RegisterCallback<PointerLeaveEvent>(evt =>
             {
-                IsPointerOver = false;
+                pointerInside = false;
                 OnPointerExitUI();
             });
 
@@ -128,8 +140,6 @@ namespace Uriel.UI
                 var source = new WaveEmitterSnapshot();
                 source.resolution = new Vector3Int(128, 128, 128);
                 source.saturate = true;
-                source.sources = Lattices.Matrix(new WaveSource() {frequency = 10, amplitude = 1, scale = 1, radius = 1}).ToList();
-                
                 studio.Create(source, null);
             });
             

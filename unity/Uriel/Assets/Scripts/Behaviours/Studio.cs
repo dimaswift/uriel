@@ -151,7 +151,7 @@ namespace Uriel.Behaviours
                 DeleteSelected();
             }
             
-            if (Input.GetKey(KeyCode.LeftCommand) && Input.GetKeyDown(KeyCode.D))
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.D))
             {
                 DuplicateSelected();
             }

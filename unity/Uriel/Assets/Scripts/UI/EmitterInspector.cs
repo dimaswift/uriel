@@ -19,12 +19,12 @@ namespace Uriel.UI
         
         public EmitterInspector(UIDocument ui, Studio studio) : base("Emitter", studio, ui)
         {
-            resolutionField = RegisterField<Vector3IntField, Vector3Int>("Resolution", false);
-            frequencyField = RegisterField<SliderInt, int>("Frequency", true);
-            amplitudeField = RegisterField<Slider, float>("Amplitude", true);
-            phaseField = RegisterField<Slider, float>("Phase", true);
-            radiusField = RegisterField<Slider, float>("Radius", true);
-            scaleField = RegisterField<Slider, float>("Scale", true);
+            resolutionField = RegisterField<Vector3IntField, Vector3Int>("Resolution", false, false);
+            frequencyField = RegisterField<SliderInt, int>("Frequency", true, true);
+            amplitudeField = RegisterField<Slider, float>("Amplitude", true, true);
+            phaseField = RegisterField<Slider, float>("Phase", true, true);
+            radiusField = RegisterField<Slider, float>("Radius", true, true);
+            scaleField = RegisterField<Slider, float>("Scale", true, true);
             
             commonResolutionField = Root.Q<IntegerField>("ResolutionCommon");
             

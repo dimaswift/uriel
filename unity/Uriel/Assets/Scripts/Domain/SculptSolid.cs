@@ -83,5 +83,15 @@ namespace Uriel.Domain
             set => parentId = value;
         }
         public string TargetType => nameof(SculptSolidBehaviour);
+        public bool ValueEquals(ISnapshot s)
+        {
+            if (s is not SculptSolidSnapshot snapshot)
+            {
+                return false;
+            }
+
+            return snapshot.position == position && snapshot.id == id && snapshot.scale == scale &&
+                   snapshot.rotation == rotation && snapshot.parentId == parentId && snapshot.solid.Equals(solid);
+        }
     }
 }

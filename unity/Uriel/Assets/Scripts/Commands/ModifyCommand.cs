@@ -9,6 +9,7 @@ namespace Uriel.Commands
         string ID { get; set; }
         string ParentID { get; set; }
         string TargetType { get; }
+        bool ValueEquals(ISnapshot snapshot);
     }
     
     public interface IModifiable : ISelectable
@@ -33,17 +34,26 @@ namespace Uriel.Commands
             }
         }
 
-        public void ApplyModifications(IReadOnlyList<IModifiable> modifiables)
+        public bool ApplyModifications(IReadOnlyList<IModifiable> modifiables)
         {
             if (modifiables.Count != newStates.Length)
             {
                 Debug.LogError($"States amount mismatch");
-                return;
+                return false;
             }
+
+            bool changed = false;
             for (int i = 0; i < modifiables.Count; i++)
             {
-                newStates[i] = modifiables[i].CreateSnapshot() as T;
+                var newState = modifiables[i].CreateSnapshot() as T;
+                newStates[i] = newState;
+                if (newState != null && !newState.ValueEquals(oldStates[i]))
+                {
+                    changed = true;
+                }
             }
+
+            return changed;
         }
         
         public override void Execute()

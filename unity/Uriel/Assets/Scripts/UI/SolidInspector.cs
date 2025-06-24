@@ -18,12 +18,12 @@ namespace Uriel.UI
         
         public SolidInspector(UIDocument ui, Studio studio) : base("Solid", studio, ui)
         {
-            typeField = RegisterField<DropdownField, string>("Type", true);
-            scaleField = RegisterField<Slider, float>("Scale", true);
-            lerpField = RegisterField<Slider, float>("Lerp", true);
-            expField = RegisterField<Slider, float>("Exp", true);
-            featherField = RegisterField<Slider, float>("Feather", true);
-            operationField = RegisterField<DropdownField, string>("Operation", true);
+            typeField = RegisterField<DropdownField, string>("Type", false, true);
+            scaleField = RegisterField<Slider, float>("Scale", true, true);
+            lerpField = RegisterField<Slider, float>("Lerp", true, true);
+            expField = RegisterField<Slider, float>("Exp", true, true);
+            featherField = RegisterField<Slider, float>("Feather", true, true);
+            operationField = RegisterField<DropdownField, string>("Operation", false, true);
             operationField.choices = Enum.GetNames(typeof(SculptOperation)).ToList();
             typeField.choices = Enum.GetNames(typeof(SculptSolidType)).ToList();
         }

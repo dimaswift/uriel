@@ -17,6 +17,17 @@ namespace Uriel.Domain
 
         public string ParentID { get; set; }
         public string TargetType => nameof(Volume);
+        public bool ValueEquals(ISnapshot snapshot)
+        {
+            if (snapshot is not VolumeSnapshot s)
+            {
+                return false;
+            }
+
+            return s.id == id && s.scale == scale && s.position == position && s.rotation == rotation &&
+                   s.marchingCubes.Equals(marchingCubes);
+        }
+
         public MarchingCubesConfig marchingCubes = MarchingCubesConfig.Default;
         public string id;
         public Vector3 position;
@@ -29,6 +40,17 @@ namespace Uriel.Domain
     {
         public string ParentID { get; set; }
         public string TargetType => nameof(WaveEmitter);
+        public bool ValueEquals(ISnapshot snapshot)
+        {
+            if (snapshot is not WaveEmitterSnapshot s)
+            {
+                return false;
+            }
+
+            var hash = s.CalculateHash();
+            return hash == CalculateHash();
+        }
+
         public string ID
         {
             get => id;
@@ -46,7 +68,7 @@ namespace Uriel.Domain
             {
                 h += source.GetHashCode();
             }
-
+            h += resolution.GetHashCode();
             h += saturate.GetHashCode();
             return h;
         } 

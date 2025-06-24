@@ -26,6 +26,22 @@ namespace Uriel.Behaviours
             shell = 0.1f,
             budget = 10000
         };
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public bool Equals(MarchingCubesConfig other)
+        {
+            return budget == other.budget && shell.Equals(other.shell) && flipNormals == other.flipNormals
+                   && invertTriangles == other.invertTriangles && shrink.Equals(other.shrink);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(budget, shell, flipNormals, invertTriangles, shrink);
+        }
     }
     
     public class MarchingCubes : System.IDisposable

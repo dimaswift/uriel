@@ -17,11 +17,12 @@
     <ui:VisualElement name="VolumeInspector" class="inspector" style="flex-grow: 1; position: absolute; right: 0%; width: 410px; height: 100%; background-color: rgba(0, 0, 0, 0.75);">
         <ui:Label text="Label" name="Id" class="label" />
         <ui:IntegerField label="Budget" value="42" name="Budget" />
-        <ui:Slider label="Shell" value="0.1" high-value="1" name="Shell" />
+        <ui:Slider label="Shell" value="0.1" high-value="1" name="Shell" show-input-field="true" />
         <ui:Toggle label="Flip Normals" name="FlipNormals" />
         <ui:Toggle label="Invert Triangles" name="InvertTriangles" />
-        <ui:Slider label="Shrink" value="0" high-value="1" name="Shrink" low-value="-1" fill="true" />
+        <ui:Slider label="Shrink" value="0" high-value="1" name="Shrink" low-value="-1" fill="true" show-input-field="true" />
         <ui:ListView name="Solids" header-title="Solids" allow-add="false" allow-remove="false" show-foldout-header="true" />
+        <ui:Button text="Apply" name="Apply" style="position: absolute; bottom: 0%; left: 0; right: 0;" />
     </ui:VisualElement>
     <ui:VisualElement name="EmitterInspector" class="inspector" style="flex-grow: 1; position: absolute; right: 0%; width: 410px; height: 100%; background-color: rgba(0, 0, 0, 0.75); display: flex;">
         <ui:Label text="Label" name="Id" class="label" />
@@ -30,9 +31,9 @@
         <ui:Button text="Apply" name="Apply" style="position: absolute; bottom: 0%; left: 0; right: 0;" />
         <ui:MinMaxSlider label="Range" value="10,12" low-limit="0" high-limit="1000" name="FrequencyRange" />
         <ui:SliderInt label="Frequency" value="42" high-value="100" name="Frequency" show-input-field="true" fill="true" />
-        <ui:Slider label="Amplitude" value="1" high-value="3" name="Amplitude" fill="true" show-input-field="true" />
+        <ui:Slider label="Amplitude" value="1" high-value="10" name="Amplitude" fill="true" show-input-field="true" />
         <ui:Slider label="Phase" value="42" high-value="3.14" name="Phase" fill="true" />
-        <ui:Slider label="Radius" value="1" high-value="2" name="Radius" fill="true" low-value="0" show-input-field="true" />
+        <ui:Slider label="Radius" value="1" high-value="0.2" name="Radius" fill="true" low-value="0" show-input-field="true" />
         <ui:Slider label="Scale" value="1" high-value="2" name="Scale" fill="true" low-value="0" show-input-field="true" />
     </ui:VisualElement>
     <ui:VisualElement name="Settings" enabled="true" class="label" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0.81); height: auto; display: flex; visibility: hidden;">
